@@ -8,12 +8,12 @@
     ".NETCoreApp,Version=v9.0": {
       "donativos/1.0.0": {
         "dependencies": {
-          "EPPlus": "8.3.0",
+          "EPPlus": "8.4.0",
           "Microsoft.Build": "18.0.2",
           "Microsoft.Data.SqlClient": "6.1.3",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "9.0.0",
           "Newtonsoft.Json": "13.0.4",
-          "RestSharp": "112.1.0",
+          "RestSharp": "113.0.0",
           "System.Data.SqlClient": "4.9.0"
         },
         "runtime": {
@@ -46,9 +46,9 @@
           }
         }
       },
-      "EPPlus/8.3.0": {
+      "EPPlus/8.4.0": {
         "dependencies": {
-          "EPPlus.Interfaces": "8.1.0",
+          "EPPlus.Interfaces": "8.4.0",
           "Microsoft.Extensions.Configuration.Json": "9.0.3",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
           "System.Security.Cryptography.Pkcs": "9.0.4",
@@ -56,16 +56,16 @@
         },
         "runtime": {
           "lib/net9.0/EPPlus.dll": {
-            "assemblyVersion": "8.3.0.0",
-            "fileVersion": "8.3.0.0"
+            "assemblyVersion": "8.4.0.0",
+            "fileVersion": "8.4.0.0"
           }
         }
       },
-      "EPPlus.Interfaces/8.1.0": {
+      "EPPlus.Interfaces/8.4.0": {
         "runtime": {
           "lib/net9.0/EPPlus.Interfaces.dll": {
-            "assemblyVersion": "8.1.0.0",
-            "fileVersion": "8.1.0.0"
+            "assemblyVersion": "8.4.0.0",
+            "fileVersion": "8.4.0.0"
           }
         }
       },
@@ -1766,11 +1766,11 @@
           }
         }
       },
-      "RestSharp/112.1.0": {
+      "RestSharp/113.0.0": {
         "runtime": {
-          "lib/net8.0/RestSharp.dll": {
-            "assemblyVersion": "112.1.0.0",
-            "fileVersion": "112.1.0.0"
+          "lib/net9.0/RestSharp.dll": {
+            "assemblyVersion": "113.0.0.0",
+            "fileVersion": "113.0.0.0"
           }
         }
       },
@@ -2026,19 +2026,19 @@
       "path": "azure.identity/1.14.2",
       "hashPath": "azure.identity.1.14.2.nupkg.sha512"
     },
-    "EPPlus/8.3.0": {
+    "EPPlus/8.4.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-VqYgf2ocaQOaz2LP92tCQkLClCHC27RJxPwc6RSdV/+fl0eUAz3/lX1nQm5czsJpKoFnTuYP3Ejs77RmYxSf4Q==",
-      "path": "epplus/8.3.0",
-      "hashPath": "epplus.8.3.0.nupkg.sha512"
+      "sha512": "sha512-0iZvj43+xgJUuAsbxiGeKF/ZydUSjzUidK2w9SX8wOBf5z2j5cKctxp7EsCzArimLys/cqrwSaj90B6eU6FFkw==",
+      "path": "epplus/8.4.0",
+      "hashPath": "epplus.8.4.0.nupkg.sha512"
     },
-    "EPPlus.Interfaces/8.1.0": {
+    "EPPlus.Interfaces/8.4.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Nfc7ehsn8Sb8Ed8KYYuOxqt8gWqmy2Vhts5nfLMw3zISi+aZFwyW+k9s3FOpVuW91VDSrhVAId9brYtz9NnmKA==",
-      "path": "epplus.interfaces/8.1.0",
-      "hashPath": "epplus.interfaces.8.1.0.nupkg.sha512"
+      "sha512": "sha512-QaEzDFG2vcQMPqUmoWv0vBTObtH8hffQmyDr2WkqRYF/nFSn2pkdBB4vudcd/EIv0N8M3P1fzzkPQgEWsFnUmA==",
+      "path": "epplus.interfaces/8.4.0",
+      "hashPath": "epplus.interfaces.8.4.0.nupkg.sha512"
     },
     "Humanizer/2.14.1": {
       "type": "package",
@@ -2824,12 +2824,12 @@
       "path": "nuget.versioning/6.11.0",
       "hashPath": "nuget.versioning.6.11.0.nupkg.sha512"
     },
-    "RestSharp/112.1.0": {
+    "RestSharp/113.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-bOUGNZqhhv/QeCXHTKEUil846yBjwWXpzPKjO67kFvaAOoF361z7jLY5BMnuZ6WD2WQRA750sNMcK7MSPCQ5Mg==",
-      "path": "restsharp/112.1.0",
-      "hashPath": "restsharp.112.1.0.nupkg.sha512"
+      "sha512": "sha512-ijR2XOerzv8+rzHbC1pSkf5pEWw3JiqgtvJkJqL5XBwuNfokTNCt0SGV0xfbQe1Ty1Oc/WyshGP+L7x+j6m/mw==",
+      "path": "restsharp/113.0.0",
+      "hashPath": "restsharp.113.0.0.nupkg.sha512"
     },
     "runtime.native.System.Data.SqlClient.sni/4.4.0": {
       "type": "package",

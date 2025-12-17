@@ -53,7 +53,7 @@
           "dependencies": {
             "EPPlus": {
               "target": "Package",
-              "version": "[8.3.0, )"
+              "version": "[8.4.0, )"
             },
             "Microsoft.AspNetCore.Session": {
               "target": "Package",
@@ -77,7 +77,7 @@
             },
             "RestSharp": {
               "target": "Package",
-              "version": "[112.1.0, )"
+              "version": "[113.0.0, )"
             },
             "System.Data.SqlClient": {
               "target": "Package",

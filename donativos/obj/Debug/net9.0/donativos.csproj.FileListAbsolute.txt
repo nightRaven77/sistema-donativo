@@ -303,8 +303,8 @@ C:\Users\erick\Documents\donativos\appDonativos\donativos\TulaV2\obj\Debug\net9.
 C:\Users\erick\Documents\donativos\appDonativos\donativos\TulaV2\obj\Debug\net9.0\ref\donativos.dll
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\appsettings.json
-C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\donativos.staticwebassets.endpoints.json
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\donativos.staticwebassets.runtime.json
+C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\donativos.staticwebassets.endpoints.json
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\donativos.exe
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\donativos.deps.json
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\bin\Debug\net9.0\donativos.runtimeconfig.json
@@ -576,7 +576,6 @@ C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\ne
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\nb33068gce-{0}-kcjtl1tsti-kcjtl1tsti.gz
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\qm0zcw7c9x-{0}-fijaqoo955-fijaqoo955.gz
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\nnvdzjcj1d-{0}-lbvopj0mfm-lbvopj0mfm.gz
-C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\ncd3ynsm2y-{0}-z5jtonw56t-z5jtonw56t.gz
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\fqms8jp7mc-{0}-wvublzrdv8-wvublzrdv8.gz
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\3wjrax3qlp-{0}-1fet1oxvw4-1fet1oxvw4.gz
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\ljrwtlrohf-{0}-tbx3a72qxv-tbx3a72qxv.gz
@@ -604,3 +603,4 @@ C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\ne
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\donativos.pdb
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\donativos.genruntimeconfig.cache
 C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\ref\donativos.dll
+C:\Users\erick\Documents\donativos\appDonativos\donativos\donativos\obj\Debug\net9.0\compressed\ncd3ynsm2y-{0}-tdj6w6qvma-tdj6w6qvma.gz
