@@ -1,0 +1,386 @@
+﻿@using donativos.Models
+@*
+	For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    var centrosAcopio = ViewBag.CentrosAcopio as List<CentroAcopio>;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="generator" content="">
+    <title>DIF Hidalgo</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/checkout/">
+
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!--[if lte IE 8]><script src="~/assets/js/ie/html5shiv.js"></script><![endif]-->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <!--[if lte IE 9]><link rel="stylesheet" href="~/assets/css/ie9.css" /><![endif]-->
+    <!--[if lte IE 8]><link rel="stylesheet" href="~/assets/css/ie8.css" /><![endif]-->
+    <style>
+        .input-icono {
+            background-image: url('~/assets/imagenes/logodif.png');
+            background-repeat: no-repeat;
+            background-position: 4px center;
+            background-size: 20px;
+            display: flex;
+            align-items: center;
+            width: 300px;
+            padding-left: 28px;
+            height: 30px;
+        }
+
+            .input-icono input {
+                width: 100%;
+                font-size: 0.9em;
+            }
+
+                .input-icono input:focus {
+                    outline: none;
+                }
+
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 960px;
+        }
+
+        div.scrollmenu {
+            overflow: auto;
+            white-space: nowrap;
+        }
+
+            div.scrollmenu a {
+                display: inline-block;
+                color: white;
+                text-align: center;
+                padding: 14px;
+                text-decoration: none;
+            }
+
+                div.scrollmenu a:hover {
+                    background-color: #777;
+                }
+    </style>
+    <script>
+        var json = new Array();
+        $(function () {
+
+            //se obtiene seleccion de busqueda de donador
+          $("#textDonador").keyup(function () {
+              if ($("#textDonador").val().length <= 0){
+                  $("#selectDonador").empty();
+                  $("#selectDonador").append('<option value="0">--SELECCIONE UNA OPCIÓN--</option>');
+              }
+              else{
+                  $.ajax({
+                type: 'GET',
+                url: '@Url.Action("donador", "Registros")',
+                dataType: 'json',
+                      data: {a : '@ViewBag.a' , text: $("#textDonador").val()},
+                      success: function (resultado) {
+                          //console.log(resultado)
+                          if (resultado === '"No se encontraron donadores"'){
+                               $("#selectDonador").empty();
+                               $("#selectDonador").append('<option value="0">--SELECCIONE UNA OPCIÓN--</option>');
+                          }
+                          else {
+                              $("#selectDonador").empty();
+                              $.each(JSON.parse(resultado), function (i, arti) {
+                                  $("#selectDonador").append('<option value="' + arti.donadorID + '">' + arti.nombre + '</option>');
+                              });
+                          }
+                }, error: function (ex) {
+                }
+            })}
+            })
+
+          $("#exportar").click(function () {
+              // antes de /Reportes/generaReporte en la publicacion se agrega el nombre del la app publicada, por ejemplo /contingencia2024/Reportes/generaReporte
+              // param trabajar localmente es sin el nombre de la publicacin
+              if (document.getElementById('listado').checked) {
+                  window.location =
+                        "generaReporte?opcion=1&fechaInicio=" +
+                      $("#txtFecInicio").val() +
+                      "&fechaFinal=" +
+                      $("#txtFecFinal").val() +
+                      "&donador=" +
+                      $("#selectDonador").val() +
+                      "&centro=" +
+                      $("#centroAcopio").val();
+              } else if (document.getElementById('totales').checked) {
+                  window.location =
+                        "generaReporte?opcion=2&fechaInicio=" +
+                      $("#txtFecInicio").val() +
+                      "&fechaFinal=" +
+                      $("#txtFecFinal").val() +
+                      "&donador=" +
+                        $("#selectDonador").val() +
+                        "&centro=" +
+                        $("#centroAcopio").val();
+              } else if (document.getElementById('donadores').checked) {
+                  window.location =
+                        "generaReporte?opcion=3&fechaInicio=" +
+                      $("#txtFecInicio").val() +
+                      "&fechaFinal=" +
+                      $("#txtFecFinal").val() +
+                      "&donador=" +
+                        $("#selectDonador").val() +
+                        "&centro=" +
+                        $("#centroAcopio").val();
+              }else if (document.getElementById('categoria').checked) {
+                  window.location =
+                        "generaReporte?opcion=4&fechaInicio=" +
+                      $("#txtFecInicio").val() +
+                      "&fechaFinal=" +
+                      $("#txtFecFinal").val() +
+                      "&donador=" +
+                        $("#selectDonador").val() +
+                        "&centro=" +
+                        $("#centroAcopio").val();
+              }
+              else if (document.getElementById('fecha').checked) {
+                  window.location =
+                        "generaReporte?opcion=5&fechaInicio=" +
+                      $("#txtFecInicio").val() +
+                      "&fechaFinal=" +
+                      $("#txtFecFinal").val() +
+                      "&donador=" +
+                        $("#selectDonador").val() +
+                        "&centro=" +
+                        $("#centroAcopio").val();
+              }
+              else if (document.getElementById('centro').checked) {
+                  window.location =
+                        "generaReporte?opcion=6&fechaInicio=" +
+                      $("#txtFecInicio").val() +
+                      "&fechaFinal=" +
+                      $("#txtFecFinal").val() +
+                      "&donador=" +
+                        $("#selectDonador").val() +
+                        "&centro=" +
+                        $("#centroAcopio").val();
+              }
+            //   else if (document.getElementById('mensajeCategorias').checked){
+            //     $.ajax({
+            //     type: 'GET',
+            //     url: '@Url.Action("generaMensaje", "Reportes")',
+            //     dataType: 'json',
+            //           data: {opcion: 7, fechaInicio: $("#txtFecInicio").val(), fechaFinal: $("#txtFecFinal").val(), donador:  $("#selectDonador").val(), centro: $("#centroAcopio").val() },
+            //           success: function (resultado) {
+            //               //console.log(resultado)
+            //               if (resultado === '""'){
+
+            //               }
+            //               else {
+                             
+            //                       swal("Mensaje", resultado,"info");
+            //               }
+            //     }, error: function (ex) {
+            //     }
+            // })
+
+            //   }
+              else if (document.getElementById('mensajeDonadores').checked){
+                $.ajax({
+                type: 'GET',
+                url: '@Url.Action("generaMensaje", "Reportes")',
+                dataType: 'json',
+                      data: {opcion: 8, fechaInicio: $("#txtFecInicio").val(), fechaFinal: $("#txtFecFinal").val(), donador:  $("#selectDonador").val(), centro: $("#centroAcopio").val() },
+                      success: function (resultado) {
+                          //console.log(resultado)
+                          if (resultado === '""'){
+
+                          }
+                          else {
+
+                                  swal("Mensaje", resultado,"info");
+                          }
+                }, error: function (ex) {
+                }
+            })
+
+              }
+              else {
+                  swal("Error", "Por favor selecciona un tipo de Reporte", "error");
+              }
+
+          });
+        });
+
+
+        $(document).ready(function () {
+            json = JSON.parse(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.json)))
+
+            //Se muestra listado general de donadores
+            var Don = JSON.parse(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Don)))
+            $("#selectDonador").empty();
+            $("#selectDonador").append('<option value="">--SIN ESPECIFICAR--</option>');
+
+            $.each(Don, function (i, arti) {
+                $("#selectDonador").append('<option value="' + arti.donadorID + '">' + arti.nombre + '</option>');
+            });
+
+
+        })
+
+    </script>
+
+
+    <!-- Custom styles for this template -->
+    <link href="form-validation.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container">  
+        <main>
+            <div class="py-3 text-center">
+                <img class="d-block mx-auto mb-4" src="~/assets/imagenes/logodif.png" alt="" width="200" height="">
+                @* <h2>Registro de donaciones</h2>
+				<h4>
+					Emergencia en Tula de Allende
+				</h4> *@
+            </div>
+            <div class="py-1 text-center">
+                <h2>Consulta de Reportes</h2>
+
+            </div>
+            <div class="py-1 text-end">
+                <input type="button" name="name" value="Regresar" onclick="location.href='@Url.Action("Regresar", "Reportes")'" />
+            </div>
+
+            <hr style="padding: 10px;" />
+
+            <div class="form-group">
+                <div class="input-froup w-100">
+                    <label for="listado">*<b>Tipo de Reporte</b></label>
+                    <div>
+                        <input type="radio" id="listado" name="formato" value="listado">
+                        <label for="listado">Listado</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="totales" name="formato" value="totales">
+                        <label for="totales">Totales</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="donadores" name="formato" value="donadores">
+                        <label for="donadores">Donadores</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="categoria" name="formato" value="categoria">
+                        <label for="categoria">Donador y Categoria</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="fecha" name="formato" value="fecha">
+                        <label for="fecha">Fecha y Categoria</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="centro" name="formato" value="centro">
+                        <label for="centro">Centro de Acopio y Categoria</label>
+                    </div>
+                    @* <div>
+                        <input type="radio" id="mensajeCategorias" name="formato" value="mensajeCategorias">
+                        <label for="mensajeCategorias">Mensaje de Categorias</label>
+                    </div> *@
+                    <div>
+                        <input type="radio" id="mensajeDonadores" name="formato" value="mensajeDonadores">
+                        <label for="mensajeDonadores">Mensaje de Donadores</label>
+                    </div>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="textDonador"><b title="Es el nombre de quien lleva la mercancía al centro de acopio.">Donador (persona, empresa o institución)</b>: <i></i></label>
+                    <div class="input-group w-100">
+                        <span class="input-group-text" id="basic-addon1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Buscar donador" value="" autocomplete="off" id="textDonador">
+                    </div>
+                    <select class="form-control" id="selectDonador">
+                        <option>--SELECCIONE UNA OPCIÓN--</option>
+                    </select>
+                </div>
+
+                <div class="col-6">
+                    <label> <b> Centro de Acopio:  </b></label>
+                    <div class="input-group w-100">
+                        <select id="centroAcopio" name="centroAcopio" class="form-control">
+                            @if (centrosAcopio != null && centrosAcopio.Count > 0)
+                            {
+                                <option value="">--SIN ESPECIFICAR--</option>
+                                foreach (var centro in centrosAcopio)
+                                {
+                                    <option value="@centro.CentroID">@centro.centroAcopio</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">No hay centros de acopio disponibles</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="FechaInicio"><b>Fecha de Inicio</b>:</label>
+                    <div class="input-group w-100">
+                        <span class="input-group-text" id="basic-addon1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                            </svg>
+                        </span>
+                        <input type="date" class="form-control" id="txtFecInicio" placeholder="Fecha Inicio" value="" autocomplete="off">
+                    </div>
+                </div>
+                <div class="col">
+                    <label for="FechaFinal"><b>Fecha de Final</b>:</label>
+                    <div class="input-group w-100">
+                        <span class="input-group-text" id="basic-addon1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                            </svg>
+                        </span>
+                        <input type="date" class="form-control" id="txtFecFinal" placeholder="Fecha Final" value="" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+
+            <hr class="my-4">
+            <button class="w-100 btn btn-primary btn-lg" id="exportar">Exportar Información</button>
+        </main>
+        <footer class="my-5 pt-5 text-muted text-center text-small">
+            <p class="mb-1">Sistema DIF Hidalgo</p>
+
+        </footer>
+    </div>
+
+
+    <script src="~/assets/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="form-validation.js"></script>
+</body>
+</html>

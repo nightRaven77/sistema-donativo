@@ -1,0 +1,977 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="generator" content="">
+    <title>DIF Hidalgo</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/checkout/">
+
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!--[if lte IE 8]><script src="~/assets/js/ie/html5shiv.js"></script><![endif]-->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <!--[if lte IE 9]><link rel="stylesheet" href="~/assets/css/ie9.css" /><![endif]-->
+    <!--[if lte IE 8]><link rel="stylesheet" href="~/assets/css/ie8.css" /><![endif]-->
+
+    <style>
+        .input-icono {
+            background-image: url('~/assets/imagenes/logodif.png');
+            background-repeat: no-repeat;
+            background-position: 4px center;
+            background-size: 20px;
+            display: flex;
+            align-items: center;
+            width: 300px;
+            padding-left: 28px;
+            height: 30px;
+        }
+
+            .input-icono input {
+                width: 100%;
+                font-size: 0.9em;
+            }
+
+                .input-icono input:focus {
+                    outline: none;
+                }
+
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 960px;
+        }
+
+        div.scrollmenu {
+            overflow: auto;
+            white-space: nowrap;
+        }
+
+            div.scrollmenu a {
+                display: inline-block;
+                color: white;
+                text-align: center;
+                padding: 14px;
+                text-decoration: none;
+            }
+
+                div.scrollmenu a:hover {
+                    background-color: #777;
+                }
+
+    </style>
+
+    <script>
+        var orden = 'ASC';
+        var json = new Array();
+        var llave = '';
+        var folio = 0;
+        $(function () {
+                    $("#guardar").click(function () {
+          if (
+            $("#textCantidad").val() !== "" &&
+            $("#textCantidadPza").val() !== "" &&
+            $("#selectArticulo").val() !== "" &&
+            $("#selectDonador").val() !== "" &&
+            $("#selectUnidadMedida").val() !== ""
+          ) {
+            $("#guardar").prop("disabled", true);
+            event.preventDefault();
+            if (folio !== 0) {
+              $.ajax({
+                type: "GET",
+                url: '@Url.Action("actualizarRegistro", "Registros")',
+                dataType: "json",
+                data: {
+                  id: folio,
+                  a: "@ViewBag.a",
+                  don: $("#selectDonador").val(),
+                  art: $("#selectArticulo").val(),
+                  uni: $("#selectUnidadMedida").val(),
+                  cant: $("#textCantidad").val(),
+                  lt: $("#textLitroPieza").val(),
+                  kg: $("#textKiloPieza").val(),
+                  cantArt: $("#textCantidadPza").val(),
+                  obs: $("#textObs").val(),
+                  tel: $("#textTelefono").val(),
+                  cor: $("#textCorreo").val(),
+                },
+                success: function (arti) {
+                  $("#guardar").prop("disabled", false);
+                  registros();
+                  $("#textObs").val("");
+                  $("#textCantidad").val("");
+                  $("#textKiloPieza").val("");
+                  $("#textLitroPieza").val("");
+                  $("#textUnidadMedida").val("");
+                  $("#textCantidadPza").val("");
+                  $("#textArticulo").val("");
+                  folio = 0;
+                  alert("La información se guardó correctamente");
+
+                  $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("articulos", "Registros")',
+                    dataType: "json",
+                    data: { text: "", a: "@ViewBag.a" },
+                    success: function (resultado) {
+                      console.log(resultado);
+                      if (resultado === '"No se encontraron artículos"') {
+                      } else {
+                        $("#selectArticulo").empty();
+                        $("#selectArticulo").append(
+                          '<option value="">--SIN ESPECIFICAR--</option>'
+                        );
+                        $.each(JSON.parse(resultado), function (i, arti) {
+                          $("#selectArticulo").append(
+                            '<option value="' +
+                              arti.articuloID +
+                              '">' +
+                              arti.nombre +
+                              "</option>"
+                          );
+                        });
+                      }
+                    },
+                    error: function (ex) {},
+                  });
+
+                  $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("unidadMedida", "Registros")',
+                    dataType: "json",
+                    data: { text: $("#textUnidadMedida").val(), a: "@ViewBag.a" },
+                    success: function (resultado) {
+                      console.log(resultado);
+                      if (resultado === '"No se encontraron unidades de medida"') {
+                      } else {
+                        $("#selectUnidadMedida").empty();
+                        $("#selectUnidadMedida").append(
+                          '<option value="">--SIN ESPECIFICAR--</option>'
+                        );
+                        $.each(JSON.parse(resultado), function (i, arti) {
+                          $("#selectUnidadMedida").append(
+                            '<option value="' +
+                              arti.unidadMedidaID +
+                              '">' +
+                              arti.nombre +
+                              "</option>"
+                          );
+                        });
+                      }
+                    },
+                    error: function (ex) {},
+                  });
+                },
+                error: function (ex) {},
+              });
+            } else {
+              $.ajax({
+                type: "GET",
+                url: '@Url.Action("agregarRegistro", "Registros")',
+                dataType: "json",
+                data: {
+                  don: $("#selectDonador").val(),
+                  a: "@ViewBag.a",
+                  art: $("#selectArticulo").val(),
+                  uni: $("#selectUnidadMedida").val(),
+                  cant: $("#textCantidad").val(),
+                  lt: $("#textLitroPieza").val(),
+                  kg: $("#textKiloPieza").val(),
+                  cantArt: $("#textCantidadPza").val(),
+                  obs: $("#textObs").val(),
+                  tel: $("#textTelefono").val(),
+                  cor: $("#textCorreo").val(),
+                },
+                success: function (arti) {
+                  $("#guardar").prop("disabled", false);
+                  registros();
+                  $("#textObs").val("");
+                  $("#textCantidad").val("");
+                  $("#textKiloPieza").val("");
+                  $("#textLitroPieza").val("");
+                  $("#textUnidadMedida").val("");
+                  $("#textCantidadPza").val("");
+                  $("#textArticulo").val("");
+                  alert("La información se guardó correctamente");
+
+                  $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("articulos", "Registros")',
+                    dataType: "json",
+                    data: { text: "", a: "@ViewBag.a" },
+                    success: function (resultado) {
+                      console.log(resultado);
+                      if (resultado === '"No se encontraron artículos"') {
+                      } else {
+                        $("#selectArticulo").empty();
+                        $("#selectArticulo").append(
+                          '<option value="">--SIN ESPECIFICAR--</option>'
+                        );
+                        $.each(JSON.parse(resultado), function (i, arti) {
+                          $("#selectArticulo").append(
+                            '<option value="' +
+                              arti.articuloID +
+                              '">' +
+                              arti.nombre +
+                              "</option>"
+                          );
+                        });
+                      }
+                    },
+                    error: function (ex) {},
+                  });
+
+                  $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("unidadMedida", "Registros")',
+                    dataType: "json",
+                    data: { text: $("#textUnidadMedida").val(), a: "@ViewBag.a" },
+                    success: function (resultado) {
+                      console.log(resultado);
+                      if (resultado === '"No se encontraron unidades de medida"') {
+                      } else {
+                        $("#selectUnidadMedida").empty();
+                        $("#selectUnidadMedida").append(
+                          '<option value="">--SIN ESPECIFICAR--</option>'
+                        );
+                        $.each(JSON.parse(resultado), function (i, arti) {
+                          $("#selectUnidadMedida").append(
+                            '<option value="' +
+                              arti.unidadMedidaID +
+                              '">' +
+                              arti.nombre +
+                              "</option>"
+                          );
+                        });
+                      }
+                    },
+                    error: function (ex) {},
+                  });
+                },
+                error: function (ex) {},
+              });
+            }
+          } else if (
+            $("#textTelefono").val() !== "" &&
+            $("#textTelefono").val().length !== 10
+          ) {
+            event.preventDefault();
+            alert("el numero de telefono debe ser a 10 dígitos");
+          }
+
+          $("html,body").animate({ scrollTop: 0 }, 500);
+        });
+
+
+            $("#textArticulo").keyup(function () {
+                  $.ajax({
+                type: 'GET',
+                url: '@Url.Action("articulos", "Registros")',
+                dataType: 'json',
+                      data: { text: $("#textArticulo").val(), a : '@ViewBag.a'},
+                      success: function (resultado) {
+                          console.log(resultado)
+                          if (resultado === '"No se encontraron artículos"')
+                          { }
+                          else {
+                              $("#selectArticulo").empty();
+                              $.each(JSON.parse(resultado), function (i, arti) {
+                                  $("#selectArticulo").append('<option value="' + arti.articuloID + '">' + arti.nombre + '</option>');
+                              });
+                          }
+                }, error: function (ex) {
+                }
+            })
+            })
+            $("#textDonador").keyup(function () {
+                  $.ajax({
+                type: 'GET',
+                url: '@Url.Action("donador", "Registros")',
+                dataType: 'json',
+                      data: { text: $("#textDonador").val(), a : '@ViewBag.a'},
+                      success: function (resultado) {
+                          console.log(resultado)
+                          if (resultado === '"No se encontraron donadores"')
+                          { }
+                          else {
+                              $("#selectDonador").empty();
+                              $.each(JSON.parse(resultado), function (i, arti) {
+                                  $("#selectDonador").append('<option value="' + arti.donadorID + '">' + arti.nombre + '</option>');
+                              }                              );
+                              telefono($('#selectDonador').val());
+                          }
+                }, error: function (ex) {
+                }
+            })
+            })
+            $("#textUnidadMedida").keyup(function () {
+                  $.ajax({
+                type: 'GET',
+                url: '@Url.Action("unidadMedida", "Registros")',
+                dataType: 'json',
+                      data: { text: $("#textUnidadMedida").val(), a : '@ViewBag.a'},
+                      success: function (resultado) {
+                          console.log(resultado)
+                          if (resultado === '"No se encontraron unidades de medida"')
+                          { }
+                          else {
+                              $("#selectUnidadMedida").empty();
+                              $.each(JSON.parse(resultado), function (i, arti) {
+                                  $("#selectUnidadMedida").append('<option value="' + arti.unidadMedidaID + '">' + arti.nombre + '</option>');
+                              });
+                          }
+                }, error: function (ex) {
+                }
+            })
+            })
+
+        })
+        $(document).ready(function () {
+            json = JSON.parse(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.json)))
+            var Art = JSON.parse(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Art)))
+            $("#selectArticulo").empty();
+            $("#selectArticulo").append('<option value="">--SIN ESPECIFICAR--</option>');
+
+            $.each(Art, function (i, arti) {
+                $("#selectArticulo").append('<option value="' + arti.articuloID + '">' + arti.nombre + '</option>');
+            });
+            var Don = JSON.parse(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Don)))
+            $("#selectDonador").empty();
+            $("#selectDonador").append('<option value="">--SIN ESPECIFICAR--</option>');
+
+            $.each(Don, function (i, arti) {
+                $("#selectDonador").append('<option value="' + arti.donadorID + '">' + arti.nombre + '</option>');
+            });
+            var Med = JSON.parse(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Med)))
+            $("#selectUnidadMedida").empty();
+            $("#selectUnidadMedida").append('<option value="">--SIN ESPECIFICAR--</option>');
+
+            $.each(Med, function (i, arti) {
+                $("#selectUnidadMedida").append('<option value="' + arti.unidadMedidaID + '">' + arti.nombre + '</option>');
+            });
+            console.log(json)
+            $.each($("#registro>thead>tr>th"), function (a) {
+                $("#registro>thead>tr>th")[a].style.backgroundColor = 'white'
+            })
+            var d = '';
+            var array2 = new Array()
+            var cantidad = 0
+            for (var i = 0; i < json.length; i += 10) {
+                cantidad += 1
+                array2.push(cantidad)
+            }
+            var cantidad2 = json.length
+            var cantidad3 = json.length
+            if (cantidad3 > 10)
+                cantidad3 = 10
+            $("#registro > tbody").empty()
+            $("#paginacion").empty()
+            for (var i = 0; i < cantidad3; i++) {
+                if (json[i].sincronizado === false) {
+                    d += '<tr>' +
+                        '<td> <input type="button" onclick="modificar(' + json[i].folio + ')" value="Modificar"/></td>' +
+                        '<td> <input type="button" onclick="eliminar(' + json[i].folio + ')" value="Eliminar"/></td>' +
+                        '<td>' + json[i].folio + '</td>' +
+                        '<td>' + new Date(json[i].fecha).toLocaleDateString("en-GB") + '</td>' +
+                        '<td>' + json[i].donador + '</td>' +
+                        '<td>' + json[i].articulo + '</td>' +
+                        '<td>' + json[i].unidadMedida + '</td>' +
+                        '<td>' + json[i].cantidad + '</td>' +
+                        '<td>' + json[i].kiloPorPieza + '</td>' +
+                        '<td>' + json[i].litroPorPieza + '</td></tr>'
+                }
+            }
+            var e = ''
+            if (cantidad2 > 10) {
+                for (var i = 0; i < array2.length; i++) {
+                    e += "<td id='paginacion'><input id='pag" + array2[i] + "' value='" + array2[i] + "' onclick='cambiarPagina(" + array2[i] + ")' type='button'/></td>"
+                }
+            }
+            $("#paginacion").append(e)
+            $("#registro > tbody").append(d)
+        })
+        function eliminar(id) {
+            var respuesta = confirm("Esta seguro de eliminar el registro")
+
+            if (respuesta) {
+                  $.ajax({
+                type: 'GET',
+                url: '@Url.Action("eliminar", "Registros")',
+                dataType: 'json',
+                      data: { id: id, a : '@ViewBag.a'},
+                      success: function (resultado) {
+                          console.log(resultado)
+                          registros()
+                          alert("se elimino el registro seleccionado")
+
+                }, error: function (ex) {
+                }
+            })
+            }
+            else
+                alert("No se elimino el registro seleccionado");
+        }
+        function modificar(id) {
+            folio = id
+             $.ajax({
+                type: 'GET',
+                url: '@Url.Action("RegistroE", "Registros")',
+                 dataType: 'json',
+                 data: { id:id, a : '@ViewBag.a' },
+                 success: function (arti) {
+                     $("#selectDonador").val(JSON.parse(arti).donadorID)
+                     $("#selectArticulo").val(JSON.parse(arti).articuloID)
+                     $("#selectUnidadMedida").val(JSON.parse(arti).unidadMedidaID)
+                     $("#textCantidad").val(JSON.parse(arti).cantidad)
+                     $("#textLitroPieza").val(JSON.parse(arti).litroPorPieza)
+                     $("#textKiloPieza").val(JSON.parse(arti).kiloPorPieza)
+                     $("#textCantidadPza").val(JSON.parse(arti).cantidadPorArticulo)
+                     $("#textObs").val(JSON.parse(arti).observacion)
+                     console.log(JSON.parse(arti))
+                     $("html,body").animate({ scrollTop:0 },500)
+
+                }, error: function (ex) {
+                }
+            })
+        }
+        function cambiarPagina(p) {
+            $("#registro > tbody").empty();
+            var cantidad = p * 10
+            var d = '';
+            if (json.length < cantidad)
+                cantidad = json.length
+            var cantidad2 = 0
+            var array2 = new Array()
+            for (var i = 0; i < json.length; i += 10) {
+                cantidad2 += 1
+                array2.push(cantidad2)
+            }
+
+            for (var i = p * 10 - 10; i < cantidad; i++) {
+                if (json[i].sincronizado === false) {
+                    d += '<tr>' +
+                        '<td> <input type="button" onclick="modificar(' + json[i].folio + ')" value="Modificar"/></td>' +
+                        '<td> <input type="button" onclick="eliminar(' + json[i].folio + ')" value="Eliminar"/></td>' +
+                        '<td>' + json[i].folio + '</td>' +
+                        '<td>' + new Date(json[i].fecha).toLocaleDateString("en-GB") + '</td>' +
+                        '<td>' + json[i].donador + '</td>' +
+                        '<td>' + json[i].articulo + '</td>' +
+                        '<td>' + json[i].unidadMedida + '</td>' +
+                        '<td>' + json[i].cantidad + '</td>' +
+                        '<td>' + json[i].kiloPorPieza + '</td>' +
+                        '<td>' + json[i].litroPorPieza + '</td></tr>'
+                }
+            }
+
+            $("#registro > tbody").append(d)
+        }
+        function ordenarAsc(p_array_json, p_key) {
+            p_array_json.sort(function (a, b) {
+                return a[p_key] > b[p_key] ? 1 : a[p_key] < b[p_key] ? -1 : 0;
+            });
+            llave = p_key
+            orden = 'ASC'
+            $.each($("#registro>thead>tr>th"), function (a) {
+                $("#registro>thead>tr>th")[a].style.backgroundColor = 'white'
+            })
+            $("#registro>thead>tr>th[id='" + p_key + "']").css('background-color', 'lightpink')
+            cambiarPagina(1)
+        }
+        function ordenarDesc(p_array_json, p_key) {
+            ordenarAsc(p_array_json, p_key); p_array_json.reverse();
+            orden = 'DESC'
+            cambiarPagina(1)
+        }
+        function agregarArticulo() {
+                $.ajax({
+                type: 'GET',
+                url: '@Url.Action("agregarArticulos", "Registros")',
+                dataType: 'json',
+                      data: { text: $("#textArticulo").val(), a : '@ViewBag.a'},
+                      success: function (arti) {
+                          console.log(JSON.parse(arti))
+                          $("#selectArticulo").append('<option value="' + JSON.parse(arti).articuloID + '">' + JSON.parse(arti).nombre + '</option>');
+                          $("#selectArticulo").val(JSON.parse(arti).articuloID);
+                          $("#selectCategoria").val(JSON.parse(arti).catgoriaID);
+                }, error: function (ex) {
+                }
+            })
+        }
+        function agregarUniMed() {
+                $.ajax({
+                type: 'GET',
+                url: '@Url.Action("agregarUniMed", "Registros")',
+                dataType: 'json',
+                    data: { text: $("#textUnidadMedida").val(), a : '@ViewBag.a'},
+                      success: function (arti) {
+                          console.log(JSON.parse(arti))
+                          $("#selectUnidadMedida").append('<option value="' + JSON.parse(arti).unidadMedidaID + '">' + JSON.parse(arti).nombre + '</option>');
+                          $("#selectUnidadMedida").val(JSON.parse(arti).unidadMedidaID)
+                }, error: function (ex) {
+                }
+            })
+        }
+         function agregarDonador() {
+            $.ajax({
+              type: 'GET',
+              url: '@Url.Action("agregarDonador", "Registros")',
+              dataType: 'json',
+              data: { text: $("#textDonador").val(), numero: $("#textTelefono").val(), correo : $("#textCorreo").val() ,tipoDonador : $("#selectTipoDonador").val(),a : '@ViewBag.a'},
+              success: function (arti) {
+                          console.log(JSON.parse(arti))
+                          $("#selectDonador").append('<option value="' + JSON.parse(arti).donadorID + '">' + JSON.parse(arti).nombre + '</option>');
+                          $("#selectDonador").val(JSON.parse(arti).donadorID)
+                          telefono($('#selectDonador').val())
+              }, error: function (ex) {
+                 }
+             })
+
+        }
+        function registros() {
+              $.ajax({
+                type: 'GET',
+                url: '@Url.Action("Registro", "Registros")',
+                  dataType: 'json',
+                  data: { a : '@ViewBag.a'},
+                      success: function (arti) {
+                          console.log(JSON.parse(arti))
+                          json = JSON.parse(arti)
+
+                          cambiarPagina(1)
+                }, error: function (ex) {
+                }
+            })
+        }
+
+        function buscarArt(text) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("BuscarArt", "Registros")',
+                dataType: 'json',
+                data: {
+                    text: text, a : '@ViewBag.a'
+                },
+                success: function (arti) {
+                    $('#textBuscarDon').val('')
+                          console.log(JSON.parse(arti))
+                          json = JSON.parse(arti)
+
+                          cambiarPagina(1)
+                }, error: function (ex) {
+                }
+            })
+        }
+
+        function buscarDon(text) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("BuscarDon", "Registros")',
+                dataType: 'json',
+                data: {
+                    text: text, a : '@ViewBag.a'
+                },
+                success: function (arti) {
+                    $('#textBuscarArt').val('')
+                          console.log(JSON.parse(arti))
+                          json = JSON.parse(arti)
+
+                          cambiarPagina(1)
+                }, error: function (ex) {
+                }
+            })
+        }
+        function calculo() {
+            $('#lblCT').text($("#textCantidad").val() + " " + $("#selectUnidadMedida").find('option:selected').text() + " de " + $('#textCantidadPza').val() + " unidades")
+        }
+        function telefono(id) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("BuscarDonE", "Registros")',
+                dataType: 'json',
+                data: {
+                    id: id, a : '@ViewBag.a'
+                },
+                success: function (arti) {
+                    console.log(arti)
+                    if (JSON.parse(arti).telefono)
+                        $("#textTelefono").val(JSON.parse(arti).telefono)
+                    else
+                        $("#textTelefono").val("")
+                    if (JSON.parse(arti).correoElectronico)
+                            $("#textCorreo").val(JSON.parse(arti).correoElectronico)
+                    else
+                        $("#textCorreo").val("")
+                    if (JSON.parse(arti).tipoDonadorID)
+                            $("#selectTipoDonador").val(JSON.parse(arti).tipoDonadorID)
+                    else
+                        $("#selectTipoDonador").val("")
+                }, error: function (ex) {
+                }
+            })
+        }
+    </script>
+
+
+    <!-- Custom styles for this template -->
+    <link href="~/form-validation.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    @* Registro de donaciones *@
+
+    <div class="container">
+        <main>
+            <div class="row">
+                <div class="py-2 text-end">
+                    <div class="btn-group">
+                        <input type="button" name="name" value="Salidas" class="btn-outline-secondary" onclick="location.href='@Url.Action("SalidasRed", "Registros")'" />
+                        <input type="button" name="name" value="Reporte" class="btn-outline-success" onclick="location.href='@Url.Action("ReportesRed", "Registros")'" />
+                        <input type="button" name="name" value="Cerrar sesión" class="btn-light" onclick="location.href='@Url.Action("CerrarSesion", "Registros")'" />
+                    </div>
+                </div>
+            </div>
+            <div class="py-1 text-center">
+                <img class="d-block mx-auto mb-4" src="~/assets/imagenes/logodif.png" alt="" width="200" height="">
+                <h2>Centro de Acopio :<p> @ViewBag.centro</p> </h2>
+                <h4>
+                    @* Emergencia en Tula de Allende *@
+
+                </h4>
+            </div>
+            <div class="row">
+            </div>
+            <form class="needs-validation" novalidate>
+
+                <div class="form-group">
+                    <label for="textDonador">*<b title="Es el nombre de quien lleva la mercancía al centro de acopio."> Donador (persona, empresa o institución)</b>: <i></i></label>
+                    <br />
+                    <div class="row">
+                        <div class="align-content-md-start col-6">
+                            1. Buscar donador en la lista de existencia.
+                            <div class="input-group w-100 ">
+
+                                <span class="input-group-text" id="basic-addon1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                    </svg>
+                                </span>
+                                <input type="text" class="form-control" placeholder="Buscar donador" value="" autocomplete="off" id="textDonador">
+                            </div>
+                        </div>
+
+                        <div class="align-content-md-end col-6">
+                            2.Seleccionar donador o guardar nuevo donador.
+                            <div class="row">
+                                <div class="col-6">
+
+                                    <select class="form-control" id="selectDonador" onchange="telefono($('#selectDonador').val())" required>
+                                        <option>--SELECCIONE UNA OPCIÓN--</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <button id="btnDonador" type="button" onClick="agregarDonador()" class="btn btn-secondary">Guardar donador</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="invalid-feedback">
+                        Este dato es requerido.
+                    </div>
+                </div>
+                <hr style="padding: 1px;" />
+
+
+                <div class="row">
+                    <div class="col">
+                        <label for="textTelefono"><b>Telefono</b>:</label>
+                        <input type="number" class="form-control" id="textTelefono" placeholder="Telefono" value="" min="10" maxlength="10">
+                    </div>
+
+                    <div class="col">
+                        <label for="textCorreo"><b>Correo electrónico</b>:</label>
+                        <input type="email" class="form-control" id="textCorreo" placeholder="Correo" value="">
+                    </div>
+
+                    <div class="col">
+                        <label for="selectTipoDonador"><b>Tipo Donador</b>:</label>
+                        <select class="form-control" id="selectTipoDonador">
+                            <option value="0">--SELECCIONE UNA OPCIÓN--</option>
+                            <option value="1">FAMILIAS</option>
+                            <option value="2">ESCUELAS</option>
+                            <option value="3">MUNICIPIOS</option>
+                            <option value="4">GOBIERNO</option>
+                            <option value="5">SOCIEDAD CIVIL</option>
+                            <option value="6">EMPRESAS</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <hr style="padding: 10px;" />
+
+                <div class="row">
+                    <label for="textArticulo">*<b title="Es la descripción del donativo que se entrega en el centro de acopio.">Artículo</b>:</label>
+
+                    <div class="col">
+                        1.Buscar articulo.
+                        <div class="input-group w-100">
+                            <span class="input-group-text" id="basic-addon1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" class="form-control" id="textArticulo" placeholder="Buscar artículo" value="" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col">
+                        2.Seleccionar articulo
+                        <select class="form-control" id="selectArticulo" required>
+                            <option>--SELECCIONE UNA OPCIÓN--</option>
+                            <option>Agua Embotellada de 1.5 lts gua Embotellada de 1.5 lts</option>
+                            <option>Papel Higienico</option>
+                            <option>Cobijas</option>
+                            <option>Jabón Detergente 2 Kgs</option>
+
+
+                        </select>
+
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+                    </div>
+                    <div class="col">
+                        3.Seleccionar Categoria
+                        <select class="form-control" id="selectCategoria" required>
+                            <option value="0">--SELECCIONE UNA OPCIÓN--</option>
+                            <option value="1">Alimentos y Agua potable </option>
+                            <option value="2">Artículos de Higiene Personal y Saneamiento </option>
+                            <option value="3">Medicamentos y primeros Auxilios </option>
+                            <option value="4">Artículos de Emergencia y Supervivencia </option>
+                            <option value="5">Herramientas</option>
+                            <option value="6">Material de Desinfección </option>
+                            <option value="7">Cobijas</option>
+                            <option value="8">Alimento para Mascota</option>
+                            <option value="9">Ropa</option>
+                            <option value="10">Agua potable </option>
+                            <option value="11">Alimentos</option>
+                            <option value="12">Otros</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        4.Si no existe, guardar Art.
+                        <button id="btnArticulo" type="button" class="btn btn-secondary" onclick="agregarArticulo()">Guardar artículo</button>
+                    </div>
+                </div>
+                <hr style="padding: 1px;" />
+                <div class="row">
+                    <div class="col-7">
+                        <label for="selectUnidadMedida">*<b title="Es la presentación de cómo se entrega el artículo.">Unidad de medida</b>: <i></i></label><br />
+                        <!--input type="text" class="form-control" id="textUnidadMedida" placeholder="Buscar unidad de medida" value="" required-->
+                        1.Buscar Unidad
+                        <div class="input-group w-100">
+
+                            <span class="input-group-text" id="basic-addon1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" class="form-control" id="textUnidadMedida" placeholder="Buscar unidad de medida" value="" autocomplete="off">
+                        </div>
+                        2. Seleccionar Unidad
+                        <select class="form-control" id="selectUnidadMedida" onchange="calculo()" required>
+                            <option>--SELECCIONE UNA OPCIÓN--</option>
+                            <option>Bolsa</option>
+                            <option>Bote</option>
+                            <option>Botella</option>
+                            <option>Caja</option>
+                            <option>Costal</option>
+                            <option>Dosis</option>
+                            <option>Frasco</option>
+                            <option>Kilogramos</option>
+                            <option>Litro</option>
+                            <option>Metro cuadrado</option>
+                            <option>Metro cubico</option>
+                            <option>Metro lineal</option>
+                            <option>Paquete</option>
+                            <option>Pieza</option>
+                            <option>Ración</option>
+                            <option>Tonelada</option>
+                            <option>No aplica</option>
+                        </select>
+                        3. Guardar solo si no existe.
+                        <button id="btnUniMed" onclick="agregarUniMed()" type="button" class="btn btn-secondary">Guardar unidad de medida</button>
+
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <label for="textCantidadPza">*<b title="Es la cantidad de piezas que contiene la presentación (unidad de medida) seleccionada.">Cantidad por unidad de medida</b>: <i></i></label>
+                        <br />
+                        <input type="number" class="form-control" id="textCantidadPza" placeholder="Cantidad" value="0" step="any" onkeyup="calculo()" required>
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+                    </div>
+                </div>
+                <hr style="padding: 1px;" />
+                <div class="row">
+                    <div class="col-7">
+                        <label for="textCantidad">*<b title="Es el número de elementos que conforman la unidad de medida seleccionada.">Cantidad</b>: <i></i></label>
+                        <input type="number" class="form-control" id="textCantidad" placeholder="Cantidad" value="0" step="any" onkeyup="calculo()" required>
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <br />
+                        <h2><b><label for="textArticulo" style="background-color:cornflowerblue; color:#fff" id="lblCT"></label></b></h2>
+                    </div>
+                </div>
+
+                <hr style="padding: 10px;" />
+
+                <div class="row">
+                    <div class="col-9">
+                        <label for="textKiloPieza"><b>Kilos por pieza</b>:</label>
+                        <input type="number" class="form-control" id="textKiloPieza" placeholder="Kilos" value="" step="any">
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+
+                        <label for="textLitroPieza"><b>Litros por pieza</b>:</label>
+                        <input type="number" class="form-control" id="textLitroPieza" placeholder="Litros" value="" step="any">
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col">
+
+                        <label for="textObs"><b>Observaciones</b>:</label>
+                        <input type="text" class="form-control" id="textObs" placeholder="observaciones" value="">
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+
+
+                        <div class="invalid-feedback">
+                            Este dato es requerido.
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <button class="w-100 btn btn-primary btn-lg" type="submit" id="guardar">GUARDAR INFORMACIÓN</button>
+
+            </form>
+
+
+
+            <hr style="padding: 10px; color:red" />
+
+            <div class="py-5 text-center">
+                <h2>Consulta de registros</h2>
+
+            </div>
+
+
+
+            <div class="form-group">
+                <label for="textBuscarArt">*<b>Buscar por artículo</b>:</label>
+
+                <input type="text" class="form-control" id="textBuscarArt" placeholder="Buscar por artículo" value="" onkeyup="buscarArt($('#textBuscarArt').val())">
+                <div class="invalid-feedback">
+                    Este dato es requerido.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="textBuscarDon">*<b>Buscar por donandor</b>:</label>
+
+                <input type="text" class="form-control" id="textBuscarDon" placeholder="Buscar por donador" value="" onkeyup="buscarDon($('#textBuscarDon').val())">
+                <div class="invalid-feedback">
+                    Este dato es requerido.
+                </div>
+            </div>
+
+
+
+            <div class="container" style="padding-top:50px">
+
+                <table class="table table-striped" id="registro">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th id="folio" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'folio') {ordenarDesc(json,'folio') } else {ordenarAsc(json,'folio') }">Folio</th>
+                            <th id="fecha" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'fecha') {ordenarDesc(json,'fecha') } else {ordenarAsc(json,'fecha') }">Fecha</th>
+                            <th id="donador" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'donador') {ordenarDesc(json,'donador') } else {ordenarAsc(json,'donador') }">Donador</th>
+                            <th id="articulo" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'articulo') {ordenarDesc(json,'articulo') } else {ordenarAsc(json,'articulo') }">Artículo</th>
+                            <th id="unidadMedida" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'unidadMedida') {ordenarDesc(json,'unidadMedida') } else {ordenarAsc(json,'unidadMedida') }">U. Medida</th>
+                            <th id="cantidad" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'cantidad') {ordenarDesc(json,'cantidad') } else {ordenarAsc(json,'cantidad') }">Cantidad</th>
+                            <th id="kiloPorPieza" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'kiloPorPieza') {ordenarDesc(json,'kiloPorPieza') } else {ordenarAsc(json,'kiloPorPieza') }">Kg/Pza</th>
+                            <th id="litroPorPieza" style="cursor:pointer;text-decoration:underline" onclick="if (orden === 'ASC' && llave === 'litroPorPieza') {ordenarDesc(json,'litroPorPieza') } else {ordenarAsc(json,'litroPorPieza') }">Lt/Pza</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="scrollmenu">
+                <table id="paginacion">
+                </table>
+            </div>
+
+
+
+
+        </main>
+
+        <footer class="my-5 pt-5 text-muted text-center text-small">
+            <p class="mb-1">Sistema DIF Hidalgo</p>
+            <!--
+            <ul class="list-inline">
+              <li class="list-inline-item"><a href="#">1</a></li>
+              <li class="list-inline-item"><a href="#">2</a></li>
+              <li class="list-inline-item"><a href="#">3</a></li>
+            </ul>
+            -->
+        </footer>
+    </div>
+
+
+    <script src="~/assets/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/form-validation.js"></script>
+</body>
+</html>

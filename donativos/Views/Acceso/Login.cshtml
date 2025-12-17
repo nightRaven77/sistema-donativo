@@ -1,0 +1,53 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Login</title>
+    <link href="~/assets/dist/css/login.css" rel="stylesheet" />
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
+     
+   
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+</head>
+<body>
+    <div class="wrapper fadeInDown">
+        <div id="formContent">
+            
+            <!-- Tabs Titles -->
+            <!-- Icon -->
+            <div class="fadeIn first">
+                <img class="d-block mx-auto mb-4" src="~/assets/imagenes/logodif.png" alt="" width="200" height="">
+                @* <img src="http://danielzawadzki.com/codepen/01/icon.svg" id="icon" alt="User Icon" /> *@
+                <h2>Sistema de Control de Centros de Acopio</h2>
+                <br />
+                
+            </div>
+
+            <!-- Login Form -->
+            <form action="@Url.Action("Login", "Acceso")" method="post">
+                <input type="text"  class="fadeIn second" name="usuario" placeholder="Usuario">
+                <input type="password"  class="fadeIn third" name="password" placeholder="Contraseña">
+                <input type="submit" class="fadeIn fourth" value="Log In">
+                @* <a href="@Url.Action("Index/?a=usuario01", "Registros")">aqui</a> *@
+            </form>
+
+            <!-- Remind Passowrd -->
+            <div id="formFooter">
+                @* <a class="underlineHover" href="#">Forgot Password?</a> *@
+                <h6 class="fadeIn third" >DIF Hidalgo </h6>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>
