@@ -1,0 +1,76 @@
+<div class="bg-white rounded-lg shadow-md p-8">
+    <h2 class="text-2xl font-black text-[#2d2d2d] mb-6 border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Registro de Donativos</h2>
+
+    <form id="formRegistroInicial" class="needs-validation" novalidate>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Input 1: Donador -->
+            <div class="form-group">
+                <label for="textDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                    <i class="fas fa-user" style="color:var(--dorado)"></i> <b>Donador</b> <span class="text-red-500">*</span>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textDonador" 
+                        placeholder="Nombre de la persona, empresa o institución"
+                        autocomplete="off"
+                        required>
+                </div>
+                <small class="text-stone-500 mt-1 block">Selecciona un donador existente o crea uno nuevo</small>
+            </div>
+
+            <!-- Input 2: Artículo -->
+            <div class="form-group">
+                <label for="textArticulo" class="block text-sm font-bold text-stone-700 mb-2">
+                    <i class="fas fa-box" style="color:var(--dorado)"></i> <b>Artículo</b> <span class="text-red-500">*</span>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textArticulo" 
+                        placeholder="Nombre del artículo o producto"
+                        autocomplete="off"
+                        required>
+                </div>
+                <small class="text-stone-500 mt-1 block">Selecciona un artículo existente o crea uno nuevo</small>
+            </div>
+        </div>
+
+        <!-- Botón Continuar -->
+        <div class="flex justify-end gap-3">
+            <button type="button" class="btn btn-secondary" style="background-color: var(--gris); border-color: var(--gris);">
+                <i class="fas fa-times mr-2"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-lg py-2 text-white font-bold" style="background-color: var(--guinda); border-color: var(--guinda);">
+                <i class="fas fa-arrow-right mr-2"></i> Continuar
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(() => {
+        $('#formRegistroInicial').on('submit', (e) => {
+            e.preventDefault();
+            const donador = $('#textDonador').val();
+            const articulo = $('#textArticulo').val();
+
+            if (!donador || !articulo) {
+                toastr.warning('Completa todos los campos', 'Validación');
+                return;
+            }
+
+            // Aquí irá la lógica de continuar al registro completo
+            toastr.success(`Donador: ${donador}, Artículo: ${articulo}`, 'Datos recibidos');
+            console.log({ donador, articulo });
+        });
+    });
+</script>

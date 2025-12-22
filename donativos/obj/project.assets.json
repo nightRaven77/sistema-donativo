@@ -7908,11 +7908,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\erick\\Documents\\donativos\\appDonativos\\donativos\\donativos\\donativos.csproj",
+      "projectUniqueName": "C:\\Users\\erick\\Documents\\donativos\\sistema-donativos\\donativos\\donativos.csproj",
       "projectName": "donativos",
-      "projectPath": "C:\\Users\\erick\\Documents\\donativos\\appDonativos\\donativos\\donativos\\donativos.csproj",
+      "projectPath": "C:\\Users\\erick\\Documents\\donativos\\sistema-donativos\\donativos\\donativos.csproj",
       "packagesPath": "C:\\Users\\erick\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\erick\\Documents\\donativos\\appDonativos\\donativos\\donativos\\obj\\",
+      "outputPath": "C:\\Users\\erick\\Documents\\donativos\\sistema-donativos\\donativos\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

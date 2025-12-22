@@ -1,0 +1,56 @@
+<div class="bg-white rounded-lg shadow-md p-8">
+    <div class="text-center py-12">
+        <i class="fas fa-inbox text-6xl mb-6" style="color: var(--dorado);"></i>
+        <h2 class="text-3xl font-black text-[#2d2d2d] mb-4">Bienvenido al Centro de Acopio</h2>
+        <p class="text-stone-600 text-lg max-w-2xl mx-auto">
+            Selecciona una opción del menú lateral para comenzar. Puedes registrar nuevos donativos, consultar registros existentes o acceder a reportes y análisis.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+        <!-- Card: Nuevo Registro -->
+        <div class="bg-gradient-to-br from-stone-50 to-white border-2 border-stone-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer" onclick="App.loadView(event,'registros')">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-plus-circle text-4xl" style="color: var(--guinda);"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center mb-2">Nuevo Registro</h3>
+            <p class="text-sm text-stone-600 text-center">Registra nuevos donativos en el sistema</p>
+        </div>
+
+        <!-- Card: Consulta Registros -->
+        <div class="bg-gradient-to-br from-stone-50 to-white border-2 border-stone-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer" onclick="App.loadView(event,'consulta')">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-search text-4xl" style="color: var(--dorado);"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center mb-2">Consulta Registros</h3>
+            <p class="text-sm text-stone-600 text-center">Busca y visualiza registros existentes</p>
+        </div>
+
+        <!-- Card: Salidas -->
+        <div class="bg-gradient-to-br from-stone-50 to-white border-2 border-stone-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer" onclick="App.loadView(event,'salidas')">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-arrow-up text-4xl" style="color: var(--gris);"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center mb-2">Salidas</h3>
+            <p class="text-sm text-stone-600 text-center">Registra salidas de donativos</p>
+        </div>
+
+        <!-- Card: Reportes -->
+        <div class="bg-gradient-to-br from-stone-50 to-white border-2 border-stone-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer" onclick="App.loadView(event,'reportes')">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-file-chart-line text-4xl" style="color: var(--dorado);"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center mb-2">Reportes</h3>
+            <p class="text-sm text-stone-600 text-center">Genera reportes detallados</p>
+        </div>
+
+        <!-- Card: Dashboard -->
+        <div class="bg-gradient-to-br from-stone-50 to-white border-2 border-stone-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer" onclick="App.loadView(event,'dashboard')">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-chart-line text-4xl" style="color: var(--guinda);"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center mb-2">Dashboard</h3>
+            <p class="text-sm text-stone-600 text-center">Visualiza análisis y estadísticas</p>
+        </div>
+    </div>
+</div>
