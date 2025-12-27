@@ -2,12 +2,12 @@
 {
     public class Usuario
     {
-        public int UsuarioID { get; set; }
-        public string usuario { get; set; }
+        public int userID { get; set; }
+        public string username { get; set; }
         public string password { get; set; }
-        public bool activo { get; set; }
         public string centroAcopio { get; set; }
-        public string CentroID { get; set; }
+        public string centroID { get; set; }
+        public string token { get; set; }
 
     }
 }

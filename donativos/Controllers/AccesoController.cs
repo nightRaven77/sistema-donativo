@@ -1,70 +1,58 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using donativos.Models;
+using donativos.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using System.Security.Cryptography;
-using Microsoft.Data.SqlClient;
-using System.Data;
+using Microsoft.Extensions.Logging;
 using System;
-using Newtonsoft.Json;
-using donativos.Models;
-using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 
 namespace donativos.Controllers
 {
-    public class AccesoController(IConfiguration configuration) : Controller
+    public class AccesoController : Controller
     {
-        
-        private readonly string _connectionString = configuration.GetConnectionString("donativoCn");
-        // GET: AccesoController
+        private readonly IAuthenticationService _authService;
+        private readonly ILogger<AccesoController> _logger;
+
+        // La inyección de dependencias se hace automáticamente aquí
+        public AccesoController(IAuthenticationService authService, ILogger<AccesoController> logger)
+        {
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         public ActionResult Login()
         {
             return View();
         }
 
         [HttpPost]
-        public ActionResult Login(Usuario oUsuario)
+        public async Task<ActionResult> Login(Usuario user)
         {
+            var result = await _authService.LoginAsync(user?.username, user?.password);
 
-            using (SqlConnection connection = new (_connectionString))
+            if (!result.Success)
             {
-                string sql = @"LoginUsuario";
-                try
-                {
-                    SqlCommand cmd = new SqlCommand(sql, connection);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("usuario",oUsuario.usuario);
-                    cmd.Parameters.AddWithValue("pass", oUsuario.password);
+                ViewBag.MensajeError = result.Message;
+                return View();
+            }
 
-                    connection.Open();
+            // Guardar datos en sesión
+            try
+            {
+                HttpContext.Session.SetString("usuario", result.User.username);
+                HttpContext.Session.SetString("centroAcopio", result.User.centroAcopio ?? "");
+                HttpContext.Session.SetString("CentroID", result.User.centroID ?? "0");
+                HttpContext.Session.SetString("token", result.User.token);
+                HttpContext.Session.SetInt32("userID", result.User.userID);
 
-                    oUsuario.UsuarioID = Convert.ToInt32(cmd.ExecuteScalar().ToString());
-
-                    if (oUsuario.UsuarioID != 0)
-                    {
-                        string usuario = oUsuario.usuario;
-                        HttpContext.Session.SetString("usuario", JsonConvert.SerializeObject(oUsuario.usuario));
-                        ViewBag.MensajeExito = "Login exitoso";
-                        return RedirectToAction("Index", "Registros", new { a = usuario });
-                    }
-                    else
-                    {
-                        ViewBag.MensajeError = "Usuario o contraseña incorrectos";
-                        return View();
-                    }
-
-                }
-                catch (SqlException sqlEX)
-                {
-                    ViewBag.MensajeError = "Existe un error: " + sqlEX.Message;
-                    return View();
-                }
-                catch (Exception ex)
-                {
-                    ViewBag.MensajeError = "Existe un error: " + ex.Message;
-                    return View();
-                }
-                
-           }
+                return RedirectToAction("Index", "Registros", new { a = result.User.username });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al inicializar sesión");
+                ViewBag.MensajeError = "Error al inicializar sesión";
+                return View();
+            }
         }
     }
 }

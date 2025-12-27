@@ -60,10 +60,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="usuario" class="form-label">
+                        <label for="username" class="form-label">
                             <i class="fas fa-user"></i> Usuario
                         </label>
-                        <input type="text" id="usuario" name="usuario" class="form-input" placeholder="Tu usuario" required>
+                        <input type="text" id="username" name="username" class="form-input" placeholder="Tu usuario" required>
                         <span class="input-focus-border"></span>
                     </div>
 
@@ -142,10 +142,10 @@
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const usuario = document.getElementById('usuario').value.trim();
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
 
-            if (!usuario || !password) {
+            if (!username || !password) {
                 toastr.warning('Por favor completa todos los campos', 'Campos requeridos');
                 return;
             }
