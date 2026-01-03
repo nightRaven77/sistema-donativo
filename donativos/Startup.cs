@@ -78,7 +78,6 @@ namespace donativos
             
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapControllerRoute("default", "{controller=Registros}/{action=Index}");
                 endpoints.MapControllerRoute("default", "{controller=Acceso}/{action=Login}");
             });
         }

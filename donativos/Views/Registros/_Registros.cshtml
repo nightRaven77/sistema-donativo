@@ -1,76 +1,363 @@
 <div class="bg-white rounded-lg shadow-md p-8">
     <h2 class="text-2xl font-black text-[#2d2d2d] mb-6 border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Registro de Donativos</h2>
 
-    <form id="formRegistroInicial" class="needs-validation" novalidate>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Input 1: Donador -->
-            <div class="form-group">
-                <label for="textDonador" class="block text-sm font-bold text-stone-700 mb-2">
-                    <i class="fas fa-user" style="color:var(--dorado)"></i> <b>Donador</b> <span class="text-red-500">*</span>
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textDonador" 
-                        placeholder="Nombre de la persona, empresa o institución"
-                        autocomplete="off"
-                        required>
-                </div>
-                <small class="text-stone-500 mt-1 block">Selecciona un donador existente o crea uno nuevo</small>
+    <form id="formRegistroDonativos" class="needs-validation" novalidate>
+        <!-- Input hidden para guardar el ID del donador -->
+        <input type="hidden" id="id_donador" value="">
+        
+        <!-- SECCIÓN 1: DATOS DEL DONADOR -->
+        <div id="seccionDonador" class="mb-8 pb-8 border-b-2 border-stone-200">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">1</div>
+                <h3 class="text-lg font-bold text-stone-800">Información del Donador</h3>
             </div>
 
-            <!-- Input 2: Artículo -->
-            <div class="form-group">
-                <label for="textArticulo" class="block text-sm font-bold text-stone-700 mb-2">
-                    <i class="fas fa-box" style="color:var(--dorado)"></i> <b>Artículo</b> <span class="text-red-500">*</span>
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                    </span>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Tipo Donador -->
+                <div class="form-group">
+                    <label for="selectTipoDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-tag" style="color:var(--dorado)"></i> <b>Tipo de Donador</b> <span class="text-red-500">*</span>
+                    </label>
+                    <select id="selectTipoDonador" class="form-control" required>
+                        <option value="">-- Seleccione una Opción --</option>
+                        <option value="persona">Persona</option>
+                        <option value="organizacion">Organización</option>
+                        <option value="empresa">Empresa</option>
+                        <option value="anonimo">Anónimo</option>
+                    </select>
+                    <div class="invalid-feedback">Selecciona un tipo de donador</div>
+                </div>
+
+                <!-- Nombre con Autocomplete -->
+                <div class="form-group">
+                    <label for="textNombreDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-user" style="color:var(--dorado)"></i> <b>Nombre</b> <span class="text-red-500">*</span>
+                    </label>
+                    <div class="position-relative">
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="textNombreDonador" 
+                            placeholder="Busca o crea un donador"
+                            autocomplete="off"
+                            required>
+                        <div class="invalid-feedback">El nombre es requerido</div>
+                        <!-- Lista de resultados de búsqueda -->
+                        <div id="listaDonadores" class="position-absolute w-100 bg-white border border-stone-300 rounded-lg mt-1 shadow-lg d-none" style="max-height: 300px; overflow-y: auto; z-index: 1000; top: 100%;">
+                        </div>
+                    </div>
+                    <small class="text-stone-500 mt-1 block">Comienza a escribir para buscar donadores existentes o crea uno nuevo</small>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- RFC -->
+                <div class="form-group">
+                    <label for="textRFC" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-id-card" style="color:var(--dorado)"></i> <b>RFC</b> <span class="text-red-500">*</span>
+                    </label>
                     <input 
                         type="text" 
                         class="form-control" 
-                        id="textArticulo" 
-                        placeholder="Nombre del artículo o producto"
-                        autocomplete="off"
+                        id="textRFC" 
+                        placeholder="RFC (13 o 18 caracteres)"
+                        maxlength="18"
                         required>
+                    <div class="invalid-feedback">RFC requerido y válido</div>
                 </div>
-                <small class="text-stone-500 mt-1 block">Selecciona un artículo existente o crea uno nuevo</small>
+
+                <!-- Teléfono -->
+                <div class="form-group">
+                    <label for="textTelefonoDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>Teléfono</b>
+                    </label>
+                    <input 
+                        type="tel" 
+                        class="form-control" 
+                        id="textTelefonoDonador" 
+                        placeholder="+52 (55) 1234-5678">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="textEmailDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        class="form-control" 
+                        id="textEmailDonador" 
+                        placeholder="correo@example.com"
+                        required>
+                    <div class="invalid-feedback">Email válido requerido</div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="form-group">
+                    <label for="textDireccionDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-map-marker-alt" style="color:var(--dorado)"></i> <b>Dirección</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textDireccionDonador" 
+                        placeholder="Calle y número">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Colonia -->
+                <div class="form-group">
+                    <label for="textColoniaDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-home" style="color:var(--dorado)"></i> <b>Colonia</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textColoniaDonador" 
+                        placeholder="Colonia o zona">
+                </div>
+
+                <!-- Ciudad -->
+                <div class="form-group">
+                    <label for="textCiudadDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-building" style="color:var(--dorado)"></i> <b>Ciudad</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textCiudadDonador" 
+                        placeholder="Ciudad o municipio">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Estado -->
+                <div class="form-group">
+                    <label for="textEstadoDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-flag" style="color:var(--dorado)"></i> <b>Estado</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textEstadoDonador" 
+                        placeholder="Estado o provincia">
+                </div>
+
+                <!-- Código Postal -->
+                <div class="form-group">
+                    <label for="textCodigoPostalDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-mailbox" style="color:var(--dorado)"></i> <b>Código Postal</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textCodigoPostalDonador" 
+                        placeholder="CP">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="textNotasDonador" class="block text-sm font-bold text-stone-700 mb-2">
+                    <i class="fas fa-sticky-note" style="color:var(--dorado)"></i> <b>Notas</b>
+                </label>
+                <textarea 
+                    class="form-control" 
+                    id="textNotasDonador" 
+                    rows="3" 
+                    placeholder="Notas adicionales sobre el donador"></textarea>
             </div>
         </div>
 
-        <!-- Botón Continuar -->
-        <div class="flex justify-end gap-3">
+        <!-- SECCIÓN 2: DATOS DEL CONTACTO (Condicional para Organización/Empresa) -->
+        <div id="seccionContacto" class="mb-8 pb-8 border-b-2 border-stone-200 hidden">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">2</div>
+                <h3 class="text-lg font-bold text-stone-800">Información de Contacto</h3>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Nombre Contacto -->
+                <div class="form-group">
+                    <label for="textNombreContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-user-tie" style="color:var(--dorado)"></i> <b>Nombre</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textNombreContacto" 
+                        placeholder="Nombre completo del contacto"
+                        required>
+                    <div class="invalid-feedback">El nombre es requerido</div>
+                </div>
+
+                <!-- Puesto -->
+                <div class="form-group">
+                    <label for="textPuestoContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-briefcase" style="color:var(--dorado)"></i> <b>Puesto</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textPuestoContacto" 
+                        placeholder="Cargo o puesto"
+                        required>
+                    <div class="invalid-feedback">El puesto es requerido</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Teléfono Fijo -->
+                <div class="form-group">
+                    <label for="textTelefonoContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>Teléfono Fijo</b>
+                    </label>
+                    <input 
+                        type="tel" 
+                        class="form-control" 
+                        id="textTelefonoContacto" 
+                        placeholder="+52 (55) 1234-5678">
+                </div>
+
+                <!-- Extensión -->
+                <div class="form-group">
+                    <label for="textExtensionContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-plus-square" style="color:var(--dorado)"></i> <b>Extensión</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textExtensionContacto" 
+                        placeholder="Extensión (opcional)">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Celular -->
+                <div class="form-group">
+                    <label for="textCelularContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-mobile-alt" style="color:var(--dorado)"></i> <b>Celular</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="tel" 
+                        class="form-control" 
+                        id="textCelularContacto" 
+                        placeholder="+52 (636) 246-4912"
+                        required>
+                    <div class="invalid-feedback">El celular es requerido</div>
+                </div>
+
+                <!-- Email Contacto -->
+                <div class="form-group">
+                    <label for="textEmailContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        class="form-control" 
+                        id="textEmailContacto" 
+                        placeholder="correo@example.com"
+                        required>
+                    <div class="invalid-feedback">Email válido requerido</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Horario de Contacto -->
+                <div class="form-group">
+                    <label for="textHorarioContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-clock" style="color:var(--dorado)"></i> <b>Horario de Contacto</b>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="textHorarioContacto" 
+                        placeholder="de 10 a 15 hrs.">
+                </div>
+
+                <!-- Medio Preferido -->
+                <div class="form-group">
+                    <label for="selectMedioPreferido" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-headset" style="color:var(--dorado)"></i> <b>Medio Preferido</b>
+                    </label>
+                    <select id="selectMedioPreferido" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        <option value="email">Email</option>
+                        <option value="telefono">Teléfono</option>
+                        <option value="celular">Celular</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Es Principal -->
+                <div class="form-group">
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="checkEsPrincipal">
+                        <label class="form-check-label" for="checkEsPrincipal">
+                            <b>¿Es el contacto principal?</b>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Activo -->
+                <div class="form-group">
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="checkActivoContacto"
+                            checked>
+                        <label class="form-check-label" for="checkActivoContacto">
+                            <b>Contacto activo</b>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="textNotasContacto" class="block text-sm font-bold text-stone-700 mb-2">
+                    <i class="fas fa-sticky-note" style="color:var(--dorado)"></i> <b>Notas</b>
+                </label>
+                <textarea 
+                    class="form-control" 
+                    id="textNotasContacto" 
+                    rows="3" 
+                    placeholder="Notas adicionales sobre el contacto"></textarea>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: ARTÍCULOS DONADOS -->
+        <div id="seccionArticulos" class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">3</div>
+                <h3 class="text-lg font-bold text-stone-800">Artículos Donados</h3>
+            </div>
+
+            <div id="contenedorArticulos" class="space-y-4 mb-6">
+                <!-- Los artículos se añadirán dinámicamente aquí -->
+            </div>
+
+            <button type="button" id="btnAgregarArticulo" class="btn btn-sm text-white font-bold" style="background-color: var(--dorado); border-color: var(--dorado);">
+                <i class="fas fa-plus mr-2"></i> Agregar Artículo
+            </button>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end gap-3 pt-6">
             <button type="button" class="btn btn-secondary" style="background-color: var(--gris); border-color: var(--gris);">
                 <i class="fas fa-times mr-2"></i> Cancelar
             </button>
             <button type="submit" class="btn btn-lg py-2 text-white font-bold" style="background-color: var(--guinda); border-color: var(--guinda);">
-                <i class="fas fa-arrow-right mr-2"></i> Continuar
+                <i class="fas fa-save mr-2"></i> Guardar Registro
             </button>
         </div>
     </form>
 </div>
 
-<script>
-    $(document).ready(() => {
-        $('#formRegistroInicial').on('submit', (e) => {
-            e.preventDefault();
-            const donador = $('#textDonador').val();
-            const articulo = $('#textArticulo').val();
-
-            if (!donador || !articulo) {
-                toastr.warning('Completa todos los campos', 'Validación');
-                return;
-            }
-
-            // Aquí irá la lógica de continuar al registro completo
-            toastr.success(`Donador: ${donador}, Artículo: ${articulo}`, 'Datos recibidos');
-            console.log({ donador, articulo });
-        });
-    });
-</script>
