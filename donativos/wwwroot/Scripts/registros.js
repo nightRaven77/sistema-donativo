@@ -2,6 +2,59 @@
 let numeroArticulos = 0;
 let donadorSeleccionado = null;
 
+//TODO: Ocultar el mensaje de donador no encontrado cuando no existe texto en el input
+
+// Estados disponibles para artículos
+const ESTADOS_ARTICULO = [
+    { value: 'nuevo', label: 'Nuevo' },
+    { value: 'usado_bueno', label: 'Usado - Buen estado' },
+    { value: 'usado_regular', label: 'Usado - Estado regular' },
+    { value: 'reparado', label: 'Reparado' },
+    { value: 'otro', label: 'Otro' }
+];
+
+// Tipos de donativo disponibles
+const TIPOS_DONATIVO = [
+    { value: 'especie', label: 'Especie' },
+    { value: 'efectivo', label: 'Efectivo' }
+];
+
+// Categorías disponibles
+const CATEGORIAS = [
+    { id: 1, nombre: 'AGUA' },
+    { id: 2, nombre: 'ALIMENTOS ENLATADOS' },
+    { id: 3, nombre: 'ARTÍCULOS DE HIGIENE PERSONAL Y SANEAMIENTO' },
+    { id: 4, nombre: 'ARTÍCULOS DE LIMPIEZA Y DESINFECCIÓN' },
+    { id: 5, nombre: 'ARTÍCULOS DESECHABLES EN GENERAL' },
+    { id: 6, nombre: 'ARTÍCULOS PARA BEBÉ' },
+    { id: 7, nombre: 'ARTÍCULOS PARA COCINA' },
+    { id: 8, nombre: 'ARTÍCULOS Y ALIMENTO PARA MASCOTAS' },
+    { id: 9, nombre: 'COLCHONETAS, COLCHONES, COBIJAS, ROPA DE CAMA EN GENERAL' },
+    { id: 10, nombre: 'DESPENSA ALIMENTARIA' },
+    { id: 11, nombre: 'FRUTAS Y VERDURAS FRESCAS' },
+    { id: 12, nombre: 'INSUMOS MÉDICOS' },
+    { id: 13, nombre: 'MAQUINARIA, HERRAMIENTAS Y EQUIPO DE SEGURIDAD' },
+    { id: 14, nombre: 'MEDICAMENTO' },
+    { id: 15, nombre: 'MEDICAMENTOS E INSUMO MEDICO' },
+    { id: 16, nombre: 'OTROS' },
+    { id: 17, nombre: 'PRODUCTO TERMINADO EN KIT' },
+    { id: 18, nombre: 'PRODUCTOS MISCELÁNEOS Y OTROS ARTÍCULOS' },
+    { id: 19, nombre: 'ROPA, CALZAZO Y TEXTILES' },
+    { id: 20, nombre: 'SEMILLAS, GRANOS Y ESPECIAS' },
+    { id: 21, nombre: 'SUEROS, HIDRATANTES Y ENERGIZANTES' }
+];
+
+/**
+ * Obtiene la fecha de hoy en formato YYYY-MM-DD
+ */
+function obtenerFechaHoy() {
+    const hoy = new Date();
+    const año = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const día = String(hoy.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${día}`;
+}
+
 /**
  * Inicializa el formulario de registro de donativos
  * Se ejecuta cada vez que la vista parcial se carga
@@ -25,10 +78,11 @@ function initRegistrosForm() {
 
     // Remover eventos previos para evitar duplicados
     $('#selectTipoDonador').off('change');
-    $('#textNombreDonador').off('input').off('focus').off('blur');
+    $('#textNombreDonador').off('input').off('focus');
     $('#btnAgregarArticulo').off('click');
     $(document).off('click', '.btn-eliminar-articulo').off('click', '.donador-opcion');
     $('#formRegistroDonativos').off('submit');
+    $('#btnCancelar').off('click');
 
     // Event: Cambio de tipo de donador
     $('#selectTipoDonador').on('change', function () {
@@ -68,6 +122,25 @@ function initRegistrosForm() {
         e.preventDefault();
         guardarRegistro();
     });
+
+    // Event: Botón Cancelar
+    $('#btnCancelar').on('click', function (e) {
+        e.preventDefault();
+        const form = document.getElementById('formRegistroDonativos');
+        form.reset();
+        document.getElementById('id_donador').value = '';
+        document.getElementById('seccionContacto').classList.add('hidden');
+        document.getElementById('grupoImporte').style.display = 'none';
+        document.getElementById('contenedorArticulos').innerHTML = '';
+        form.classList.remove('was-validated');
+        $('#textNombreDonador').css('background-color', '').prop('readonly', false);
+        numeroArticulos = 0;
+        donadorSeleccionado = null;
+        toastr.info('Formulario limpiado', 'Operación realizada');
+    });
+
+    // Establecer fecha de recepción a la fecha de hoy
+    $('#dateRecepcion').val(obtenerFechaHoy());
 
     // Resetear contador de artículos
     numeroArticulos = 0;
@@ -169,6 +242,100 @@ function mostrarResultadosDonadores(donadores, termino) {
 }
 
 /**
+ * Busca artículos por nombre para un artículo específico
+ */
+function buscarArticulosPorNumero(termino, numeroArticulo) {
+    const listaArticulos = $(`.lista-articulos-${numeroArticulo}`);
+
+    if (termino.length < 1) {
+        listaArticulos.addClass('d-none');
+        return;
+    }
+
+    $.ajax({
+        type: 'GET',
+        url: '/Registros/ObtenerArticulos',
+        data: { search: termino },
+        dataType: 'json',
+        success: function (articulos) {
+            console.log('Artículos recibidos:', articulos);
+            mostrarResultadosArticulosPorNumero(articulos, termino, numeroArticulo);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al buscar artículos:', error);
+            const listaArticulos = $(`.lista-articulos-${numeroArticulo}`);
+            listaArticulos.html(`
+                <div class="p-3 text-center text-stone-500">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Error al buscar artículos</p>
+                    <small>${error}</small>
+                </div>
+            `);
+            listaArticulos.removeClass('d-none');
+        }
+    });
+}
+
+/**
+ * Muestra los resultados de artículos para un número específico
+ */
+function mostrarResultadosArticulosPorNumero(articulos, termo, numeroArticulo) {
+    const listaArticulos = $(`.lista-articulos-${numeroArticulo}`);
+
+    // Validar que sea un array
+    if (!Array.isArray(articulos)) {
+        console.warn('articulos no es un array:', articulos);
+        articulos = [];
+    }
+
+    if (!articulos || articulos.length === 0) {
+        listaArticulos.html(`
+            <div class="p-3 text-center text-stone-500">
+                <i class="fas fa-inbox"></i>
+                <p>No se encontraron artículos</p>
+                <small>Podes crear uno nuevo escribiendo el nombre</small>
+            </div>
+        `);
+        listaArticulos.removeClass('d-none');
+        return;
+    }
+
+    let html = '';
+    articulos.forEach((articulo) => {
+        if (!articulo || !articulo.nombre) {
+            console.warn('Artículo sin nombre válido:', articulo);
+            return;
+        }
+
+        const articuloJSON = JSON.stringify(articulo).replace(/'/g, "&apos;");
+        const categoriaNombre = articulo.categoria?.nombre || 'N/A';
+        
+        html += `
+            <div class="articulo-opcion-${numeroArticulo} p-3 border-bottom border-stone-200 cursor-pointer hover:bg-stone-50" data-id="${articulo.id_articulo || ''}" data-articulo='${articuloJSON}'>
+                <div class="font-bold text-stone-800">${articulo.nombre}</div>
+                <small class="text-stone-500">
+                    <i class="fas fa-box"></i> ${categoriaNombre} | 
+                    <i class="fas fa-ruler"></i> ${articulo.unidad_medida || 'N/A'}
+                </small>
+            </div>
+        `;
+    });
+
+    if (html === '') {
+        listaArticulos.html(`
+            <div class="p-3 text-center text-stone-500">
+                <i class="fas fa-inbox"></i>
+                <p>Sin resultados válidos</p>
+            </div>
+        `);
+    } else {
+        listaArticulos.html(html);
+    }
+
+    listaArticulos.removeClass('d-none');
+}
+
+/**
  * Selecciona un donador de la lista y completa el formulario
  */
 function seleccionarDonador($element) {
@@ -204,8 +371,8 @@ function seleccionarDonador($element) {
         $('#listaDonadores').addClass('d-none');
 
         // Mostrar sección de contacto si es organización o empresa
-        toggleSeccionContacto(donador.tipo || '');
-
+        toggleSeccionContacto(donador.tipo || '', donador.id_donador || '');
+        
         // Mostrar indicador visual de que el donador fue seleccionado
         $('#textNombreDonador').css('background-color', '#e8f5e9').prop('readonly', true);
 
@@ -217,9 +384,118 @@ function seleccionarDonador($element) {
 }
 
 /**
+ * Busca el contacto del donador por el id del donador
+ */
+function buscarContactoDonador(idDonador) {
+    if (idDonador < 1) {
+        return;
+    }
+
+    $.ajax({
+        type: 'GET',
+        url: '/Registros/ObtenerContactos',
+        data: { id_donador: idDonador },
+        dataType: 'json',
+        success: function (contactos) {
+            console.log('Contactos recibidos:', contactos);
+            mostrarResultadosContactos(contactos, idDonador);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al buscar donadores:', error);
+
+            const listaDonadores = $('#listaDonadores');
+            listaDonadores.html(`
+                <div class="p-3 text-center text-stone-500">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Error al buscar donadores</p>
+                    <small>${error}</small>
+                </div>
+            `);
+            listaDonadores.removeClass('d-none');
+        }
+    });
+}
+
+function mostrarResultadosContactos(contactosJson, termino) {
+    try {
+        const contacto = JSON.parse(contactosJson);
+        if (!contacto.id_contacto) {
+            toastr.warning('El contacto no tiene un ID válido', 'Validación');
+            return;
+        }
+        console.log('Contacto seleccionado con ID:', contacto.id_contacto);
+
+        $('#textNombreContacto').val(contacto.nombre || '');
+        $('#textPuestoContacto').val(contacto.puesto || '');
+        $('#textTelefonoContacto').val(contacto.telefono || '');
+        $('#textExtensionContacto').val(contacto.extension || '');
+        $('#textCelularContacto').val(contacto.celular || '');
+        $('#textEmailContacto').val(contacto.email || '');
+        $('#textHorarioContacto').val(contacto.horario_contacto || '');
+        $('#selectMedioPreferido').val(contacto.medio_preferido || '');
+        $('#checkEsPrincipal').val(contacto.es_principal || '');
+        $('#checkActivoContacto').val(contacto.activo || '');
+        $('#textNotasContacto').val(contacto.notas || '');
+        toastr.success(`✓ Contacto "${contacto.nombre}" seleccionado correctamente`, 'Éxito');
+    } catch (error) {
+        console.error('Error al seleccionar donador:', error);
+        toastr.error('Error al seleccionar donador', 'Error');
+    }
+}
+
+/**
+ * Selecciona un artículo en el contenedor especificado
+ */
+function seleccionarArticuloEnContenedor($element, numeroArticulo) {
+    try {
+        const articulo = JSON.parse($element.attr('data-articulo'));
+
+        if (!articulo.id_articulo) {
+            toastr.warning('El artículo no tiene un ID válido', 'Validación');
+            return;
+        }
+
+        console.log('Artículo seleccionado:', articulo);
+        console.log('Categoría:', articulo.categoria);
+        console.log('Unidad de medida:', articulo.unidad_medida);
+
+        const $contenedor = $(`[data-articulo="${numeroArticulo}"]`);
+
+        // Llenar campos del artículo
+        $contenedor.find('.input-articulo-nombre').val(articulo.nombre || '').prop('readonly', true).css('background-color', '#e8f5e9');
+        $contenedor.find('.input-articulo-descripcion').val(articulo.descripcion || '');
+        
+        // Llenar la unidad de medida
+        if (articulo.unidad_medida) {
+            $contenedor.find('.input-articulo-unidad').val(articulo.unidad_medida);
+            console.log('Unidad de medida establecida a:', articulo.unidad_medida);
+        }
+        
+        // Llenar la categoría - buscar por nombre en el objeto anidado
+        if (articulo.categoria && articulo.categoria.nombre) {
+            const nombreCategoria = articulo.categoria.nombre;
+            $contenedor.find('.input-articulo-categoria-select').val(nombreCategoria);
+            console.log('Categoría establecida a:', nombreCategoria);
+        }
+
+        // Guardar el ID del artículo
+        $contenedor.data('id_articulo', articulo.id_articulo);
+
+        // Ocultar lista
+        $(`.lista-articulos-${numeroArticulo}`).addClass('d-none');
+
+        toastr.success(`✓ Artículo "${articulo.nombre}" seleccionado`, 'Éxito');
+    } catch (error) {
+        console.error('Error al seleccionar artículo:', error);
+        console.error('Data completo:', $element.attr('data-articulo'));
+        toastr.error('Error al seleccionar artículo', 'Error');
+    }
+}
+
+/**
  * Muestra u oculta la sección de contacto según el tipo de donador
  */
-function toggleSeccionContacto(tipo) {
+function toggleSeccionContacto(tipo, id_donador) {
     const seccionContacto = $('#seccionContacto');
 
     console.log('Tipo de donador seleccionado:', tipo);
@@ -235,6 +511,8 @@ function toggleSeccionContacto(tipo) {
         $('#textPuestoContacto').prop('required', true);
         $('#textCelularContacto').prop('required', true);
         $('#textEmailContacto').prop('required', true);
+
+        buscarContactoDonador(id_donador);
     } else {
         console.log('Ocultando sección de contacto');
 
@@ -268,14 +546,52 @@ function agregarArticulo(numero) {
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- Campo de búsqueda/nombre del artículo -->
+            <div class="form-group mb-4">
+                <label class="block text-sm font-bold text-stone-700 mb-2">
+                    <i class="fas fa-box" style="color:var(--dorado)"></i> <b>Nombre del Artículo</b> <span class="text-red-500">*</span>
+                </label>
+                <div class="position-relative">
+                    <input 
+                        type="text" 
+                        class="form-control input-articulo-nombre" 
+                        placeholder="Busca o crea un artículo"
+                        autocomplete="off"
+                        required>
+                    <div class="invalid-feedback">El nombre del artículo es requerido</div>
+                    <!-- Lista de resultados de búsqueda de artículos -->
+                    <div class="lista-articulos-${numero} position-absolute w-100 bg-white border border-stone-300 rounded-lg mt-1 shadow-lg d-none" style="max-height: 300px; overflow-y: auto; z-index: 1000; top: 100%;">
+                    </div>
+                </div>
+                <small class="text-stone-500 mt-1 block">Comienza a escribir para buscar artículos existentes o crea uno nuevo</small>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 <div class="form-group">
                     <label class="block text-sm font-bold text-stone-700 mb-2">
-                        Nombre del Artículo <span class="text-red-500">*</span>
+                        <i class="fas fa-folder" style="color:var(--dorado)"></i> <b>Categoría</b> <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" class="form-control input-articulo-nombre" placeholder="Nombre del artículo" required>
-                    <div class="invalid-feedback">El nombre del artículo es requerido</div>
+                    <select class="form-control input-articulo-categoria-select" required>
+                        <option value="">-- Seleccione una Categoría --</option>
+                        ${CATEGORIAS.map(cat => `<option value="${cat.nombre}">${cat.nombre}</option>`).join('')}
+                    </select>
+                    <div class="invalid-feedback">Selecciona una categoría</div>
                 </div>
+
+                <div class="form-group">
+                    <label class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-check-circle" style="color:var(--dorado)"></i> <b>Estado del Artículo</b> <span class="text-red-500">*</span>
+                    </label>
+                    <select class="form-control input-articulo-estado" required>
+                        <option value="">-- Seleccione Estado --</option>
+                        ${ESTADOS_ARTICULO.map(estado => `<option value="${estado.value}">${estado.label}</option>`).join('')}
+                    </select>
+                    <div class="invalid-feedback">Selecciona un estado</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 <div class="form-group">
                     <label class="block text-sm font-bold text-stone-700 mb-2">
                         Cantidad <span class="text-red-500">*</span>
@@ -283,8 +599,7 @@ function agregarArticulo(numero) {
                     <input type="number" class="form-control input-articulo-cantidad" min="1" placeholder="0" required>
                     <div class="invalid-feedback">La cantidad es requerida</div>
                 </div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
                 <div class="form-group">
                     <label class="block text-sm font-bold text-stone-700 mb-2">
                         Unidad de Medida <span class="text-red-500">*</span>
@@ -296,16 +611,19 @@ function agregarArticulo(numero) {
                         <option value="litros">Litros</option>
                         <option value="metros">Metros</option>
                         <option value="cajas">Cajas</option>
+                        <option value="otros">Otros</option>
                     </select>
                     <div class="invalid-feedback">Selecciona una unidad de medida</div>
                 </div>
-                <div class="form-group">
-                    <label class="block text-sm font-bold text-stone-700 mb-2">
-                        Valor Unitario
-                    </label>
-                    <input type="number" class="form-control input-articulo-valor" min="0" step="0.01" placeholder="0.00">
-                </div>
             </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-stone-700 mb-2">
+                    Valor Unitario
+                </label>
+                <input type="number" class="form-control input-articulo-valor" min="0" step="0.01" placeholder="0.00">
+            </div>
+
             <div class="form-group">
                 <label class="block text-sm font-bold text-stone-700 mb-2">
                     Descripción/Notas
@@ -316,6 +634,33 @@ function agregarArticulo(numero) {
     `;
 
     $('#contenedorArticulos').append(articuloHtml);
+
+    // Vinculación de eventos para el nuevo artículo
+    const $nuevoArticulo = $(`[data-articulo="${numero}"]`);
+    
+    $nuevoArticulo.find('.input-articulo-nombre').on('input', function () {
+        buscarArticulosPorNumero($(this).val(), numero);
+    }).on('focus', function () {
+        if ($(this).val().length > 0) {
+            buscarArticulosPorNumero($(this).val(), numero);
+        }
+    });
+
+    // Evento para cambio de categoría manual
+    $nuevoArticulo.find('.input-articulo-categoria-select').on('change', function () {
+        console.log('Categoría seleccionada:', $(this).val());
+    });
+
+    // Evento para cambio de estado
+    $nuevoArticulo.find('.input-articulo-estado').on('change', function () {
+        console.log('Estado seleccionado:', $(this).val());
+    });
+
+    // Vinculación de evento para seleccionar artículo
+    $(document).on('click', `.articulo-opcion-${numero}`, function (e) {
+        e.preventDefault();
+        seleccionarArticuloEnContenedor($(this), numero);
+    });
 }
 
 /**
@@ -371,6 +716,13 @@ function guardarRegistro() {
         };
     }
 
+    // Construir objeto Información de Donativo
+    const infoDonativo = {
+        fecha_recepcion: $('#dateRecepcion').val(),
+        tipo_donativo: $('#selectTipoDonativo').val(),
+        observaciones: $('#textObservacionesDonativo').val()
+    };
+
     // Construir array de artículos
     const articulos = [];
     $('#contenedorArticulos').find('.articulo-item').each(function () {
@@ -378,6 +730,8 @@ function guardarRegistro() {
             nombre: $(this).find('.input-articulo-nombre').val(),
             cantidad: parseInt($(this).find('.input-articulo-cantidad').val()),
             unidad_medida: $(this).find('.input-articulo-unidad').val(),
+            categoria: $(this).find('.input-articulo-categoria-select').val(),
+            estado: $(this).find('.input-articulo-estado').val(),
             valor_unitario: parseFloat($(this).find('.input-articulo-valor').val()) || 0,
             descripcion: $(this).find('.input-articulo-descripcion').val()
         });
@@ -385,16 +739,17 @@ function guardarRegistro() {
 
     console.log('Datos del donador:', donador);
     console.log('Datos del contacto:', contacto);
+    console.log('Información de donativo:', infoDonativo);
     console.log('Datos de artículos:', articulos);
 
     // Enviar datos de forma secuencial
-    guardarDonador(donador, contacto, articulos);
+    guardarDonador(donador, contacto, infoDonativo, articulos);
 }
 
 /**
  * Guarda el donador y procede con contacto y artículos
  */
-function guardarDonador(donador, contacto, articulos) {
+function guardarDonador(donador, contacto, infoDonativo, articulos) {
     const datosString = JSON.stringify(donador);
     const idDonadorExistente = $('#id_donador').val();
 
@@ -408,9 +763,9 @@ function guardarDonador(donador, contacto, articulos) {
         // Proceder directamente con contacto o artículos
         if (contacto) {
             contacto.id_donador = parseInt(idDonadorExistente);
-            guardarContacto(contacto, articulos, parseInt(idDonadorExistente));
+            guardarContacto(contacto, infoDonativo, articulos, parseInt(idDonadorExistente));
         } else {
-            guardarArticulos(articulos, parseInt(idDonadorExistente));
+            guardarArticulos(infoDonativo, articulos, parseInt(idDonadorExistente));
         }
         return;
     }
@@ -445,10 +800,10 @@ function guardarDonador(donador, contacto, articulos) {
             // Proceder con contacto si existe
             if (contacto) {
                 contacto.id_donador = donadorId;
-                guardarContacto(contacto, articulos, donadorId);
+                guardarContacto(contacto, infoDonativo, articulos, donadorId);
             } else {
                 // Si no hay contacto, proceder directamente con artículos
-                guardarArticulos(articulos, donadorId);
+                guardarArticulos(infoDonativo, articulos, donadorId);
             }
         },
         error: function (xhr, status, error) {
@@ -462,7 +817,7 @@ function guardarDonador(donador, contacto, articulos) {
 /**
  * Guarda el contacto del donador
  */
-function guardarContacto(contacto, articulos, donadorId) {
+function guardarContacto(contacto, infoDonativo, articulos, donadorId) {
     const datosString = JSON.stringify(contacto);
 
     $.ajax({
@@ -478,7 +833,7 @@ function guardarContacto(contacto, articulos, donadorId) {
             console.log('Respuesta al guardar contacto:', response);
 
             // Proceder con artículos
-            guardarArticulos(articulos, donadorId);
+            guardarArticulos(infoDonativo, articulos, donadorId);
         },
         error: function (xhr, status, error) {
             console.error('Error al guardar contacto:', error);
@@ -490,7 +845,7 @@ function guardarContacto(contacto, articulos, donadorId) {
 /**
  * Guarda los artículos donados
  */
-function guardarArticulos(articulos, donadorId) {
+function guardarArticulos(infoDonativo, articulos, donadorId) {
     if (!articulos || articulos.length === 0) {
         toastr.warning('No hay artículos para guardar', 'Validación');
         return;
@@ -515,6 +870,9 @@ function guardarArticulos(articulos, donadorId) {
         },
         success: function (response) {
             console.log('Respuesta al guardar artículos:', response);
+
+            // Aquí puedes guardar la información del donativo si es necesario
+            console.log('Información de donativo:', infoDonativo);
 
             // Limpiar formulario
             limpiarFormulario();
@@ -549,6 +907,9 @@ function limpiarFormulario() {
     // Resetear el input hidden del ID
     $('#id_donador').val('');
     $('#textNombreDonador').css('background-color', '').prop('readonly', false);
+
+    // Establecer fecha de recepción a la fecha de hoy
+    $('#dateRecepcion').val(obtenerFechaHoy());
 
     // Limpiar sección de contacto
     $('#seccionContacto').addClass('hidden');

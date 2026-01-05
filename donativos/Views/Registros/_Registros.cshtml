@@ -333,10 +333,73 @@
             </div>
         </div>
 
+        <!-- SECCIÓN 2.5: INFORMACIÓN DEL DONATIVO -->
+        <div id="seccionDonativo" class="mb-8 pb-8 border-b-2 border-stone-200">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">3</div>
+                <h3 class="text-lg font-bold text-stone-800">Información del Donativo</h3>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Fecha de Recepción -->
+                <div class="form-group">
+                    <label for="dateRecepcion" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-calendar-alt" style="color:var(--dorado)"></i> <b>Fecha de Recepción</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="date" 
+                        class="form-control" 
+                        id="dateRecepcion"
+                        required>
+                    <div class="invalid-feedback">La fecha de recepción es requerida</div>
+                    <small class="text-stone-500 mt-1 block">Por defecto se establece la fecha actual</small>
+                </div>
+
+                <!-- Tipo de Donativo -->
+                <div class="form-group">
+                    <label for="selectTipoDonativo" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-gift" style="color:var(--dorado)"></i> <b>Tipo de Donativo</b> <span class="text-red-500">*</span>
+                    </label>
+                    <select id="selectTipoDonativo" class="form-control" required>
+                        <option value="">-- Seleccione --</option>
+                        <option value="especie">Especie</option>
+                        <option value="efectivo">Efectivo</option>
+                    </select>
+                    <div class="invalid-feedback">Selecciona un tipo de donativo</div>
+                </div>
+
+                <!-- Importe (solo para efectivo) -->
+                <div class="form-group" id="grupoImporte" style="display: none;">
+                    <label for="numberImporte" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-money-bill" style="color:var(--dorado)"></i> <b>Importe</b> <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        class="form-control" 
+                        id="numberImporte"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00">
+                    <div class="invalid-feedback">El importe es requerido</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="textObservacionesDonativo" class="block text-sm font-bold text-stone-700 mb-2">
+                    <i class="fas fa-comments" style="color:var(--dorado)"></i> <b>Observaciones</b>
+                </label>
+                <textarea 
+                    class="form-control" 
+                    id="textObservacionesDonativo" 
+                    rows="3" 
+                    placeholder="Observaciones adicionales sobre el donativo"></textarea>
+            </div>
+        </div>
+
         <!-- SECCIÓN 3: ARTÍCULOS DONADOS -->
         <div id="seccionArticulos" class="mb-8">
             <div class="flex items-center gap-3 mb-6">
-                <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">3</div>
+                <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">4</div>
                 <h3 class="text-lg font-bold text-stone-800">Artículos Donados</h3>
             </div>
 
@@ -351,7 +414,7 @@
 
         <!-- Botones de Acción -->
         <div class="flex justify-end gap-3 pt-6">
-            <button type="button" class="btn btn-secondary" style="background-color: var(--gris); border-color: var(--gris);">
+            <button type="button" id="btnCancelar" class="btn btn-secondary" style="background-color: var(--gris); border-color: var(--gris);">
                 <i class="fas fa-times mr-2"></i> Cancelar
             </button>
             <button type="submit" class="btn btn-lg py-2 text-white font-bold" style="background-color: var(--guinda); border-color: var(--guinda);">
@@ -360,4 +423,27 @@
         </div>
     </form>
 </div>
+
+<!-- Script para mostrar/ocultar importe según tipo de donativo -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectTipoDonativo = document.getElementById('selectTipoDonativo');
+        const grupoImporte = document.getElementById('grupoImporte');
+        const numberImporte = document.getElementById('numberImporte');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const formRegistroDonativos = document.getElementById('formRegistroDonativos');
+
+        if (selectTipoDonativo) {
+            selectTipoDonativo.addEventListener('change', function() {
+                if (this.value === 'efectivo') {
+                    grupoImporte.style.display = 'block';
+                    numberImporte.required = true;
+                } else {
+                    grupoImporte.style.display = 'none';
+                    numberImporte.required = false;
+                    numberImporte.value = '';
+                }
+            });
+        }
+</script>
 

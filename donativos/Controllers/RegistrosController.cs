@@ -26,7 +26,7 @@ namespace donativos.Controllers
         }
 
         private string ApiUrl => _configuration["apiUrl"];
-       
+
         /// <summary>
         /// Executes a REST API request using the specified HTTP method, authentication token, and request parameters.
         /// </summary>
@@ -70,7 +70,7 @@ namespace donativos.Controllers
             }
             return Json(response.Content);
         }
-        
+
         /// <summary>
         /// Creates a new donor contact by sending the provided data to the API and returns the result as a JSON
         /// response.
@@ -120,33 +120,33 @@ namespace donativos.Controllers
         public JsonResult ObtenerDonadores(string search = "")
         {
             var token = HttpContext.Session.GetString("token");
-            
+
             // Construir la ruta con parámetros
-            string relativePath = string.IsNullOrEmpty(search) 
-                ? "catalogos/donador" 
+            string relativePath = string.IsNullOrEmpty(search)
+                ? "catalogos/donador"
                 : $"catalogos/donador/buscar/{Uri.EscapeDataString(search)}";
-            
+
             var response = ExecuteApi(token, relativePath, "GET");
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(new { error = "Error al obtener donadores" });
             }
-            
+
             try
             {
                 if (string.IsNullOrEmpty(response.Content))
                 {
                     return Json(new List<DonadorDTO>());
                 }
-                
+
                 Console.WriteLine($"API Raw Response: {response.Content}");
-                
+
                 // Parsear la respuesta como lista de objetos dinámicos primero
                 var parsedResponse = JsonConvert.DeserializeObject<dynamic>(response.Content);
-                
+
                 List<DonadorDTO> donadores = new List<DonadorDTO>();
-                
+
                 if (parsedResponse is JArray jArray)
                 {
                     // Si es un array directo
@@ -159,14 +159,14 @@ namespace donativos.Controllers
                 {
                     // Si es un objeto, buscar una propiedad que contenga el array
                     JArray arrayData = null;
-                    
+
                     if (jObject["data"] is JArray)
                         arrayData = (JArray)jObject["data"];
                     else if (jObject["donadores"] is JArray)
                         arrayData = (JArray)jObject["donadores"];
                     else if (jObject["items"] is JArray)
                         arrayData = (JArray)jObject["items"];
-                    
+
                     if (arrayData != null)
                     {
                         donadores = arrayData
@@ -175,13 +175,13 @@ namespace donativos.Controllers
                             .ToList();
                     }
                 }
-                
+
                 Console.WriteLine($"Donadores convertidos: {donadores.Count}");
                 foreach (var d in donadores)
                 {
                     Console.WriteLine($"  - {d.nombre} ({d.id_donador})");
                 }
-                
+
                 return Json(donadores);
             }
             catch (Exception ex)
@@ -189,6 +189,101 @@ namespace donativos.Controllers
                 Console.WriteLine($"Error al parsear donadores: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Json(new List<DonadorDTO>());
+            }
+        }
+
+        public JsonResult ObtenerContactos(int id_donador)
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = ExecuteApi(token, $"catalogos/contactodonador/donador/{id_donador}", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener contactos de donador" });
+            }
+            return Json(response.Content);
+        }
+
+        /// <summary>
+        /// Retrieves a list of articles from the API, optionally filtering by a search term.
+        /// </summary>
+        /// <remarks>If the API returns an internal server error, the result will contain an error message
+        /// instead of article data. The search parameter is URL-encoded before being sent to the API.</remarks>
+        /// <param name="search">An optional search string used to filter articles by name or other criteria. If empty, all articles are
+        /// retrieved.</param>
+        /// <returns>A JSON result containing a list of article data transfer objects. If no articles are found or an error occurs,
+        /// the result contains an empty list or an error message.</returns>
+        public JsonResult ObtenerArticulos(string search = "")
+        {
+            var token = HttpContext.Session.GetString("token");
+            
+            // Construir la ruta con parámetros
+            string relativePath = string.IsNullOrEmpty(search) 
+                ? "catalogos/articulo" 
+                : $"catalogos/articulo/buscar/{Uri.EscapeDataString(search)}";
+            
+            var response = ExecuteApi(token, relativePath, "GET");
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener artículos" });
+            }
+            
+            try
+            {
+                if (string.IsNullOrEmpty(response.Content))
+                {
+                    return Json(new List<ArticuloDTO>());
+                }
+                
+                Console.WriteLine($"API Raw Response: {response.Content}");
+                
+                // Parsear la respuesta como lista de objetos dinámicos primero
+                var parsedResponse = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                
+                List<ArticuloDTO> articulos = new List<ArticuloDTO>();
+                
+                if (parsedResponse is JArray jArray)
+                {
+                    // Si es un array directo
+                    articulos = jArray
+                        .Select(item => ConvertirAArticulo(item))
+                        .Where(a => a != null)
+                        .ToList();
+                }
+                else if (parsedResponse is JObject jObject)
+                {
+                    // Si es un objeto, buscar una propiedad que contenga el array
+                    JArray arrayData = null;
+                    
+                    if (jObject["data"] is JArray)
+                        arrayData = (JArray)jObject["data"];
+                    else if (jObject["articulos"] is JArray)
+                        arrayData = (JArray)jObject["articulos"];
+                    else if (jObject["items"] is JArray)
+                        arrayData = (JArray)jObject["items"];
+                    
+                    if (arrayData != null)
+                    {
+                        articulos = arrayData
+                            .Select(item => ConvertirAArticulo(item))
+                            .Where(a => a != null)
+                            .ToList();
+                    }
+                }
+                
+                Console.WriteLine($"Artículos convertidos: {articulos.Count}");
+                foreach (var a in articulos)
+                {
+                    Console.WriteLine($"  - {a.nombre} ({a.id_articulo})");
+                }
+                
+                return Json(articulos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al parsear artículos: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new List<ArticuloDTO>());
             }
         }
 
@@ -200,7 +295,7 @@ namespace donativos.Controllers
             try
             {
                 if (token == null) return null;
-                
+
                 var donador = new DonadorDTO
                 {
                     id_donador = ExtractIntValue(token, "id_donador", "id"),
@@ -217,16 +312,62 @@ namespace donativos.Controllers
                     codigo_postal = ExtractStringValue(token, "codigo_postal"),
                     notas = ExtractStringValue(token, "notas")
                 };
-                
+
                 // Validar que tenga al menos un nombre
                 if (string.IsNullOrEmpty(donador.nombre))
                     return null;
-                
+
                 return donador;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error convirtiendo donador: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convierte un JToken a un objeto ArticuloDTO
+        /// </summary>
+        private ArticuloDTO ConvertirAArticulo(JToken token)
+        {
+            try
+            {
+                if (token == null) return null;
+                
+                // Extraer la categoría si existe
+                Categoria categoria = null;
+                var categoriaToken = token["categoria"];
+                if (categoriaToken != null && categoriaToken.Type != JTokenType.Null)
+                {
+                    categoria = new Categoria
+                    {
+                        id_categoria = ExtractIntValue(categoriaToken, "id_categoria", "id") ?? 0,
+                        nombre = ExtractStringValue(categoriaToken, "nombre")
+                    };
+                }
+                
+                var articulo = new ArticuloDTO
+                {
+                    id_articulo = ExtractIntValue(token, "id_articulo", "id"),
+                    nombre = ExtractStringValue(token, "nombre"),
+                    descripcion = ExtractStringValue(token, "descripcion"),
+                    id_categoria = ExtractIntValue(token, "id_categoria", "categoria_id") ?? 0,
+                    unidad_medida = ExtractStringValue(token, "unidad_medida", "unidad"),
+                    categoria = categoria
+                };
+                
+                // Validar que tenga al menos un nombre
+                if (string.IsNullOrEmpty(articulo.nombre))
+                    return null;
+                
+                Console.WriteLine($"Artículo convertido: {articulo.nombre}, Categoría: {articulo.categoria?.nombre}, Unidad: {articulo.unidad_medida}");
+                
+                return articulo;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error convirtiendo artículo: {ex.Message}");
                 return null;
             }
         }
@@ -240,7 +381,7 @@ namespace donativos.Controllers
             {
                 var value = token[fieldName];
                 if (value == null) continue;
-                
+
                 // Si es un array, tomar el primer elemento
                 if (value is JArray array)
                 {
@@ -264,7 +405,7 @@ namespace donativos.Controllers
             {
                 var value = token[fieldName];
                 if (value == null) continue;
-                
+
                 // Si es un array, tomar el primer elemento
                 if (value is JArray array)
                 {
