@@ -91,21 +91,275 @@ namespace donativos.Controllers
         }
 
         /// <summary>
-        /// Creates new donated articles/items by sending the provided data to the API.
+        /// Creates new donated articles/items by sending the provided data to the API one by one.
+        /// Processes each article individually to handle the insertion of multiple articles.
         /// </summary>
-        /// <param name="datos">A JSON-formatted string containing the article information to be inserted. Must not be null or empty.</param>
-        /// <returns>A JSON result containing the API response content if the operation succeeds; otherwise, a JSON result
-        /// indicating a bad request if an internal server error occurs.</returns>
+        /// <param name="datos">A JSON-formatted string containing an array of article information to be inserted. 
+        /// Format: [{"nombre":"...","cantidad":...},{...}]</param>
+        /// <returns>A JSON result containing the results of all insertions. Returns success/error status for each article.</returns>
         public JsonResult insertaArticulos(string datos)
         {
-            var body = new { datos = datos };
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, "catalogos/articulos", "POST", body.datos);
-            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            var resultados = new List<dynamic>();
+            var contador = 0;
+            var errores = 0;
+
+            try
             {
-                return Json(BadRequest());
+                // Parsear el JSON array de artículos
+                JArray articulosArray = JArray.Parse(datos);
+                contador = articulosArray.Count;
+
+                Console.WriteLine($"Procesando {contador} artículos...");
+
+                // Procesar cada artículo individualmente
+                foreach (var articulo in articulosArray)
+                {
+                    try
+                    {
+                        // Convertir el artículo individual a string JSON
+                        string articuloJson = articulo.ToString();
+                        
+                        Console.WriteLine($"Insertando artículo: {articulo["nombre"]}");
+
+                        // Enviar cada artículo al API
+                        var response = ExecuteApi(token, "catalogos/articulo", "POST", articuloJson);
+
+                        // Procesar la respuesta
+                        if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                        {
+                            errores++;
+                            resultados.Add(new
+                            {
+                                exito = false,
+                                nombre = articulo["nombre"],
+                                mensaje = "Error interno del servidor",
+                                statusCode = response.StatusCode.ToString()
+                            });
+                            Console.WriteLine($"  ❌ Error al insertar: {articulo["nombre"]}");
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.OK || 
+                                 response.StatusCode == System.Net.HttpStatusCode.Created)
+                        {
+                            resultados.Add(new
+                            {
+                                exito = true,
+                                nombre = articulo["nombre"],
+                                mensaje = "Artículo insertado correctamente",
+                                respuesta = response.Content
+                            });
+                            Console.WriteLine($"  ✓ Insertado: {articulo["nombre"]}");
+                        }
+                        else
+                        {
+                            errores++;
+                            resultados.Add(new
+                            {
+                                exito = false,
+                                nombre = articulo["nombre"],
+                                mensaje = $"Error {response.StatusCode}: {response.Content}",
+                                statusCode = response.StatusCode.ToString()
+                            });
+                            Console.WriteLine($"  ❌ Error {response.StatusCode}: {articulo["nombre"]}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errores++;
+                        Console.WriteLine($"  ❌ Excepción: {ex.Message}");
+                        resultados.Add(new
+                        {
+                            exito = false,
+                            nombre = articulo["nombre"] ?? "Desconocido",
+                            mensaje = ex.Message,
+                            error = "Excepción durante la inserción"
+                        });
+                    }
+                }
+
+                // Retornar resumen de resultados
+                return Json(new
+                {
+                    exito = errores == 0,
+                    procesados = contador,
+                    exitosos = contador - errores,
+                    errores = errores,
+                    resultados = resultados
+                });
             }
-            return Json(response.Content);
+            catch (JsonReaderException ex)
+            {
+                Console.WriteLine($"Error al parsear JSON: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error al parsear el JSON",
+                    error = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error inesperado al procesar artículos",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Inserta el encabezado del registro de donativo (primera parte)
+        /// </summary>
+        /// <param name="datos">JSON con id_donador, fecha_recepcion, tipo, estatus, observaciones</param>
+        /// <returns>JSON con id_donativo generado</returns>
+        public JsonResult insertaEncabezadoDonativo(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+            
+            try
+            {
+                Console.WriteLine($"Insertando encabezado donativo: {datos}");
+                
+                var response = ExecuteApi(token, "transacciones/donativo", "POST", datos);
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine($"Error interno del servidor");
+                    return Json(new { exito = false, mensaje = "Error interno del servidor" });
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK || 
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine($"Encabezado donativo insertado correctamente: {response.Content}");
+                    return Json(new { exito = true, data = response.Content });
+                }
+
+                return Json(new { exito = false, mensaje = $"Error {response.StatusCode}" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al insertar encabezado donativo: {ex.Message}");
+                return Json(new { exito = false, error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Inserta los detalles del donativo (segunda parte)
+        /// </summary>
+        /// <param name="datos">JSON array con id_donativo, id_articulo, cantidad_recibida, valor_unitario, estado</param>
+        /// <returns>JSON con resultado de inserción</returns>
+        public JsonResult insertaDetallesDonativos(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+            var resultados = new List<dynamic>();
+            var contador = 0;
+            var errores = 0;
+
+            try
+            {
+                // Parsear el JSON array de detalles
+                JArray detallesArray = JArray.Parse(datos);
+                contador = detallesArray.Count;
+
+                Console.WriteLine($"Procesando {contador} detalles de donativo...");
+
+                // Procesar cada detalle individualmente
+                foreach (var detalle in detallesArray)
+                {
+                    try
+                    {
+                        string detalleJson = detalle.ToString();
+                        
+                        Console.WriteLine($"Insertando detalle donativo: Artículo ID {detalle["id_articulo"]}");
+
+                        // Enviar cada detalle al API
+                        var response = ExecuteApi(token, "transacciones/donativo/detalle", "POST", detalleJson);
+
+                        // Procesar la respuesta
+                        if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                        {
+                            errores++;
+                            resultados.Add(new
+                            {
+                                exito = false,
+                                idArticulo = detalle["id_articulo"],
+                                mensaje = "Error interno del servidor",
+                                statusCode = response.StatusCode.ToString()
+                            });
+                            Console.WriteLine($"  ❌ Error al insertar detalle: {detalle["id_articulo"]}");
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.OK || 
+                                 response.StatusCode == System.Net.HttpStatusCode.Created)
+                        {
+                            resultados.Add(new
+                            {
+                                exito = true,
+                                idArticulo = detalle["id_articulo"],
+                                mensaje = "Detalle insertado correctamente",
+                                respuesta = response.Content
+                            });
+                            Console.WriteLine($"  ✓ Insertado: {detalle["id_articulo"]}");
+                        }
+                        else
+                        {
+                            errores++;
+                            resultados.Add(new
+                            {
+                                exito = false,
+                                idArticulo = detalle["id_articulo"],
+                                mensaje = $"Error {response.StatusCode}: {response.Content}",
+                                statusCode = response.StatusCode.ToString()
+                            });
+                            Console.WriteLine($"  ❌ Error {response.StatusCode}: {detalle["id_articulo"]}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errores++;
+                        Console.WriteLine($"  ❌ Excepción: {ex.Message}");
+                        resultados.Add(new
+                        {
+                            exito = false,
+                            idArticulo = detalle["id_articulo"] ?? "Desconocido",
+                            mensaje = ex.Message,
+                            error = "Excepción durante la inserción"
+                        });
+                    }
+                }
+
+                // Retornar resumen de resultados
+                return Json(new
+                {
+                    exito = errores == 0,
+                    procesados = contador,
+                    exitosos = contador - errores,
+                    errores = errores,
+                    resultados = resultados
+                });
+            }
+            catch (JsonReaderException ex)
+            {
+                Console.WriteLine($"Error al parsear JSON: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error al parsear el JSON",
+                    error = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error inesperado al procesar detalles",
+                    error = ex.Message
+                });
+            }
         }
 
         /// <summary>

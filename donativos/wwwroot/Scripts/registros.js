@@ -1,8 +1,7 @@
 ﻿// Variable global para contar artículos
 let numeroArticulos = 0;
 let donadorSeleccionado = null;
-
-//TODO: Ocultar el mensaje de donador no encontrado cuando no existe texto en el input
+let timerOcultarListaDonadores = null;
 
 // Estados disponibles para artículos
 const ESTADOS_ARTICULO = [
@@ -78,7 +77,7 @@ function initRegistrosForm() {
 
     // Remover eventos previos para evitar duplicados
     $('#selectTipoDonador').off('change');
-    $('#textNombreDonador').off('input').off('focus');
+    $('#textNombreDonador').off('input').off('focus').off('blur');
     $('#btnAgregarArticulo').off('click');
     $(document).off('click', '.btn-eliminar-articulo').off('click', '.donador-opcion');
     $('#formRegistroDonativos').off('submit');
@@ -96,6 +95,11 @@ function initRegistrosForm() {
         if ($(this).val().length > 0) {
             buscarDonadores($(this).val());
         }
+    }).on('blur', function () {
+        // Ocultar la lista después de 200ms cuando pierda el foco
+        setTimeout(function () {
+            $('#listaDonadores').addClass('d-none');
+        }, 200);
     });
 
     // Event: Agregar artículo
@@ -136,6 +140,7 @@ function initRegistrosForm() {
         $('#textNombreDonador').css('background-color', '').prop('readonly', false);
         numeroArticulos = 0;
         donadorSeleccionado = null;
+        $('#listaDonadores').addClass('d-none');
         toastr.info('Formulario limpiado', 'Operación realizada');
     });
 
@@ -153,6 +158,12 @@ function initRegistrosForm() {
  */
 function buscarDonadores(termino) {
     const listaDonadores = $('#listaDonadores');
+
+    // Limpiar el timer anterior si existe
+    if (timerOcultarListaDonadores) {
+        clearTimeout(timerOcultarListaDonadores);
+        timerOcultarListaDonadores = null;
+    }
 
     if (termino.length < 1) {
         listaDonadores.addClass('d-none');
@@ -190,6 +201,12 @@ function buscarDonadores(termino) {
 function mostrarResultadosDonadores(donadores, termino) {
     const listaDonadores = $('#listaDonadores');
 
+    // Limpiar el timer anterior si existe
+    if (timerOcultarListaDonadores) {
+        clearTimeout(timerOcultarListaDonadores);
+        timerOcultarListaDonadores = null;
+    }
+
     // Validar que sea un array
     if (!Array.isArray(donadores)) {
         console.warn('donadores no es un array:', donadores);
@@ -198,13 +215,19 @@ function mostrarResultadosDonadores(donadores, termino) {
 
     if (!donadores || donadores.length === 0) {
         listaDonadores.html(`
-            <div class="p-3 text-center text-stone-500">
+            <div class="p-2 text-center text-stone-500" style="font-size: 0.875rem;">
                 <i class="fas fa-inbox"></i>
-                <p>No se encontraron donadores</p>
-                <small>Puedes crear uno nuevo escribiendo el nombre</small>
+                <p style="margin: 0.25rem 0;">No se encontraron donadores</p>
+                <small style="margin: 0;">Puedes crear uno nuevo escribiendo el nombre</small>
             </div>
         `);
         listaDonadores.removeClass('d-none');
+
+        // Ocultar automáticamente después de 5 segundos
+        timerOcultarListaDonadores = setTimeout(function () {
+            listaDonadores.addClass('d-none');
+            timerOcultarListaDonadores = null;
+        }, 5000);
         return;
     }
 
@@ -217,7 +240,7 @@ function mostrarResultadosDonadores(donadores, termino) {
 
         const donadorJSON = JSON.stringify(donador).replace(/'/g, "&apos;");
         html += `
-            <div class="donador-opcion p-3 border-bottom border-stone-200 cursor-pointer hover:bg-stone-50" data-id="${donador.id_donador || ''}" data-donador='${donadorJSON}'>
+            <div class="donador-opcion p-2 border-bottom border-stone-200 cursor-pointer hover:bg-stone-50" style="font-size: 0.875rem;" data-id="${donador.id_donador || ''}" data-donador='${donadorJSON}'>
                 <div class="font-bold text-stone-800">${donador.nombre}</div>
                 <small class="text-stone-500">
                     <i class="fas fa-tag"></i> ${donador.tipo || 'N/A'} | 
@@ -229,9 +252,9 @@ function mostrarResultadosDonadores(donadores, termino) {
 
     if (html === '') {
         listaDonadores.html(`
-            <div class="p-3 text-center text-stone-500">
+            <div class="p-2 text-center text-stone-500" style="font-size: 0.875rem;">
                 <i class="fas fa-inbox"></i>
-                <p>Sin resultados válidos</p>
+                <p style="margin: 0.25rem 0;">Sin resultados válidos</p>
             </div>
         `);
     } else {
@@ -259,16 +282,16 @@ function buscarArticulosPorNumero(termino, numeroArticulo) {
         dataType: 'json',
         success: function (articulos) {
             console.log('Artículos recibidos:', articulos);
-            mostrarResultadosArticulosPorNumero(articulos, termino, numeroArticulo);
+            mostrarResultadosArticulosPorNumero(articulos, numeroArticulo);
         },
         error: function (xhr, status, error) {
             console.error('Error al buscar artículos:', error);
             const listaArticulos = $(`.lista-articulos-${numeroArticulo}`);
             listaArticulos.html(`
-                <div class="p-3 text-center text-stone-500">
+                <div class="p-2 text-center text-stone-500" style="font-size: 0.875rem;">
                     <i class="fas fa-exclamation-circle"></i>
-                    <p>Error al buscar artículos</p>
-                    <small>${error}</small>
+                    <p style="margin: 0.25rem 0;">Error al buscar artículos</p>
+                    <small style="margin: 0;">${error}</small>
                 </div>
             `);
             listaArticulos.removeClass('d-none');
@@ -279,7 +302,7 @@ function buscarArticulosPorNumero(termino, numeroArticulo) {
 /**
  * Muestra los resultados de artículos para un número específico
  */
-function mostrarResultadosArticulosPorNumero(articulos, termo, numeroArticulo) {
+function mostrarResultadosArticulosPorNumero(articulos, numeroArticulo) {
     const listaArticulos = $(`.lista-articulos-${numeroArticulo}`);
 
     // Validar que sea un array
@@ -290,10 +313,10 @@ function mostrarResultadosArticulosPorNumero(articulos, termo, numeroArticulo) {
 
     if (!articulos || articulos.length === 0) {
         listaArticulos.html(`
-            <div class="p-3 text-center text-stone-500">
+            <div class="p-2 text-center text-stone-500" style="font-size: 0.875rem;">
                 <i class="fas fa-inbox"></i>
-                <p>No se encontraron artículos</p>
-                <small>Podes crear uno nuevo escribiendo el nombre</small>
+                <p style="margin: 0.25rem 0;">No se encontraron artículos</p>
+                <small style="margin: 0;">Podes crear uno nuevo escribiendo el nombre</small>
             </div>
         `);
         listaArticulos.removeClass('d-none');
@@ -311,7 +334,7 @@ function mostrarResultadosArticulosPorNumero(articulos, termo, numeroArticulo) {
         const categoriaNombre = articulo.categoria?.nombre || 'N/A';
         
         html += `
-            <div class="articulo-opcion-${numeroArticulo} p-3 border-bottom border-stone-200 cursor-pointer hover:bg-stone-50" data-id="${articulo.id_articulo || ''}" data-articulo='${articuloJSON}'>
+            <div class="articulo-opcion-${numeroArticulo} p-2 border-bottom border-stone-200 cursor-pointer hover:bg-stone-50" style="font-size: 0.875rem;" data-id="${articulo.id_articulo || ''}" data-articulo='${articuloJSON}'>
                 <div class="font-bold text-stone-800">${articulo.nombre}</div>
                 <small class="text-stone-500">
                     <i class="fas fa-box"></i> ${categoriaNombre} | 
@@ -323,9 +346,9 @@ function mostrarResultadosArticulosPorNumero(articulos, termo, numeroArticulo) {
 
     if (html === '') {
         listaArticulos.html(`
-            <div class="p-3 text-center text-stone-500">
+            <div class="p-2 text-center text-stone-500" style="font-size: 0.875rem;">
                 <i class="fas fa-inbox"></i>
-                <p>Sin resultados válidos</p>
+                <p style="margin: 0.25rem 0;">Sin resultados válidos</p>
             </div>
         `);
     } else {
@@ -445,6 +468,7 @@ function mostrarResultadosContactos(contactosJson, termino) {
 
 /**
  * Selecciona un artículo en el contenedor especificado
+ * Guarda el id_articulo para diferenciarlo como artículo existente
  */
 function seleccionarArticuloEnContenedor($element, numeroArticulo) {
     try {
@@ -456,8 +480,7 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
         }
 
         console.log('Artículo seleccionado:', articulo);
-        console.log('Categoría:', articulo.categoria);
-        console.log('Unidad de medida:', articulo.unidad_medida);
+        console.log('ID del artículo:', articulo.id_articulo);
 
         const $contenedor = $(`[data-articulo="${numeroArticulo}"]`);
 
@@ -478,8 +501,9 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
             console.log('Categoría establecida a:', nombreCategoria);
         }
 
-        // Guardar el ID del artículo
+        // Guardar el ID del artículo en el data attribute
         $contenedor.data('id_articulo', articulo.id_articulo);
+        console.log('ID del artículo guardado en data attribute:', $contenedor.data('id_articulo'));
 
         // Ocultar lista
         $(`.lista-articulos-${numeroArticulo}`).addClass('d-none');
@@ -539,7 +563,7 @@ function toggleSeccionContacto(tipo, id_donador) {
  */
 function agregarArticulo(numero) {
     const articuloHtml = `
-        <div class="articulo-item border border-stone-300 rounded-lg p-4 bg-stone-50" data-articulo="${numero}">
+        <div class="articulo-item border border-stone-300 rounded-lg p-4 bg-stone-50" data-articulo="${numero}" data-id_articulo="">
             <div class="flex justify-between items-center mb-3">
                 <h5 class="font-bold text-stone-700">Artículo #${numero}</h5>
                 <button type="button" class="btn-eliminar-articulo btn btn-sm btn-danger">
@@ -561,7 +585,7 @@ function agregarArticulo(numero) {
                         required>
                     <div class="invalid-feedback">El nombre del artículo es requerido</div>
                     <!-- Lista de resultados de búsqueda de artículos -->
-                    <div class="lista-articulos-${numero} position-absolute w-100 bg-white border border-stone-300 rounded-lg mt-1 shadow-lg d-none" style="max-height: 300px; overflow-y: auto; z-index: 1000; top: 100%;">
+                    <div class="lista-articulos-${numero} position-absolute w-100 bg-white border border-stone-300 rounded-lg mt-1 shadow-lg d-none" style="max-height: 150px; overflow-y: auto; z-index: 1000; top: 100%;">
                     </div>
                 </div>
                 <small class="text-stone-500 mt-1 block">Comienza a escribir para buscar artículos existentes o crea uno nuevo</small>
@@ -574,7 +598,7 @@ function agregarArticulo(numero) {
                     </label>
                     <select class="form-control input-articulo-categoria-select" required>
                         <option value="">-- Seleccione una Categoría --</option>
-                        ${CATEGORIAS.map(cat => `<option value="${cat.nombre}">${cat.nombre}</option>`).join('')}
+                        ${CATEGORIAS.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
                     </select>
                     <div class="invalid-feedback">Selecciona una categoría</div>
                 </div>
@@ -665,6 +689,7 @@ function agregarArticulo(numero) {
 
 /**
  * Obtiene los datos del formulario y construye los objetos JSON
+ * Separa artículos nuevos de existentes
  */
 function guardarRegistro() {
     const form = document.getElementById('formRegistroDonativos');
@@ -723,33 +748,48 @@ function guardarRegistro() {
         observaciones: $('#textObservacionesDonativo').val()
     };
 
-    // Construir array de artículos
-    const articulos = [];
+    // Separar artículos nuevos de existentes
+    const articulosNuevos = [];
+    const articulosExistentes = [];
+    
     $('#contenedorArticulos').find('.articulo-item').each(function () {
-        articulos.push({
-            nombre: $(this).find('.input-articulo-nombre').val(),
-            cantidad: parseInt($(this).find('.input-articulo-cantidad').val()),
-            unidad_medida: $(this).find('.input-articulo-unidad').val(),
-            categoria: $(this).find('.input-articulo-categoria-select').val(),
-            estado: $(this).find('.input-articulo-estado').val(),
-            valor_unitario: parseFloat($(this).find('.input-articulo-valor').val()) || 0,
-            descripcion: $(this).find('.input-articulo-descripcion').val()
-        });
+        const $item = $(this);
+        const idArticulo = $item.data('id_articulo');
+
+        const articulo = {
+            nombre: $item.find('.input-articulo-nombre').val(),
+            /*cantidad: parseInt($item.find('.input-articulo-cantidad').val()),*/
+            unidad_medida: $item.find('.input-articulo-unidad').val(),
+            id_categoria: parseInt($item.find('.input-articulo-categoria-select').val()),
+            //estado: $item.find('.input-articulo-estado').val(),
+            //valor_unitario: parseFloat($item.find('.input-articulo-valor').val()) || 0,
+            descripcion: $item.find('.input-articulo-descripcion').val()
+        };
+
+        // Si tiene ID, es un artículo existente
+        if (idArticulo) {
+            articulo.id_articulo = idArticulo;
+            articulosExistentes.push(articulo);
+        } else {
+            // Si no tiene ID, es un artículo nuevo
+            articulosNuevos.push(articulo);
+        }
     });
 
     console.log('Datos del donador:', donador);
     console.log('Datos del contacto:', contacto);
     console.log('Información de donativo:', infoDonativo);
-    console.log('Datos de artículos:', articulos);
+    console.log('Artículos nuevos:', articulosNuevos);
+    console.log('Artículos existentes:', articulosExistentes);
 
     // Enviar datos de forma secuencial
-    guardarDonador(donador, contacto, infoDonativo, articulos);
+    guardarDonador(donador, contacto, infoDonativo, articulosNuevos, articulosExistentes);
 }
 
 /**
  * Guarda el donador y procede con contacto y artículos
  */
-function guardarDonador(donador, contacto, infoDonativo, articulos) {
+function guardarDonador(donador, contacto, infoDonativo, articulosNuevos, articulosExistentes) {
     const datosString = JSON.stringify(donador);
     const idDonadorExistente = $('#id_donador').val();
 
@@ -763,9 +803,9 @@ function guardarDonador(donador, contacto, infoDonativo, articulos) {
         // Proceder directamente con contacto o artículos
         if (contacto) {
             contacto.id_donador = parseInt(idDonadorExistente);
-            guardarContacto(contacto, infoDonativo, articulos, parseInt(idDonadorExistente));
+            guardarContacto(contacto, infoDonativo, articulosNuevos, articulosExistentes, parseInt(idDonadorExistente));
         } else {
-            guardarArticulos(infoDonativo, articulos, parseInt(idDonadorExistente));
+            guardarArticulos(infoDonativo, articulosNuevos, articulosExistentes, parseInt(idDonadorExistente));
         }
         return;
     }
@@ -800,10 +840,10 @@ function guardarDonador(donador, contacto, infoDonativo, articulos) {
             // Proceder con contacto si existe
             if (contacto) {
                 contacto.id_donador = donadorId;
-                guardarContacto(contacto, infoDonativo, articulos, donadorId);
+                guardarContacto(contacto, infoDonativo, articulosNuevos, articulosExistentes, donadorId);
             } else {
                 // Si no hay contacto, proceder directamente con artículos
-                guardarArticulos(infoDonativo, articulos, donadorId);
+                guardarArticulos(infoDonativo, articulosNuevos, articulosExistentes, donadorId);
             }
         },
         error: function (xhr, status, error) {
@@ -817,7 +857,7 @@ function guardarDonador(donador, contacto, infoDonativo, articulos) {
 /**
  * Guarda el contacto del donador
  */
-function guardarContacto(contacto, infoDonativo, articulos, donadorId) {
+function guardarContacto(contacto, infoDonativo, articulosNuevos, articulosExistentes, donadorId) {
     const datosString = JSON.stringify(contacto);
 
     $.ajax({
@@ -833,7 +873,7 @@ function guardarContacto(contacto, infoDonativo, articulos, donadorId) {
             console.log('Respuesta al guardar contacto:', response);
 
             // Proceder con artículos
-            guardarArticulos(infoDonativo, articulos, donadorId);
+            guardarArticulos(infoDonativo, articulosNuevos, articulosExistentes, donadorId);
         },
         error: function (xhr, status, error) {
             console.error('Error al guardar contacto:', error);
@@ -844,35 +884,135 @@ function guardarContacto(contacto, infoDonativo, articulos, donadorId) {
 
 /**
  * Guarda los artículos donados
+ * Primero guarda el encabezado del donativo, luego los detalles
  */
-function guardarArticulos(infoDonativo, articulos, donadorId) {
-    if (!articulos || articulos.length === 0) {
+function guardarArticulos(infoDonativo, articulosNuevos, articulosExistentes, donadorId) {
+    // Validar que haya al menos algún artículo
+    if ((!articulosNuevos || articulosNuevos.length === 0) && (!articulosExistentes || articulosExistentes.length === 0)) {
         toastr.warning('No hay artículos para guardar', 'Validación');
         return;
     }
 
-    // Agregar el ID del donador a cada artículo
-    const articulosConDonador = articulos.map(articulo => ({
+    // Agregar el ID del donador a artículos nuevos para insertarlos primero
+    const articulosNuevosConDonador = articulosNuevos.map(articulo => ({
         ...articulo,
         id_donador: donadorId
     }));
 
-    const datosString = JSON.stringify(articulosConDonador);
+    // Si hay artículos nuevos, insertar primero
+    if (articulosNuevosConDonador.length > 0) {
+        const datosNuevos = JSON.stringify(articulosNuevosConDonador);
+
+        $.ajax({
+            type: 'POST',
+            url: '/Registros/insertaArticulos',
+            data: { datos: datosNuevos },
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            dataType: 'json',
+            beforeSend: function () {
+                toastr.info('Guardando artículos nuevos...', 'Procesando');
+            },
+            success: function (response) {
+                console.log('Respuesta al guardar artículos nuevos:', response);
+
+                // Después de guardar artículos nuevos, guardar el encabezado del donativo
+                guardarEncabezadoDonativo(infoDonativo, articulosNuevos, articulosExistentes, donadorId);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al guardar artículos nuevos:', error);
+                console.error('Respuesta:', xhr.responseText);
+                toastr.error('Error al guardar los artículos nuevos. Intenta de nuevo.', 'Error');
+            }
+        });
+    } else {
+        // Si solo hay artículos existentes, proceder directamente a guardar encabezado
+        guardarEncabezadoDonativo(infoDonativo, articulosNuevos, articulosExistentes, donadorId);
+    }
+}
+
+/**
+ * Guarda el encabezado del donativo (primera parte)
+ */
+function guardarEncabezadoDonativo(infoDonativo, articulosNuevos, articulosExistentes, donadorId) {
+    const encabezadoDonativo = {
+        id_donador: donadorId,
+        fecha_recepcion: infoDonativo.fecha_recepcion,
+        tipo: infoDonativo.tipo_donativo,
+        estatus: 'registrado',
+        observaciones: infoDonativo.observaciones
+    };
+
+    const datosEncabezado = JSON.stringify(encabezadoDonativo);
 
     $.ajax({
         type: 'POST',
-        url: '/Registros/insertaArticulos',
-        data: { datos: datosString },
+        url: '/Registros/insertaEncabezadoDonativo',
+        data: { datos: datosEncabezado },
         contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         dataType: 'json',
         beforeSend: function () {
-            toastr.info('Guardando artículos...', 'Procesando');
+            toastr.info('Guardando encabezado del donativo...', 'Procesando');
         },
         success: function (response) {
-            console.log('Respuesta al guardar artículos:', response);
+            console.log('Respuesta al guardar encabezado:', response);
 
-            // Aquí puedes guardar la información del donativo si es necesario
-            console.log('Información de donativo:', infoDonativo);
+            // Extraer el ID del donativo generado
+            let idDonativo = null;
+            try {
+                const responseData = typeof response === 'string' ? JSON.parse(response) : response;
+                idDonativo = responseData.id_donativo || responseData.id;
+                console.log('ID del donativo guardado:', idDonativo);
+            } catch (e) {
+                console.warn('No se pudo extraer ID del donativo:', e);
+                toastr.error('No se pudo obtener el ID del donativo guardado', 'Error');
+                return;
+            }
+
+            // Ahora guardar los detalles del donativo
+            guardarDetallesDonativos(articulosNuevos, articulosExistentes, idDonativo, donadorId);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al guardar encabezado:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al guardar el encabezado del donativo. Intenta de nuevo.', 'Error');
+        }
+    });
+}
+
+/**
+ * Guarda los detalles del donativo (segunda parte)
+ */
+function guardarDetallesDonativos(articulosNuevos, articulosExistentes, idDonativo, donadorId) {
+    // Combinar todos los artículos (nuevos + existentes)
+    const todosLosArticulos = [...articulosNuevos, ...articulosExistentes];
+
+    if (todosLosArticulos.length === 0) {
+        toastr.warning('No hay artículos para registrar en el detalle', 'Validación');
+        return;
+    }
+
+    // Construir array de detalles del donativo
+    const detallesDonativos = todosLosArticulos.map(articulo => ({
+        id_donativo: idDonativo,
+        id_articulo: articulo.id_articulo || null,
+        cantidad_recibida: articulo.cantidad || 0,
+        valor_unitario: articulo.valor_unitario || 0,
+        estado: articulo.estado || 'pendiente'
+    }));
+
+    const datosDetalles = JSON.stringify(detallesDonativos);
+
+    $.ajax({
+        type: 'POST',
+        url: '/Registros/insertaDetallesDonativos',
+        data: { datos: datosDetalles },
+        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+        dataType: 'json',
+        beforeSend: function () {
+            toastr.info('Guardando detalles del donativo...', 'Procesando');
+        },
+        success: function (response) {
+            console.log('Respuesta al guardar detalles:', response);
 
             // Limpiar formulario
             limpiarFormulario();
@@ -880,15 +1020,15 @@ function guardarArticulos(infoDonativo, articulos, donadorId) {
             toastr.success('Registro guardado correctamente', 'Éxito');
         },
         error: function (xhr, status, error) {
-            console.error('Error al guardar artículos:', error);
+            console.error('Error al guardar detalles:', error);
             console.error('Respuesta:', xhr.responseText);
 
             if (xhr.status === 400) {
-                toastr.error('Datos de artículos inválidos. Por favor revisa los campos.', 'Error');
+                toastr.error('Datos de detalles inválidos. Por favor revisa los campos.', 'Error');
             } else if (xhr.status === 500) {
                 toastr.error('Error en el servidor. Intenta de nuevo.', 'Error');
             } else {
-                toastr.error('Error al guardar los artículos: ' + error, 'Error');
+                toastr.error('Error al guardar los detalles: ' + error, 'Error');
             }
         }
     });

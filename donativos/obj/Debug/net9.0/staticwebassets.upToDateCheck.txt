@@ -11,6 +11,7 @@ wwwroot\assets\imagenes\carrusel1.jpg
 wwwroot\assets\imagenes\carrusel2.jpg
 wwwroot\assets\imagenes\carrusel3.jpg
 wwwroot\assets\imagenes\carrusel4.jpg
+wwwroot\assets\imagenes\favicon.ico
 wwwroot\assets\imagenes\logodif.png
 wwwroot\assets\imagenes\logodif1.png
 wwwroot\assets\js\ie\html5shiv.js
@@ -37,6 +38,7 @@ C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\di
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\dist\css\Login.css
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\dist\js\bootstrap.bundle.min.js
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\dist\js\bootstrap.bundle.min.js.map
+C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\imagenes\favicon.ico
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\js\ie\html5shiv.js
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\js\ie\respond.min.js
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\wwwroot\assets\js\jquery.js

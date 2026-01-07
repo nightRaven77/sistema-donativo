@@ -908,4 +908,5 @@ C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\donativos.genruntimeconfig.cache
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\ref\donativos.dll
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\9b2s6usdc6-{0}-2shnemo6r3-2shnemo6r3.gz
-C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\0jagqt2rv9-{0}-03mah7ait6-03mah7ait6.gz
+C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\u0rh7fr9gh-{0}-t09lutgxvj-t09lutgxvj.gz
+C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\0jagqt2rv9-{0}-u1027xn7fg-u1027xn7fg.gz
