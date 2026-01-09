@@ -424,6 +424,66 @@
     </form>
 </div>
 
+<!-- SECCIÓN DE VISUALIZACIÓN DE DONATIVOS -->
+<div id="tabDonativos" class="bg-white rounded-lg shadow-md p-8 mt-8">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Donativos Registrados</h2>
+        </div>
+        <button type="button" id="btnRefrescarDonativos" class="btn btn-sm text-white font-bold" style="background-color: var(--dorado); border-color: var(--dorado);">
+            <i class="fas fa-sync-alt mr-2"></i> Refrescar
+        </button>
+    </div>
+
+    <!-- Tabla de Donativos -->
+    <div class="table-responsive">
+        <table id="tablaDonativos" class="table table-striped table-hover">
+            <thead class="table-light">
+                <tr style="background-color: var(--guinda); color: white;">
+                    <th>ID</th>
+                    <th>Folio</th>
+                    <th>Donador</th>
+                    <th>Fecha Recepción</th>
+                    <th>Tipo</th>
+                    <th>Estatus</th>
+                    <th>Cantidad Artículos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los datos se cargarán aquí -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para ver detalles del donativo -->
+<div class="modal fade" id="modalDetallesDonativo" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--guinda); color: white;">
+                <h5 class="modal-title">Detalles del Donativo</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="contenidoDetalles">
+                    <!-- Los detalles se cargarán aquí -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts necesarios -->
+<link href="https://cdn.jsdelivr.net/npm/table-js-simple@1.0.0/table.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/table-js-simple@1.0.0/table.min.js"></script>
+
+
 <!-- Script para mostrar/ocultar importe según tipo de donativo -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -432,6 +492,17 @@
         const numberImporte = document.getElementById('numberImporte');
         const btnCancelar = document.getElementById('btnCancelar');
         const formRegistroDonativos = document.getElementById('formRegistroDonativos');
+
+        // Inicializar Tabla
+        inicializarTablaDonativos();
+
+        // Cargar donativos
+        cargarDonativos();
+
+        // Botón refrescar
+        document.getElementById('btnRefrescarDonativos').addEventListener('click', function () {
+            cargarDonativos();
+        });
 
         if (selectTipoDonativo) {
             selectTipoDonativo.addEventListener('change', function() {
@@ -445,5 +516,36 @@
                 }
             });
         }
-</script>
+    });
 
+
+    /**
+     * Editar un donativo
+     */
+    function editarDonativo(idDonativo) {
+        toastr.info('Función de edición en desarrollo', 'Información');
+        // Implementar edición
+    }
+
+    /**
+     * Eliminar un donativo
+     */
+    function eliminarDonativo(idDonativo) {
+        if (confirm('¿Estás seguro de que deseas eliminar este donativo?')) {
+            $.ajax({
+                type: 'DELETE',
+                url: `/Registros/EliminarDonativo/${idDonativo}`,
+                dataType: 'json',
+                success: function (response) {
+                    console.log('Donativo eliminado:', response);
+                    toastr.success('Donativo eliminado correctamente', 'Éxito');
+                    cargarDonativos(); // Refrescar tabla
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error al eliminar:', error);
+                    toastr.error('Error al eliminar el donativo', 'Error');
+                }
+            });
+        }
+    }
+</script>

@@ -362,6 +362,91 @@ namespace donativos.Controllers
             }
         }
 
+        public IActionResult CerrarSesion()
+        {
+            HttpContext.Session.Clear();
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Acceso");
+        }
+
+        /// <summary>
+        /// Inserta un registro completo de donativo en una sola petición
+        /// Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[]}
+        /// </summary>
+        public JsonResult insertaDonativo(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando donativo completo: {datos}");
+
+                // Validar que los datos no sean nulos
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new { exito = false, mensaje = "Datos de donativo requeridos" });
+                }
+
+                // Enviar el donativo completo al API
+                var response = ExecuteApi(token, "donativo", "POST", datos);
+
+                Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
+
+                // Procesar la respuesta
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Donativo registrado correctamente");
+                    return Json(new
+                    {
+                        exito = true,
+                        mensaje = "Donativo registrado correctamente",
+                        data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Datos de donativo inválidos",
+                        error = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Error interno del servidor",
+                        error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = $"Error {response.StatusCode}",
+                        error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error inesperado al procesar el donativo",
+                    error = ex.Message
+                });
+            }
+        }
+
         /// <summary>
         /// Retrieves a list of donors from the API, optionally filtering by a search term.
         /// </summary>
@@ -541,6 +626,8 @@ namespace donativos.Controllers
             }
         }
 
+
+
         /// <summary>
         /// Convierte un JToken a un objeto DonadorDTO
         /// </summary>
@@ -700,11 +787,94 @@ namespace donativos.Controllers
             };
         }
 
-        public IActionResult CerrarSesion()
+        //TODO: Regresar a usar DTOs en las siguientes funciones
+
+        /// <summary>
+        /// Obtiene la lista de todos los donativos registrados
+        /// </summary>
+        public JsonResult ObtenerDonativos()
         {
-            HttpContext.Session.Clear();
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login", "Acceso");
+            var token = HttpContext.Session.GetString("token");
+            
+            try
+            {
+                var response = ExecuteApi(token, "donativo/miUsuario", "GET");
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine($"Donativos obtenidos: {response.Content}");
+                    return Json(JsonConvert.DeserializeObject(response.Content));
+                }
+                else
+                {
+                    Console.WriteLine($"Error al obtener donativos: {response.StatusCode}");
+                    return Json(new { error = "Error al obtener donativos" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en ObtenerDonativos: {ex.Message}");
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene los detalles de un donativo específico
+        /// </summary>
+        public JsonResult ObtenerDetalleDonativo(int id)
+        {
+            var token = HttpContext.Session.GetString("token");
+            
+            try
+            {
+                var response = ExecuteApi(token, $"transacciones/donativo/{id}", "GET");
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine($"Detalle donativo obtenido: {response.Content}");
+                    return Json(JsonConvert.DeserializeObject(response.Content));
+                }
+                else
+                {
+                    Console.WriteLine($"Error al obtener detalle: {response.StatusCode}");
+                    return Json(new { error = "Error al obtener detalle del donativo" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en ObtenerDetalleDonativo: {ex.Message}");
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Elimina un donativo
+        /// </summary>
+        public JsonResult EliminarDonativo(int id)
+        {
+            var token = HttpContext.Session.GetString("token");
+            
+            try
+            {
+                var response = ExecuteApi(token, $"transacciones/donativo/{id}", "DELETE");
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.OK || 
+                    response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    Console.WriteLine($"Donativo eliminado correctamente");
+                    return Json(new { exito = true, mensaje = "Donativo eliminado correctamente" });
+                }
+                else
+                {
+                    Console.WriteLine($"Error al eliminar: {response.StatusCode}");
+                    return Json(new { exito = false, error = "Error al eliminar el donativo" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en EliminarDonativo: {ex.Message}");
+                return Json(new { exito = false, error = ex.Message });
+            }
         }
     }
 }
