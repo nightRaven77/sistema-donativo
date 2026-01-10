@@ -182,7 +182,7 @@ namespace donativos.Controllers
                 {
                     exito = errores == 0,
                     procesados = contador,
-                    exitosos = contador - errores,
+                    exitingosos = contador - errores,
                     errores = errores,
                     resultados = resultados
                 });
@@ -792,58 +792,86 @@ namespace donativos.Controllers
         /// <summary>
         /// Obtiene la lista de todos los donativos registrados
         /// </summary>
-        public JsonResult ObtenerDonativos()
+        public IActionResult ObtenerDonativos()
         {
             var token = HttpContext.Session.GetString("token");
             
             try
             {
+                Console.WriteLine("=== Iniciando ObtenerDonativos ===");
+                
                 var response = ExecuteApi(token, "donativo/miUsuario", "GET");
+                
+                Console.WriteLine($"Status Code: {response.StatusCode}");
+                Console.WriteLine($"Response Content (primeros 200 chars): {response.Content?.Substring(0, Math.Min(200, response.Content?.Length ?? 0))}");
                 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Console.WriteLine($"Donativos obtenidos: {response.Content}");
-                    return Json(JsonConvert.DeserializeObject(response.Content));
+                    Console.WriteLine("✓ Respuesta OK del API");
+                    
+                    // Validar que el contenido no esté vacío
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Content("[]", "application/json");
+                    }
+
+                    // ⭐ IMPORTANTE: Retornar el contenido directamente sin serializar nuevamente
+                    Console.WriteLine("✓ Retornando respuesta sin serializar adicional");
+                    return Content(response.Content, "application/json");
                 }
                 else
                 {
-                    Console.WriteLine($"Error al obtener donativos: {response.StatusCode}");
-                    return Json(new { error = "Error al obtener donativos" });
+                    Console.WriteLine($"❌ Error al obtener donativos: {response.StatusCode}");
+                    return Content($"{{\"error\":\"Error {response.StatusCode}\"}}", "application/json");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en ObtenerDonativos: {ex.Message}");
-                return Json(new { error = ex.Message });
+                Console.WriteLine($"❌ Excepción en ObtenerDonativos: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Content($"{{\"error\":\"{ex.Message}\"}}", "application/json");
             }
         }
 
         /// <summary>
         /// Obtiene los detalles de un donativo específico
         /// </summary>
-        public JsonResult ObtenerDetalleDonativo(int id)
+        public IActionResult ObtenerDetalleDonativo(int id)
         {
             var token = HttpContext.Session.GetString("token");
             
             try
             {
-                var response = ExecuteApi(token, $"transacciones/donativo/{id}", "GET");
+                Console.WriteLine($"=== Obtener detalle donativo ID: {id} ===");
+                
+                var response = ExecuteApi(token, $"donativo/{id}", "GET");
+                
+                Console.WriteLine($"Status Code: {response.StatusCode}");
+                Console.WriteLine($"Response Content (primeros 200 chars): {response.Content?.Substring(0, Math.Min(200, response.Content?.Length ?? 0))}");
                 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Console.WriteLine($"Detalle donativo obtenido: {response.Content}");
-                    return Json(JsonConvert.DeserializeObject(response.Content));
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía");
+                        return Content("{\"error\":\"No se encontró el donativo\"}", "application/json");
+                    }
+
+                    // ⭐ IMPORTANTE: Retornar directamente sin serializar
+                    Console.WriteLine("✓ Retornando detalle sin serializar adicional");
+                    return Content(response.Content, "application/json");
                 }
                 else
                 {
-                    Console.WriteLine($"Error al obtener detalle: {response.StatusCode}");
-                    return Json(new { error = "Error al obtener detalle del donativo" });
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Content($"{{\"error\":\"Error {response.StatusCode}\"}}", "application/json");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en ObtenerDetalleDonativo: {ex.Message}");
-                return Json(new { error = ex.Message });
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                return Content($"{{\"error\":\"{ex.Message}\"}}", "application/json");
             }
         }
 

@@ -1065,6 +1065,11 @@ document.addEventListener('registrosViewLoaded', function () {
     }, 200);
 });
 
+// Botón refrescar
+document.getElementById('btnRefrescarDonativos').addEventListener('click', function () {
+    cargarDonativos();
+});
+
 // Inicialización para cuando se carga el DOM por primera vez
 document.addEventListener('DOMContentLoaded', function () {
     console.log('=== DOMContentLoaded ===');
@@ -1105,35 +1110,53 @@ function cargarDonativos() {
         dataType: 'json',
         timeout: 10000,
         beforeSend: function () {
-            console.log('AJAX beforeSend: Enviando solicitud a /Registros/ObtenerDonativos');
+            console.log('AJAX beforeSend');
             toastr.info('Cargando donativos...', 'Procesando');
         },
         success: function (response) {
             console.log('=== AJAX Success ===');
             console.log('Respuesta recibida:', response);
-            console.log('Tipo:', typeof response);
+            console.log('Tipo de respuesta:', typeof response);
             console.log('¿Es array?:', Array.isArray(response));
+            
+            // Log detallado de la estructura
+            response && typeof response === 'object' && console.log('Propiedades de la respuesta:', Object.keys(response));
 
             let donativosArray = [];
             
+            // Manejar respuesta como array directo
             if (Array.isArray(response)) {
                 donativosArray = response;
                 console.log('✓ Respuesta es array con ' + donativosArray.length + ' elementos');
-            } else if (response && response.error) {
+            }
+            // Manejar respuesta con error
+            else if (response && response.error) {
                 console.error('❌ Error en respuesta:', response.error);
                 toastr.error(`Error: ${response.error}`, 'Error');
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
                     <i class="fas fa-exclamation-triangle"></i> ${response.error}
                 </td></tr>`;
                 return;
-            } else if (response && typeof response === 'object') {
-                console.warn('⚠ Respuesta no es array');
-                // Intentar extraer array de propiedad 'data'
-                if (response.data && Array.isArray(response.data)) {
+            }
+            // Si es objeto pero no array
+            else if (response && typeof response === 'object') {
+                console.warn('⚠ Respuesta no es array directo');
+                
+                // Intentar buscar array en propiedades comunes
+                if (Array.isArray(response.data)) {
                     donativosArray = response.data;
-                    console.log('✓ Se extrajo array de response.data');
+                    console.log('✓ Array extraído de response.data');
+                } else if (Array.isArray(response.donativos)) {
+                    donativosArray = response.donativos;
+                    console.log('✓ Array extraído de response.donativos');
+                } else if (Array.isArray(response.items)) {
+                    donativosArray = response.items;
+                    console.log('✓ Array extraído de response.items');
+                } else if (Array.isArray(response.registros)) {
+                    donativosArray = response.registros;
+                    console.log('✓ Array extraído de response.registros');
                 } else {
-                    toastr.warning('Formato de respuesta inesperado', 'Advertencia');
+                    console.warn('No se encontró array en la respuesta');
                     tbody.innerHTML = `<tr><td colspan="8" class="text-center text-warning">
                         Formato de respuesta inesperado
                     </td></tr>`;
@@ -1141,6 +1164,7 @@ function cargarDonativos() {
                 }
             }
 
+            // Llenar tabla con datos
             if (donativosArray && donativosArray.length > 0) {
                 console.log('✓ Llenando tabla con ' + donativosArray.length + ' donativos');
                 llenarTablaDonativos(donativosArray);
@@ -1164,12 +1188,11 @@ function cargarDonativos() {
             } else if (xhr.status === 0) {
                 mensajeError = 'Sin conexión al servidor';
             } else if (xhr.status === 401) {
-                mensajeError = 'Sesión expirada. Recarga la página.';
+                mensajeError = 'Sesión expirada';
             }
 
             toastr.error(mensajeError, 'Error');
             
-            // Mostrar error en tabla
             const tbody = document.querySelector('#tablaDonativos tbody');
             if (tbody) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
@@ -1200,23 +1223,23 @@ function llenarTablaDonativos(donativos) {
         const fechaFormato = donativo.fecha_recepcion 
             ? new Date(donativo.fecha_recepcion).toLocaleDateString('es-MX')
             : 'N/A';
-        const cantidadArticulos = donativo.detalles ? donativo.detalles.length : 0;
+        const cantidadArticulos = donativo.cantidad_articulos 
 
         fila.innerHTML = `
             <td>${donativo.id_donativo || '-'}</td>
             <td><strong>${donativo.folio || '-'}</strong></td>
-            <td>${donativo.donador?.nombre || 'N/A'}</td>
+            <td>${donativo.nombre || 'N/A'}</td>
             <td>${fechaFormato}</td>
             <td>
-                <span class="badge badge-info">${donativo.tipo || 'N/A'}</span>
+                <span class="badge badge-pill ${obtenerColorEstatus(donativo.tipo)}">${donativo.tipo || 'N/A'}</span>
             </td>
             <td>
-                <span class="badge ${obtenerColorEstatus(donativo.estatus)}">
+                <span class="badge badge-pill ${obtenerColorEstatus(donativo.estatus)}">
                     ${donativo.estatus || 'Pendiente'}
                 </span>
             </td>
             <td>
-                <span class="badge badge-secondary">${cantidadArticulos}</span>
+                <span class="badge badge-pill badge-info">${cantidadArticulos}</span>
             </td>
             <td>
                 <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.id_donativo})" title="Ver detalles">
@@ -1241,13 +1264,18 @@ function llenarTablaDonativos(donativos) {
  * Obtiene el color del badge según el estatus
  */
 function obtenerColorEstatus(estatus) {
+    // Usar clases estándar de Bootstrap con nombres correctos
     const colores = {
-        'Recibido': 'badge-success',
-        'Pendiente': 'badge-warning',
-        'Cancelado': 'badge-danger',
-        'Rechazado': 'badge-dark'
+        'Recibido': 'bg-success',
+        'recibido': 'bg-success',
+        'Pendiente': 'bg-warning',
+        'pendiente': 'bg-warning',
+        'Cancelado': 'bg-danger',
+        'cancelado': 'bg-danger',
+        'Rechazado': 'bg-dark',
+        'rechazado': 'bg-dark'
     };
-    return colores[estatus] || 'badge-secondary';
+    return colores[estatus] || 'bg-secondary';
 }
 
 /**
@@ -1425,5 +1453,7 @@ document.addEventListener('registrosViewLoaded', function () {
         }
     }, 200);
 });
+
+
 
 

@@ -493,16 +493,8 @@
         const btnCancelar = document.getElementById('btnCancelar');
         const formRegistroDonativos = document.getElementById('formRegistroDonativos');
 
-        // Inicializar Tabla
-        inicializarTablaDonativos();
-
-        // Cargar donativos
-        cargarDonativos();
-
-        // Botón refrescar
-        document.getElementById('btnRefrescarDonativos').addEventListener('click', function () {
-            cargarDonativos();
-        });
+        
+        
 
         if (selectTipoDonativo) {
             selectTipoDonativo.addEventListener('change', function() {
