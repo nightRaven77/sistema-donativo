@@ -626,7 +626,27 @@ namespace donativos.Controllers
             }
         }
 
+        public JsonResult obtenerDonativoDetalle(int id_donativo)
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = ExecuteApi(token, $"donativo/{id_donativo}/detalles", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener detalles de donativo" });
+            }
+            return Json(response.Content);
+        }
 
+        public JsonResult obtenerDonativo(int id_donativo)
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = ExecuteApi(token, $"donativo/{id_donativo}", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener detalles de donativo" });
+            }
+            return Json(response.Content);
+        }
 
         /// <summary>
         /// Convierte un JToken a un objeto DonadorDTO
@@ -764,10 +784,15 @@ namespace donativos.Controllers
         public IActionResult Index(string a)
         {
             var sessionUsuario = HttpContext.Session.GetString("usuario");
+            var centro = HttpContext.Session.GetString("centroAcopio");
+            var usuario = HttpContext.Session.GetString("nombreCompleto");
             if (sessionUsuario == null) return BadRequest();
 
             ViewBag.a = a;
+            ViewBag.centro = centro;
+            ViewBag.usuario = usuario;
             return View();
+            
         }
 
         public IActionResult GetView(string viewName, string a)

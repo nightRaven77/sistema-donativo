@@ -1279,113 +1279,122 @@ function obtenerColorEstatus(estatus) {
 }
 
 /**
- * Editar un donativo
+ * Ver detalles del donativo
+ * Obtiene los detalles completos del servidor y los muestra en un modal
  */
-function editarDonativo(idDonativo) {
-    toastr.info('Función de edición en desarrollo', 'Información');
+function verDetalles(idDonativo) {
+    console.log('Obteniendo detalles del donativo ID:', idDonativo);
+    
+    $.ajax({
+        type: 'GET',
+        url: '/Registros/obtenerDonativoDetalle',
+        data: { id_donativo: idDonativo },
+        dataType: 'json',
+        beforeSend: function () {
+            toastr.info('Cargando detalles...', 'Procesando');
+        },
+        success: function (response) {
+            console.log('Detalles obtenidos:', response);
+            
+            // Procesar el JSON con la estructura de artículos
+            procesarYMostrarDetalles(JSON.parse(response), idDonativo);
+            
+            // Mostrar el modal
+            $('#modalDetallesDonativo').modal('show');
+            toastr.success('Detalles cargados correctamente', 'Éxito');
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al obtener detalles:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al cargar los detalles del donativo', 'Error');
+        }
+    });
 }
 
 /**
- * Eliminar un donativo
+ * Procesa y muestra los detalles del donativo en el modal
+ * Estructura esperada: array de artículos con información completa
  */
-function eliminarDonativo(idDonativo) {
-    if (confirm('¿Estás seguro de que deseas eliminar este donativo?')) {
-        $.ajax({
-            type: 'DELETE',
-            url: `/Registros/EliminarDonativo/${idDonativo}`,
-            dataType: 'json',
-            success: function (response) {
-                console.log('✓ Donativo eliminado:', response);
-                toastr.success('Donativo eliminado correctamente', 'Éxito');
-                cargarDonativos();
-            },
-            error: function (xhr, status, error) {
-                console.error('❌ Error al eliminar:', error);
-                toastr.error('Error al eliminar el donativo', 'Error');
-            }
-        });
-    }
-}
-
-/**
- * Muestra los detalles del donativo en el modal
- */
-function mostrarDetallesDonativo(donativo) {
+function procesarYMostrarDetalles(detalles, idDonativo) {
     const contenido = document.getElementById('contenidoDetalles');
     
-    const fechaFormato = donativo.fecha_recepcion
-        ? new Date(donativo.fecha_recepcion).toLocaleDateString('es-MX')
-        : 'N/A';
-    
+    if (!detalles || detalles.length === 0) {
+        contenido.innerHTML = `
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i> No hay detalles disponibles para este donativo
+            </div>
+        `;
+        return;
+    }
+
     let detallesHtml = `
         <div class="row mb-4">
-            <div class="col-md-6">
-                <h6 class="font-bold text-stone-700">Información del Donativo</h6>
-                <p><strong>ID:</strong> ${donativo.id_donativo}</p>
-                <p><strong>Folio:</strong> ${donativo.folio}</p>
-                <p><strong>Fecha:</strong> ${fechaFormato}</p>
-                <p><strong>Tipo:</strong> ${donativo.tipo}</p>
-                <p><strong>Estatus:</strong> <span class="badge ${obtenerColorEstatus(donativo.estatus)}">${donativo.estatus}</span></p>
-            </div>
-            <div class="col-md-6">
-                <h6 class="font-bold text-stone-700">Información del Donador</h6>
-                <p><strong>Nombre:</strong> ${donativo.donador?.nombre || 'N/A'}</p>
-                <p><strong>Tipo:</strong> ${donativo.donador?.tipo || 'N/A'}</p>
-                <p><strong>Email:</strong> ${donativo.donador?.email || 'N/A'}</p>
-                <p><strong>Teléfono:</strong> ${donativo.donador?.telefono || 'N/A'}</p>
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="row mb-4">
             <div class="col-12">
-                <h6 class="font-bold text-stone-700">Artículos Donados</h6>
+                <h6 class="font-bold text-stone-700">
+                    <i class="fas fa-box"></i> Artículos Donados
+                </h6>
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered">
+                    <table class="table table-sm table-striped table-hover">
                         <thead style="background-color: var(--dorado); color: white;">
                             <tr>
                                 <th>Artículo</th>
+                                <th>Categoría</th>
+                                <th>Unidad de Medida</th>
                                 <th>Cantidad</th>
                                 <th>Valor Unitario</th>
-                                <th>Subtotal</th>
+                                <th>Valor Total</th>
                                 <th>Estado</th>
                             </tr>
                         </thead>
                         <tbody>
     `;
 
-    if (donativo.detalles && donativo.detalles.length > 0) {
-        let totalGeneral = 0;
-        donativo.detalles.forEach((detalle) => {
-            const subtotal = (detalle.cantidad_recibida * detalle.valor_unitario).toFixed(2);
-            totalGeneral += parseFloat(subtotal);
-            
-            detallesHtml += `
-                <tr>
-                    <td>${detalle.articulo?.nombre || 'N/A'}</td>
-                    <td>${detalle.cantidad_recibida}</td>
-                    <td>$${parseFloat(detalle.valor_unitario).toFixed(2)}</td>
-                    <td>$${subtotal}</td>
-                    <td><span class="badge badge-info">${detalle.estado}</span></td>
-                </tr>
-            `;
-        });
+    let totalGeneral = 0;
 
+    // Iterar sobre los artículos
+    detalles.forEach((detalle) => {
+        const subtotal = detalle.valor_total || (detalle.cantidad_recibida * detalle.valor_unitario);
+        totalGeneral += parseFloat(subtotal);
+        
         detallesHtml += `
-                            <tr style="background-color: #f0f0f0; font-weight: bold;">
-                                <td colspan="3" class="text-right">TOTAL:</td>
-                                <td>$${totalGeneral.toFixed(2)}</td>
-                                <td></td>
-                            </tr>
+            <tr>
+                <td>
+                    <strong>${detalle.nombre_articulo || 'N/A'}</strong>
+                    <br>
+                    <small class="text-muted">ID: ${detalle.id_articulo}</small>
+                </td>
+                <td>${detalle.categoria_articulo || 'N/A'}</td>
+                <td>${detalle.unidad_medida || 'N/A'}</td>
+                <td class="text-center">
+                    <span class="badge badge-primary">${detalle.cantidad_recibida}</span>
+                </td>
+                <td class="text-right">$${parseFloat(detalle.valor_unitario).toFixed(2)}</td>
+                <td class="text-right">
+                    <strong>$${parseFloat(subtotal).toFixed(2)}</strong>
+                </td>
+                <td>
+                    <span class="badge ${obtenerColorEstado(detalle.estado)}">
+                        ${detalle.estado || 'N/A'}
+                    </span>
+                </td>
+            </tr>
         `;
-    } else {
-        detallesHtml += `
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">No hay artículos registrados</td>
-                            </tr>
-        `;
-    }
+    });
+
+    // Fila de totales
+    detallesHtml += `
+        <tr style="background-color: #f9f9f9; font-weight: bold;">
+            <td colspan="5" class="text-right">
+                <strong>TOTAL GENERAL:</strong>
+            </td>
+            <td class="text-right">
+                <strong style="font-size: 1.2rem; color: var(--guinda);">
+                    $${totalGeneral.toFixed(2)}
+                </strong>
+            </td>
+            <td></td>
+        </tr>
+    `;
 
     detallesHtml += `
                         </tbody>
@@ -1398,8 +1407,13 @@ function mostrarDetallesDonativo(donativo) {
 
         <div class="row">
             <div class="col-12">
-                <h6 class="font-bold text-stone-700">Observaciones</h6>
-                <p>${donativo.observaciones || 'Sin observaciones'}</p>
+                <h6 class="font-bold text-stone-700">
+                    <i class="fas fa-file-alt"></i> Resumen
+                </h6>
+                <div class="alert alert-light" role="alert">
+                    <p class="mb-1"><strong>Cantidad Total de Artículos:</strong> ${detalles.length}</p>
+                    <p class="mb-0"><strong>Valor Total del Donativo:</strong> <span style="color: var(--guinda); font-weight: bold;">$${totalGeneral.toFixed(2)}</span></p>
+                </div>
             </div>
         </div>
     `;
@@ -1407,52 +1421,153 @@ function mostrarDetallesDonativo(donativo) {
     contenido.innerHTML = detallesHtml;
 }
 
-// Inicializar tabla y cargar donativos cuando se carga la página
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('=== DOM Content Loaded ===');
-    
-    // Inicializar formulario
-    initRegistrosForm();
-    
-    // Cargar donativos después de un pequeño delay para asegurar que jQuery esté listo
-    setTimeout(function () {
-        console.log('Llamando a cargarDonativos después del delay');
-        cargarDonativos();
-        
-        // Botón refrescar
-        const btnRefrescar = document.getElementById('btnRefrescarDonativos');
-        if (btnRefrescar) {
-            btnRefrescar.addEventListener('click', function () {
-                console.log('Botón refrescar clickeado');
-                cargarDonativos();
-            });
-        }
-    }, 500);
-});
+/**
+ * Obtiene el color del badge según el estado del artículo
+ */
+function obtenerColorEstado(estado) {
+    const colores = {
+        'nuevo': 'badge-success',
+        'Nuevo': 'badge-success',
+        'usado_bueno': 'badge-info',
+        'Usado - Buen estado': 'badge-info',
+        'usado_regular': 'badge-warning',
+        'Usado - Estado regular': 'badge-warning',
+        'reparado': 'badge-primary',
+        'Reparado': 'badge-primary',
+        'otro': 'badge-secondary',
+        'Otro': 'badge-secondary'
+    };
+    return colores[estado] || 'badge-secondary';
+}
 
 /**
- * Evento personalizado cuando la vista de registros se carga
+ * Editar un donativo
+ * Obtiene los datos del donativo y los carga en el formulario
  */
-document.addEventListener('registrosViewLoaded', function () {
-    console.log('=== registrosViewLoaded evento disparado ===');
+function editarDonativo(idDonativo) {
+    console.log('Editando donativo ID:', idDonativo);
     
-    setTimeout(function () {
-        console.log('Iniciando cargarDonativos después de registrosViewLoaded');
-        cargarDonativos();
-        
-        // Botón refrescar
-        const btnRefrescar = document.getElementById('btnRefrescarDonativos');
-        if (btnRefrescar) {
-            console.log('✓ Botón refrescar encontrado, agregando listener');
-            btnRefrescar.addEventListener('click', function () {
-                console.log('Botón refrescar clickeado');
-                cargarDonativos();
-            });
-        } else {
-            console.warn('⚠ Botón refrescar NO encontrado');
+    $.ajax({
+        type: 'GET',
+        url: '/Registros/obtenerDonativo',
+        data: { id_donativo: idDonativo },
+        dataType: 'json',
+        beforeSend: function () {
+            toastr.info('Cargando donativo para edición...', 'Procesando');
+        },
+        success: function (response) {
+            console.log('Donativo obtenido para edición:', response);
+            
+            // Cargar los datos en el formulario
+            cargarDonativoEnFormulario(JSON.parse( response));
+            
+            // Hacer scroll al formulario
+            document.getElementById('formRegistroDonativos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            toastr.success('Donativo cargado para editar', 'Éxito');
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al obtener donativo para editar:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al cargar el donativo para edición', 'Error');
         }
-    }, 200);
-});
+    });
+}
+
+/**
+ * Carga los datos del donativo en el formulario para edición
+ */
+function cargarDonativoEnFormulario(donativo) {
+    // Limpiar formulario primero
+    const form = document.getElementById('formRegistroDonativos');
+    form.reset();
+    form.classList.remove('was-validated');
+    
+    // Limpiar artículos previos
+    $('#contenedorArticulos').empty();
+    numeroArticulos = 0;
+
+    // Información del donador
+    console.log('Cargando información del donador:', donativo.donador);
+    
+    $('#id_donador').val(donativo.donador?.id_donador || '');
+    $('#selectTipoDonador').val(donativo.donador?.tipo || '');
+    $('#textNombreDonador').val(donativo.donador?.nombre || '');
+    $('#textRFC').val(donativo.donador?.rfc || '');
+    $('#textTelefonoDonador').val(donativo.donador?.telefono || '');
+    $('#textEmailDonador').val(donativo.donador?.email || '');
+    $('#textDireccionDonador').val(donativo.donador?.direccion || '');
+    $('#textColoniaDonador').val(donativo.donador?.colonia || '');
+    $('#textCiudadDonador').val(donativo.donador?.ciudad || '');
+    $('#textEstadoDonador').val(donativo.donador?.estado || '');
+    $('#textCodigoPostalDonador').val(donativo.donador?.codigo_postal || '');
+    $('#textNotasDonador').val(donativo.donador?.notas || '');
+    
+    // Indicar que fue seleccionado
+    $('#textNombreDonador').css('background-color', '#e8f5e9').prop('readonly', true);
+
+    // Información del contacto (si aplica)
+    if (donativo.donador?.tipo === 'organizacion' || donativo.donador?.tipo === 'empresa') {
+        if (donativo.contacto) {
+            console.log('Cargando información de contacto:', donativo.contacto);
+            
+            $('#textNombreContacto').val(donativo.contacto.nombre || '');
+            $('#textPuestoContacto').val(donativo.contacto.puesto || '');
+            $('#textTelefonoContacto').val(donativo.contacto.telefono || '');
+            $('#textExtensionContacto').val(donativo.contacto.extension || '');
+            $('#textCelularContacto').val(donativo.contacto.celular || '');
+            $('#textEmailContacto').val(donativo.contacto.email || '');
+            $('#textHorarioContacto').val(donativo.contacto.horario_contacto || '');
+            $('#selectMedioPreferido').val(donativo.contacto.medio_preferido || '');
+            $('#checkEsPrincipal').prop('checked', donativo.contacto.es_principal === true || donativo.contacto.es_principal === 1);
+            $('#checkActivoContacto').prop('checked', donativo.contacto.activo === true || donativo.contacto.activo === 1);
+            $('#textNotasContacto').val(donativo.contacto.notas || '');
+        }
+        
+        // Mostrar sección de contacto
+        $('#seccionContacto').removeClass('hidden');
+    }
+
+    // Información del donativo
+    console.log('Cargando información del donativo');
+    
+    $('#dateRecepcion').val(donativo.fecha_recepcion ? donativo.fecha_recepcion.split('T')[0] : obtenerFechaHoy());
+    $('#selectTipoDonativo').val(donativo.tipo || 'especie');
+    $('#textObservacionesDonativo').val(donativo.observaciones || '');
+
+    // Si es efectivo, mostrar el campo de importe
+    if (donativo.tipo === 'efectivo') {
+        $('#grupoImporte').show();
+        // Si existe un importe, cargarlo (generalmente viene del primer detalle o de un campo separado)
+    }
+
+    // Cargar artículos
+    console.log('Cargando artículos:', donativo.detalles);
+    
+    if (donativo.detalles && donativo.detalles.length > 0) {
+        donativo.detalles.forEach((detalle, index) => {
+            numeroArticulos++;
+            agregarArticulo(numeroArticulos);
+            
+            const $articulo = $(`[data-articulo="${numeroArticulos}"]`);
+            
+            // Llenar datos del artículo
+            $articulo.find('.input-articulo-nombre').val(detalle.nombre_articulo || '').prop('readonly', true).css('background-color', '#e8f5e9');
+            $articulo.find('.input-articulo-descripcion').val(detalle.descripcion || '');
+            $articulo.find('.input-articulo-unidad').val(detalle.unidad_medida || '');
+            $articulo.find('.input-articulo-categoria-select').val(detalle.id_categoria || '');
+            $articulo.find('.input-articulo-cantidad').val(detalle.cantidad_recibida || 0);
+            $articulo.find('.input-articulo-valor').val(parseFloat(detalle.valor_unitario).toFixed(2));
+            $articulo.find('.input-articulo-estado').val(detalle.estado || '');
+            
+            // Guardar el ID del artículo
+            $articulo.data('id_articulo', detalle.id_articulo);
+        });
+    }
+
+    console.log('✓ Donativo cargado en el formulario correctamente');
+    toastr.success('Donativo cargado en el formulario', 'Éxito');
+}
 
 
 

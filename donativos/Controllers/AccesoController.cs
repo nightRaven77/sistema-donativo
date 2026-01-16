@@ -44,6 +44,7 @@ namespace donativos.Controllers
                 HttpContext.Session.SetString("CentroID", result.User.centroID ?? "0");
                 HttpContext.Session.SetString("token", result.User.token);
                 HttpContext.Session.SetInt32("userID", result.User.userID);
+                HttpContext.Session.SetString("nombreCompleto", result.User.nombreCompleto);
 
                 return RedirectToAction("Index", "Registros", new { a = result.User.username });
             }

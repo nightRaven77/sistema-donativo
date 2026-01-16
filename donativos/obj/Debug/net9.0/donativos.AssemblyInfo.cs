@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("donativos")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+09fa69b7202d477eed3e1528d427cd5b579107b4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0cbb15ef41130b2e6e6142b5b2adf3bd84975628")]
 [assembly: System.Reflection.AssemblyProductAttribute("donativos")]
 [assembly: System.Reflection.AssemblyTitleAttribute("donativos")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

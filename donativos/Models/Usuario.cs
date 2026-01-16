@@ -1,4 +1,6 @@
-﻿namespace donativos.Models
+﻿using System.Globalization;
+
+namespace donativos.Models
 {
     public class Usuario
     {
@@ -8,6 +10,7 @@
         public string centroAcopio { get; set; }
         public string centroID { get; set; }
         public string token { get; set; }
+        public string nombreCompleto { get; set; }
 
     }
 }
