@@ -909,4 +909,4 @@ C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\ref\donativos.dll
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\u0rh7fr9gh-{0}-t09lutgxvj-t09lutgxvj.gz
 C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\9b2s6usdc6-{0}-eikowr6vyl-eikowr6vyl.gz
-C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\0jagqt2rv9-{0}-mojikwxfjh-mojikwxfjh.gz
+C:\Users\erick\Documents\donativos\sistema-donativos\donativos\obj\Debug\net9.0\compressed\0jagqt2rv9-{0}-1omxbml82i-1omxbml82i.gz
