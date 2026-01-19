@@ -172,7 +172,7 @@ function buscarDonadores(termino) {
 
     $.ajax({
         type: 'GET',
-        url: '/Registros/ObtenerDonadores',
+        url: 'ObtenerDonadores',
         data: { search: termino },
         dataType: 'json',
         success: function (donadores) {
@@ -277,7 +277,7 @@ function buscarArticulosPorNumero(termino, numeroArticulo) {
 
     $.ajax({
         type: 'GET',
-        url: '/Registros/ObtenerArticulos',
+        url: 'ObtenerArticulos',
         data: { search: termino },
         dataType: 'json',
         success: function (articulos) {
@@ -416,7 +416,7 @@ function buscarContactoDonador(idDonador) {
 
     $.ajax({
         type: 'GET',
-        url: '/Registros/ObtenerContactos',
+        url: 'ObtenerContactos',
         data: { id_donador: idDonador },
         dataType: 'json',
         success: function (contactos) {
@@ -808,7 +808,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
     
     $.ajax({
         type: 'POST',
-        url: '/Registros/insertaDonador',
+        url: 'insertaDonador',
         data: { datos: datosString },
         contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         dataType: 'json',
@@ -855,7 +855,7 @@ function guardarContacto(contacto, articulosNuevos, articulosExistentes, donador
 
     $.ajax({
         type: 'POST',
-        url: '/Registros/insertaContactoDonaodor',
+        url: 'insertaContactoDonaodor',
         data: { datos: datosString },
         contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         dataType: 'json',
@@ -898,7 +898,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
 
     $.ajax({
         type: 'POST',
-        url: '/Registros/insertaArticulos',
+        url: 'insertaArticulos',
         data: { datos: datosNuevos },
         contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         dataType: 'json',
@@ -976,7 +976,7 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
 
     $.ajax({
         type: 'POST',
-        url: '/Registros/insertaDonativo',
+        url: 'insertaDonativo',
         data: { datos: datosString },
         contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         dataType: 'json',
@@ -1106,7 +1106,7 @@ function cargarDonativos() {
     
     $.ajax({
         type: 'GET',
-        url: '/Registros/ObtenerDonativos',
+        url: 'ObtenerDonativos',
         dataType: 'json',
         timeout: 10000,
         beforeSend: function () {
@@ -1287,7 +1287,7 @@ function verDetalles(idDonativo) {
     
     $.ajax({
         type: 'GET',
-        url: '/Registros/obtenerDonativoDetalle',
+        url: 'obtenerDonativoDetalle',
         data: { id_donativo: idDonativo },
         dataType: 'json',
         beforeSend: function () {
@@ -1449,7 +1449,7 @@ function editarDonativo(idDonativo) {
     
     $.ajax({
         type: 'GET',
-        url: '/Registros/obtenerDonativo',
+        url: 'obtenerDonativo',
         data: { id_donativo: idDonativo },
         dataType: 'json',
         beforeSend: function () {
