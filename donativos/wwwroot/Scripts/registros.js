@@ -1245,9 +1245,6 @@ function llenarTablaDonativos(donativos) {
                 <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.id_donativo})" title="Ver detalles">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn btn-sm btn-warning" onclick="editarDonativo(${donativo.id_donativo})" title="Editar">
-            <i class="fas fa-edit"></i>
-            </button>
                 <button class="btn btn-sm btn-danger" onclick="eliminarDonativo(${donativo.id_donativo})" title="Eliminar">
                     <i class="fas fa-trash"></i>
                 </button>
