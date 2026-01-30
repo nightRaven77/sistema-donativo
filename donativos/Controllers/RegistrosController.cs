@@ -63,7 +63,8 @@ namespace donativos.Controllers
                     // Intentar enviar correo de agradecimiento
                     try
                     {
-                        await EnviarCorreoAgradecimiento(token, datos);
+                        // Se comenta para evitar el envio hasta la autorización
+                        //await EnviarCorreoAgradecimiento(token, datos);
                     }
                     catch (Exception ex)
                     {
