@@ -17,7 +17,7 @@
     <!-- Bootstrap core CSS -->
     <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="~/css/tailwind.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
@@ -198,7 +198,7 @@
                             
                             // ⭐ DISPARAR EVENTO PERSONALIZADO DESPUÉS DE CARGAR LA VISTA
                             setTimeout(() => {
-                                console.log('Disparando evento registrosViewLoaded');
+                                // console.log('Disparando evento registrosViewLoaded');
                                 document.dispatchEvent(new Event('registrosViewLoaded'));
                             }, 100);
                         }
