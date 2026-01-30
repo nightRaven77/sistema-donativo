@@ -1,4 +1,316 @@
-﻿// Variable global para contar artículos
+﻿// ==================== PAGINACIÓN ====================
+
+// Variables globales de paginación
+let donativosTotales = [];
+let paginaActual = 1;
+const REGISTROS_POR_PAGINA = 10;
+
+/**
+ * Calcula el total de páginas
+ */
+function calcularTotalPaginas() {
+    return Math.ceil(donativosTotales.length / REGISTROS_POR_PAGINA);
+}
+
+/**
+ * Obtiene los donativos de la página actual
+ */
+function obtenerDonativosPagina(pagina) {
+    const inicio = (pagina - 1) * REGISTROS_POR_PAGINA;
+    const fin = inicio + REGISTROS_POR_PAGINA;
+    return donativosTotales.slice(inicio, fin);
+}
+
+/**
+ * Genera el HTML de los controles de paginación
+ */
+function generarControlsPaginacion() {
+    const totalPaginas = calcularTotalPaginas();
+    let html = '';
+
+    if (totalPaginas <= 1) {
+        return html; // No mostrar controles si hay una sola página
+    }
+
+    html += '<nav aria-label="Paginación" class="mt-6">';
+    html += '<ul class="pagination justify-content-center">';
+
+    // Botón Anterior
+    if (paginaActual > 1) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1}); return false;"><i class="fas fa-chevron-left"></i> Anterior</a></li>`;
+    } else {
+        html += '<li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i> Anterior</span></li>';
+    }
+
+    // Números de página
+    for (let i = 1; i <= totalPaginas; i++) {
+        if (i === paginaActual) {
+            html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+        } else {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(${i}); return false;">${i}</a></li>`;
+        }
+    }
+
+    // Botón Siguiente
+    if (paginaActual < totalPaginas) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1}); return false;">Siguiente <i class="fas fa-chevron-right"></i></a></li>`;
+    } else {
+        html += '<li class="page-item disabled"><span class="page-link">Siguiente <i class="fas fa-chevron-right"></i></span></li>';
+    }
+
+    html += '</ul>';
+    html += `<div class="text-center text-muted small mb-4">Mostrando página <strong>${paginaActual}</strong> de <strong>${totalPaginas}</strong> | Total de registros: <strong>${donativosTotales.length}</strong></div>`;
+    html += '</nav>';
+
+    return html;
+}
+
+/**
+ * Cambia a una página específica
+ */
+function cambiarPagina(numeroPagina) {
+    const totalPaginas = calcularTotalPaginas();
+
+    if (numeroPagina < 1 || numeroPagina > totalPaginas) {
+        return;
+    }
+
+    paginaActual = numeroPagina;
+    const donativosPagina = obtenerDonativosPagina(paginaActual);
+    llenarTablaDonativos(donativosPagina);
+    actualizarPaginacion();
+
+    // Desplazarse al inicio de la tabla
+    document.querySelector('#tablaDonativos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
+ * Actualiza los controles de paginación
+ */
+function actualizarPaginacion() {
+    const contenedor = document.getElementById('paginacionControls');
+    if (contenedor) {
+        contenedor.innerHTML = generarControlsPaginacion();
+    }
+}
+
+/**
+ * Llena la tabla con los donativos (MODIFICADO para paginación)
+ */
+function llenarTablaDonativos(donativos) {
+    console.log('Iniciando llenarTablaDonativos con', donativos.length, 'registros');
+
+    const tbody = document.querySelector('#tablaDonativos tbody');
+    if (!tbody) {
+        console.error('❌ tbody no encontrado al llenar tabla');
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    donativos.forEach((donativo, index) => {
+        const fila = document.createElement('tr');
+
+        const fechaFormato = donativo.fecha_recepcion
+            ? new Date(donativo.fecha_recepcion).toLocaleDateString('es-MX')
+            : 'N/A';
+        const cantidadArticulos = donativo.cantidad_articulos || 0;
+
+        fila.innerHTML = `
+            <td>${donativo.id_donativo || '-'}</td>
+            <td><strong>${donativo.folio || '-'}</strong></td>
+            <td>${donativo.nombre || 'N/A'}</td>
+            <td>${fechaFormato}</td>
+            <td>
+                <span class="badge badge-pill ${obtenerColorEstatus(donativo.tipo)}">${donativo.tipo || 'N/A'}</span>
+            </td>
+            <td>
+                <span class="badge badge-pill ${obtenerColorEstatus(donativo.estatus)}">
+                    ${donativo.estatus || 'Pendiente'}
+                </span>
+            </td>
+            <td>
+                <span class="badge badge-pill badge-info">${cantidadArticulos}</span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.id_donativo})" title="Ver detalles">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="eliminarDonativo(${donativo.id_donativo})" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(fila);
+    });
+
+    console.log('✓ Tabla llenada exitosamente');
+}
+
+/**
+ * Carga los donativos desde el servidor (MODIFICADO para paginación)
+ */
+function cargarDonativos() {
+    console.log('=== Iniciando cargarDonativos ===');
+
+    // Validar que la tabla exista
+    const tabla = document.getElementById('tablaDonativos');
+    const tbody = tabla ? tabla.querySelector('tbody') : null;
+
+    if (!tabla) {
+        console.error('❌ Tabla #tablaDonativos no encontrada en el DOM');
+        return;
+    }
+
+    if (!tbody) {
+        console.error('❌ tbody en la tabla no encontrado');
+        return;
+    }
+
+    console.log('✓ Tabla y tbody encontrados, iniciando AJAX');
+
+    $.ajax({
+        type: 'GET',
+        url: 'ObtenerDonativos',
+        dataType: 'json',
+        timeout: 10000,
+        beforeSend: function () {
+            console.log('AJAX beforeSend');
+            toastr.info('Cargando donativos...', 'Procesando');
+        },
+        success: function (response) {
+            console.log('=== AJAX Success ===');
+            console.log('Respuesta recibida:', response);
+
+            let donativosArray = [];
+
+            // Manejar respuesta como array directo
+            if (Array.isArray(response)) {
+                donativosArray = response;
+                console.log('✓ Respuesta es array con ' + donativosArray.length + ' elementos');
+            }
+            // Manejar respuesta con error
+            else if (response && response.error) {
+                console.error('❌ Error en respuesta:', response.error);
+                toastr.error(`Error: ${response.error}`, 'Error');
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> ${response.error}
+                </td></tr>`;
+                return;
+            }
+            // Si es objeto pero no array
+            else if (response && typeof response === 'object') {
+                console.warn('⚠ Respuesta no es array directo');
+
+                // Intentar buscar array en propiedades comunes
+                if (Array.isArray(response.data)) {
+                    donativosArray = response.data;
+                    console.log('✓ Array extraído de response.data');
+                } else if (Array.isArray(response.donativos)) {
+                    donativosArray = response.donativos;
+                    console.log('✓ Array extraído de response.donativos');
+                } else if (Array.isArray(response.items)) {
+                    donativosArray = response.items;
+                    console.log('✓ Array extraído de response.items');
+                } else if (Array.isArray(response.registros)) {
+                    donativosArray = response.registros;
+                    console.log('✓ Array extraído de response.registros');
+                } else {
+                    console.warn('No se encontró array en la respuesta');
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-warning">
+                        Formato de respuesta inesperado
+                    </td></tr>`;
+                    return;
+                }
+            }
+
+            // Llenar tabla con datos
+            if (donativosArray && donativosArray.length > 0) {
+                console.log('✓ Cargando ' + donativosArray.length + ' donativos');
+                donativosTotales = donativosArray;
+                paginaActual = 1;
+
+                // Mostrar primer página
+                const donativosPagina = obtenerDonativosPagina(1);
+                llenarTablaDonativos(donativosPagina);
+                actualizarPaginacion();
+
+                toastr.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
+            } else {
+                console.log('⚠ No hay donativos para mostrar');
+                donativosTotales = [];
+                paginaActual = 1;
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><i class="fas fa-inbox"></i> No hay donativos registrados</td></tr>';
+                actualizarPaginacion();
+                toastr.info('No hay donativos registrados', 'Información');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('=== AJAX Error ===');
+            console.error('Status:', status);
+            console.error('Error:', error);
+
+            let mensajeError = 'Error al cargar los donativos';
+            if (status === 'timeout') {
+                mensajeError = 'Tiempo de espera agotado';
+            } else if (xhr.status === 0) {
+                mensajeError = 'Sin conexión al servidor';
+            } else if (xhr.status === 401) {
+                mensajeError = 'Sesión expirada';
+            }
+
+            toastr.error(mensajeError, 'Error');
+
+            const tbody = document.querySelector('#tablaDonativos tbody');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> ${mensajeError}
+                </td></tr>`;
+            }
+        }
+    });
+}
+
+/**
+ * Limpia el formulario después de guardar (MODIFICADO para refrescar tabla)
+ */
+function limpiarFormulario() {
+    const form = document.getElementById('formRegistroDonativos');
+
+    // Limpiar sección de donador
+    form.reset();
+    form.classList.remove('was-validated');
+
+    // Resetear el input hidden del ID
+    $('#id_donador').val('');
+    $('#textNombreDonador').css('background-color', '').prop('readonly', false);
+
+    // Establecer fecha de recepción a la fecha de hoy
+    $('#dateRecepcion').val(obtenerFechaHoy());
+
+    // Limpiar sección de contacto
+    $('#seccionContacto').addClass('hidden');
+    $('#textNombreContacto').prop('required', false);
+    $('#textPuestoContacto').prop('required', false);
+    $('#textCelularContacto').prop('required', false);
+    $('#textEmailContacto').prop('required', false);
+
+    // Limpiar artículos
+    $('#contenedorArticulos').empty();
+    numeroArticulos = 0;
+    donadorSeleccionado = null;
+
+    // Ocultar lista de donadores
+    $('#listaDonadores').addClass('d-none');
+
+    // Refrescar tabla de donativos
+    cargarDonativos();
+
+    console.log('Formulario limpiado correctamente');
+}
+
+
+// Variable global para contar artículos
 let numeroArticulos = 0;
 let donadorSeleccionado = null;
 let timerOcultarListaDonadores = null;

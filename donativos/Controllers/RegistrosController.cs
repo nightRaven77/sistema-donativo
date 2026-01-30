@@ -1,5 +1,6 @@
 ﻿using donativos.Extensions;
 using donativos.Models;
+using donativos.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -19,10 +20,12 @@ namespace donativos.Controllers
     public class RegistrosController : Controller
     {
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public RegistrosController(IConfiguration configuration)
+        public RegistrosController(IConfiguration configuration, IEmailService emailService)
         {
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         private string ApiUrl => _configuration["apiUrl"];
@@ -32,7 +35,7 @@ namespace donativos.Controllers
         /// Inserta un registro completo de donativo en una sola petición
         /// Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[]}
         /// </summary>
-        public JsonResult insertaDonativo(string datos)
+        public async Task<JsonResult> insertaDonativo(string datos)
         {
             var token = HttpContext.Session.GetString("token");
 
@@ -56,6 +59,18 @@ namespace donativos.Controllers
                     response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
                     Console.WriteLine("✓ Donativo registrado correctamente");
+                    
+                    // Intentar enviar correo de agradecimiento
+                    try
+                    {
+                        await EnviarCorreoAgradecimiento(token, datos);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Advertencia: No se pudo enviar correo de agradecimiento: {ex.Message}");
+                        // No fallar el registro solo porque no se pudo enviar el correo
+                    }
+                    
                     return Json(new
                     {
                         exito = true,
@@ -103,6 +118,128 @@ namespace donativos.Controllers
                     mensaje = "Error inesperado al procesar el donativo",
                     error = ex.Message
                 });
+            }
+        }
+
+        /// <summary>
+        /// Envía un correo de agradecimiento al donante
+        /// </summary>
+        private async Task EnviarCorreoAgradecimiento(string token, string datosJson)
+        {
+            try
+            {
+                // Parsear datos del donativo
+                var datosObj = JsonConvert.DeserializeObject<dynamic>(datosJson);
+                
+                if (datosObj == null || datosObj["id_donador"] == null)
+                {
+                    Console.WriteLine("⚠ Datos incompletos para enviar correo");
+                    return;
+                }
+
+                int idDonador = datosObj["id_donador"];
+                
+                // Obtener información del donador
+                var responseDonador = ExecuteApi(token, $"catalogos/donador/{idDonador}", "GET");
+                if (responseDonador.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine($"⚠ No se pudo obtener datos del donador (ID: {idDonador}). Status: {responseDonador.StatusCode}");
+                    return;
+                }
+
+                // Deserializar directamente el objeto del donador (no es una lista)
+                var donador = JsonConvert.DeserializeObject<dynamic>(responseDonador.Content);
+
+                // Validar email del donador
+                string emailDonador = donador["email"]?.ToString();
+                if (string.IsNullOrWhiteSpace(emailDonador))
+                {
+                    Console.WriteLine($"⚠ Donador (ID: {idDonador}) no tiene email registrado");
+                    return;
+                }
+
+                // Obtener detalles del donativo
+                var datosDetalles = datosObj["detalles"];
+                var articulos = new List<ArticuloAgradecimientoDTO>();
+
+                if (datosDetalles != null && datosDetalles.Count > 0)
+                {
+                    await ObtenerArticulosDonativo(token, datosDetalles, articulos);
+                }
+
+                // Obtener nombre del centro de acopio de la sesión
+                var nombreCentro = HttpContext.Session.GetString("centroAcopio") ?? "Centro de Acopio";
+
+                // Crear modelo de correo
+                var modeloCorreo = new EmailAgradecimientoViewModel
+                {
+                    NombreDonante = donador["nombre"]?.ToString() ?? "Donante",
+                    EmailDestino = emailDonador,
+                    FechaRecepcion = DateTime.Now,
+                    Articulos = articulos,
+                    NombreCentroAcopio = nombreCentro
+                };
+
+                // Enviar correo
+                var enviado = await _emailService.EnviarCorreoAgradecimientoAsync(modeloCorreo);
+                
+                if (enviado)
+                {
+                    Console.WriteLine($"✓ Correo enviado exitosamente a {emailDonador} (Donador ID: {idDonador})");
+                }
+                else
+                {
+                    Console.WriteLine($"⚠ Fallo al enviar correo a {emailDonador} (Donador ID: {idDonador})");
+                }
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"❌ Error al parsear JSON: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error inesperado al enviar correo: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene información de los artículos donados
+        /// </summary>
+        private async Task ObtenerArticulosDonativo(string token, dynamic datosDetalles, List<ArticuloAgradecimientoDTO> articulos)
+        {
+            try
+            {
+                foreach (var detalle in datosDetalles)
+                {
+                    int? idArticulo = detalle["id_articulo"];
+                    int? cantidad = detalle["cantidad_recibida"];
+
+                    if (idArticulo == null || cantidad == null)
+                        continue;
+
+                    // Obtener información del artículo
+                    var responseArticulo = ExecuteApi(token, $"catalogos/articulo/{idArticulo}", "GET");
+                    if (responseArticulo.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        Console.WriteLine($"⚠ No se pudo obtener artículo (ID: {idArticulo})");
+                        continue;
+                    }
+
+                    var articulo = JsonConvert.DeserializeObject<dynamic>(responseArticulo.Content);
+                    if (articulo != null)
+                    {
+                        articulos.Add(new ArticuloAgradecimientoDTO
+                        {
+                            Nombre = articulo["nombre"]?.ToString() ?? "Artículo desconocido",
+                            Cantidad = (int)cantidad,
+                            UnidadMedida = articulo["unidad_medida"]?.ToString() ?? "Unidades"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠ Error al obtener artículos: {ex.Message}");
             }
         }
 

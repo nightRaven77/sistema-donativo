@@ -43,6 +43,9 @@ namespace donativos
             // Registrar el servicio de autenticación
             services.AddScoped<IAuthenticationService, AuthenticationService>();
 
+            // Registrar el servicio de correo electrónico
+            services.AddScoped<IEmailService, EmailService>();
+
             // Opcionales pero recomendados:
             // Agregar logging
             services.AddLogging(config =>
