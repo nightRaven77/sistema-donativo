@@ -9,7 +9,6 @@ namespace donativos.Models
         public string descripcion { get; set; }
         public int id_categoria { get; set; }
         public string unidad_medida { get; set; }
-
         // Propiedad de navegación
         public Categoria categoria { get; set; }
     }
@@ -20,3 +19,4 @@ namespace donativos.Models
         public string nombre { get; set; }
     }
 }
+

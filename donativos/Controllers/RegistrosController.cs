@@ -694,6 +694,16 @@ namespace donativos.Controllers
                 return Json(new List<ArticuloDTO>());
             }
         }
+
+        public JsonResult ObtenerAlmacenes() { 
+            var token = HttpContext.Session.GetString("token");
+            var response = ExecuteApi(token, "catalogos/almacen", "GET");
+            if(response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener almacenes" });
+            }
+            return Json(response.Content);
+        }
         #endregion
 
         #region Utilidades API
