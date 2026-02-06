@@ -4,6 +4,8 @@
     <form id="formRegistroDonativos" class="needs-validation" novalidate>
         <!-- Input hidden para guardar el ID del donador -->
         <input type="hidden" id="id_donador" value="">
+        <!-- Input hidden para guardar el Centro ID del usuario -->
+        <input type="hidden" id="centroIDUsuario" value="">
         
         <!-- SECCIÓN 1: DATOS DEL DONADOR -->
         <div id="seccionDonador" class="mb-8 pb-8 border-b-2 border-stone-200">
@@ -83,14 +85,13 @@
                 <!-- Email -->
                 <div class="form-group">
                     <label for="textEmailDonador" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b> <span class="text-red-500">*</span>
+                        <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b>
                     </label>
                     <input 
                         type="email" 
                         class="form-control" 
                         id="textEmailDonador" 
-                        placeholder="correo@example.com"
-                        required>
+                        placeholder="correo@example.com">
                     <div class="invalid-feedback">Email válido requerido</div>
                 </div>
 
@@ -381,6 +382,16 @@
                         step="0.01"
                         placeholder="0.00">
                     <div class="invalid-feedback">El importe es requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="selectAlmacenDestino" class="block text-sm font-bold text-stone-700 mb-2">
+                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> <b>Almacén Destino</b> <span class="text-red-500">*</span>
+                    </label>
+                    <select id="selectAlmacenDestino" class="form-control" required>
+                        <option value="">-- Seleccione un Almacén --</option>
+                        <!-- Las opciones se cargarán dinámicamente -->
+                    </select>
                 </div>
             </div>
 
