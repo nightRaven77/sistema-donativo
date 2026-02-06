@@ -10,6 +10,7 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -349,6 +350,91 @@ namespace donativos.Controllers
             {
                 Console.WriteLine($"Error en EliminarDonativo: {ex.Message}");
                 return Json(new { exito = false, error = ex.Message });
+            }
+        }
+        
+        /// <summary>
+        /// Guarda los archivos adjuntos al donativo
+        /// Genera nombres aleatorios para los archivos y retorna las URLs de acceso
+        /// </summary>
+        [HttpPost]
+        public async Task<JsonResult> GuardarArchivos()
+        {
+            try
+            {
+                var files = Request.Form.Files;
+                var nombresOriginales = Request.Form["nombres_originales"].ToList();
+
+                if (files.Count == 0)
+                {
+                    return Json(new { exito = false, mensaje = "No hay archivos para guardar" });
+                }
+
+                // Ruta UNC para acceder al NAS (carpeta compartida)
+                // Formato: \\servidor\compartida\ruta
+                string uploadFolder = _configuration["FileStorage:NasPath"];
+
+                // Crear directorio si no existe
+                try
+                {
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                        Console.WriteLine($"✓ Directorio creado: {uploadFolder}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠ Error al crear directorio en NAS: {ex.Message}");
+                    return Json(new { exito = false, mensaje = $"Error al acceder al NAS: {ex.Message}" });
+                }
+
+                var archivosGuardados = new List<object>();
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    var nombreOriginal = nombresOriginales.Count > i ? nombresOriginales[i] : file.FileName;
+
+                    // Generar nombre aleatorio manteniendo la extensión original
+                    string extension = Path.GetExtension(file.FileName);
+                    string nombreAleatorio = $"{Guid.NewGuid()}{extension}";
+                    string rutaCompleta = Path.Combine(uploadFolder, nombreAleatorio);
+
+                    try
+                    {
+                        // Guardar el archivo en el NAS
+                        using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        // Generar URL para acceso (puede ser HTTP o UNC dependiendo de tu configuración)
+                        string urlArchivo = $"/uploads/donativos/{nombreAleatorio}";
+
+                        archivosGuardados.Add(new
+                        {
+                            url = urlArchivo,
+                            nombre_original = nombreOriginal,
+                            nombre_guardado = nombreAleatorio
+                        });
+
+                        Console.WriteLine($"✓ Archivo guardado en NAS: {nombreOriginal} -> {nombreAleatorio}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error al guardar archivo {nombreOriginal}: {ex.Message}");
+                        return Json(new { exito = false, mensaje = $"Error al guardar {nombreOriginal}", error = ex.Message });
+                    }
+                }
+
+                Console.WriteLine($"✓ Total de archivos guardados: {archivosGuardados.Count}");
+                return Json(new { exito = true, archivos = archivosGuardados });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al guardar archivos: {ex.Message}");
+                return Json(new { exito = false, mensaje = "Error al guardar los archivos", error = ex.Message });
             }
         }
         #endregion

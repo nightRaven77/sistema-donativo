@@ -3,6 +3,7 @@ let numeroArticulos = 0;
 let donadorSeleccionado = null;
 let timerOcultarListaDonadores = null;
 let almacenes = [];
+let archivosAdjuntos = [];
 
 // Estados disponibles para artículos
 const ESTADOS_ARTICULO = [
@@ -213,10 +214,18 @@ function limpiarFormulario() {
     $('#textCelularContacto').prop('required', false);
     $('#textEmailContacto').prop('required', false);
 
-    // Limpiar artículos
+     // Limpiar artículos
     $('#contenedorArticulos').empty();
     numeroArticulos = 0;
     donadorSeleccionado = null;
+
+    // Limpiar archivos adjuntos
+    $('#fileAdjuntos').val('');
+    archivosAdjuntos = [];
+    const fileAlert = document.querySelector('#fileAdjuntos').parentElement.querySelector('.alert');
+    if (fileAlert) {
+        fileAlert.remove();
+    }
 
     // Ocultar lista de donadores
     $('#listaDonadores').addClass('d-none');
@@ -373,6 +382,91 @@ function llenarSelectAlmacenes(almacenesArray) {
 }
 
 // ==================== FIN ALMACENES ====================
+
+/**
+ * Maneja los archivos adjuntos seleccionados
+ * Valida tipo y tamaño de archivos
+ */
+function manejarArchivosAdjuntos(e) {
+    const files = e.target.files;
+    const maxFileSize = 5 * 1024 * 1024; // 5 MB por archivo
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
+    
+    archivosAdjuntos = [];
+    
+    if (!files || files.length === 0) {
+        console.log('No se seleccionaron archivos');
+        return;
+    }
+    
+    console.log(`Procesando ${files.length} archivo(s)`);
+    
+    // Validar cada archivo
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        
+        // Validar extensión
+        if (!allowedExtensions.includes(fileExtension)) {
+            toastr.warning(`Archivo "${file.name}" no permitido. Formato: ${fileExtension}`, 'Tipo de archivo no permitido');
+            continue;
+        }
+        
+        // Validar tamaño
+        if (file.size > maxFileSize) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            toastr.warning(`Archivo "${file.name}" excede el límite de 5MB (${sizeMB}MB)`, 'Archivo demasiado grande');
+            continue;
+        }
+        
+        // Agregar archivo válido a la lista
+        archivosAdjuntos.push({
+            file: file,
+            nombre: file.name,
+            tamaño: (file.size / 1024).toFixed(2) + ' KB',
+            tipo: file.type
+        });
+    }
+    
+    if (archivosAdjuntos.length > 0) {
+        console.log(`✓ ${archivosAdjuntos.length} archivo(s) válido(s) seleccionado(s)`);
+        mostrarResumenArchivos();
+        toastr.success(`${archivosAdjuntos.length} archivo(s) seleccionado(s) correctamente`, 'Éxito');
+    } else {
+        console.warn('⚠ No hay archivos válidos para procesar');
+        toastr.error('No hay archivos válidos para adjuntar', 'Error');
+        archivosAdjuntos = [];
+    }
+}
+
+/**
+ * Muestra un resumen de los archivos adjuntos seleccionados
+ */
+function mostrarResumenArchivos() {
+    if (archivosAdjuntos.length === 0) {
+        return;
+    }
+    
+    let resumenHTML = '<div class="alert alert-info mt-3" role="alert">';
+    resumenHTML += '<i class="fas fa-info-circle"></i> <strong>Archivos seleccionados:</strong><br>';
+    resumenHTML += '<ul class="mb-0 mt-2">';
+    
+    archivosAdjuntos.forEach((archivo, index) => {
+        resumenHTML += `<li>${index + 1}. ${archivo.nombre} (${archivo.tamaño})</li>`;
+    });
+    
+    resumenHTML += '</ul></div>';
+    
+    // Insertar después del input de archivo
+    const fileInput = document.getElementById('fileAdjuntos');
+    const existingAlert = fileInput.parentElement.querySelector('.alert');
+    
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    fileInput.parentElement.insertAdjacentHTML('beforeend', resumenHTML);
+}
 function obtenerFechaHoy() {
     const hoy = new Date();
     const año = hoy.getFullYear();
@@ -486,6 +580,11 @@ function initRegistrosForm() {
     
     // Cargar almacenes
     cargarAlmacenes();
+    
+    // Event: Manejar archivos adjuntos
+    $('#fileAdjuntos').off('change').on('change', function (e) {
+        manejarArchivosAdjuntos(e);
+    });
     
     //console.log('Formulario inicializado correctamente');
 }
@@ -1354,11 +1453,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
 
 /**
  * Construye el JSON completo del donativo y lo envía
- * Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[]}
- */
-/**
- * Construye el JSON completo del donativo y lo envía
- * Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[]}
+ * Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[], archivos[]}
  */
 function construirYGuardarDonativo(articulosInsertados, articulosExistentes, donadorId) {
     // Combinar todos los artículos (nuevos insertados + existentes)
@@ -1369,6 +1464,75 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
         return;
     }
 
+    // Si hay archivos adjuntos, subirlos primero
+    if (archivosAdjuntos.length > 0) {
+        console.log('Subiendo archivos antes de guardar donativo...');
+        subirArchivos(articulosInsertados, articulosExistentes, donadorId);
+        return;
+    }
+
+    // Si no hay archivos, proceder directamente con el donativo
+    guardarDonativoCompleto(todosLosArticulos, donadorId, []);
+}
+
+/**
+ * Sube los archivos al servidor y retorna las URLs
+ */
+function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
+    const formData = new FormData();
+    
+    // Agregar cada archivo al FormData
+    archivosAdjuntos.forEach((archivoObj, index) => {
+        formData.append(`archivos`, archivoObj.file);
+        formData.append(`nombres_originales`, archivoObj.nombre);
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: 'GuardarArchivos',
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function () {
+            toastr.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
+        },
+        success: function (response) {
+            console.log('Respuesta de subida de archivos:', response);
+
+            // Procesar respuesta para obtener URLs
+            let archivosGuardados = [];
+            
+            try {
+                if (Array.isArray(response)) {
+                    archivosGuardados = response;
+                } else if (response && response.archivos && Array.isArray(response.archivos)) {
+                    archivosGuardados = response.archivos;
+                } else if (response && response.data && Array.isArray(response.data)) {
+                    archivosGuardados = response.data;
+                }
+
+                console.log('Archivos guardados:', archivosGuardados);
+
+                // Proceder a guardar donativo con archivos
+                const todosLosArticulos = [...articulosInsertados, ...articulosExistentes];
+                guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados);
+            } catch (e) {
+                console.error('Error al procesar respuesta de archivos:', e);
+                toastr.error('Error al procesar los archivos subidos', 'Error');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al subir archivos:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al subir los archivos', 'Error');
+        }
+    });
+}
+
+/**
+ * Guarda el donativo completo con los detalles y archivos
+ */
+function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados) {
     // Construir los detalles con todos los artículos
     const detalles = todosLosArticulos.map(articulo => ({
         id_articulo: articulo.id_articulo,
@@ -1390,9 +1554,14 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
         detalles: detalles
     };
 
+    // Agregar archivos si los hay
+    if (archivosGuardados && archivosGuardados.length > 0) {
+        donativoCompleto.archivos = archivosGuardados;
+    }
+
     const datosString = JSON.stringify(donativoCompleto);
 
-    //console.log('Donativo completo a enviar:', donativoCompleto);
+    console.log('Donativo completo a enviar:', donativoCompleto);
 
     $.ajax({
         type: 'POST',
@@ -1404,7 +1573,7 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
             toastr.info('Guardando donativo...', 'Procesando');
         },
         success: function (response) {
-            //console.log('Respuesta al guardar donativo:', response);
+            console.log('Respuesta al guardar donativo:', response);
 
             if (response.exito) {
                 // Mostrar SweetAlert de éxito
@@ -1424,11 +1593,11 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
                 toastr.success('Donativo registrado correctamente', 'Éxito');
             } else {
                 toastr.error(response.mensaje || 'Error al registrar', 'Error');
-            }
+            }   
         },
         error: function (xhr, status, error) {
-            //console.error('Error al guardar donativo:', error);
-            //console.error('Respuesta:', xhr.responseText);
+            console.error('Error al guardar donativo:', error);
+            console.error('Respuesta:', xhr.responseText);
 
             if (xhr.status === 400) {
                 toastr.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
