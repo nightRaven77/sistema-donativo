@@ -1098,7 +1098,7 @@ function agregarArticulo(numero) {
 
             <div class="form-group">
                 <label class="block text-sm font-bold text-stone-700 mb-2">
-                    Valor Unitario
+                    Valor Unitario (opcional)
                 </label>
                 <input type="number" class="form-control input-articulo-valor" min="0" step="0.01" placeholder="0.00">
             </div>

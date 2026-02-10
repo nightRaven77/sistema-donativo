@@ -46,6 +46,9 @@ namespace donativos
             // Registrar el servicio de correo electrónico
             services.AddScoped<IEmailService, EmailService>();
 
+            // Registrar el servicio de mapeo de unidades de red
+            services.AddSingleton<INetworkMappingService, NetworkMappingService>();
+
             // Opcionales pero recomendados:
             // Agregar logging
             services.AddLogging(config =>
@@ -67,12 +70,15 @@ namespace donativos
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, INetworkMappingService networkMappingService, ILogger<Startup> logger)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            // Mapear la unidad de red al iniciar
+            _ = MapNetworkDriveOnStartup(networkMappingService, logger);
 
             app.UseStaticFiles();
             app.UseRouting();
@@ -83,6 +89,31 @@ namespace donativos
             {
                 endpoints.MapControllerRoute("default", "{controller=Acceso}/{action=Login}");
             });
+        }
+
+        /// <summary>
+        /// Mapea la unidad de red al iniciar la aplicación
+        /// </summary>
+        private async Task MapNetworkDriveOnStartup(INetworkMappingService networkMappingService, ILogger<Startup> logger)
+        {
+            try
+            {
+                logger.LogInformation("?? Mapeando unidad de red en el inicio de la aplicación...");
+                var (success, message) = await networkMappingService.MapNetworkDriveAsync();
+                
+                if (success)
+                {
+                    logger.LogInformation($"? {message}");
+                }
+                else
+                {
+                    logger.LogWarning($"??  No se pudo mapear la unidad: {message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"? Error al mapear unidad en inicio: {ex.Message}");
+            }
         }
     }
 }

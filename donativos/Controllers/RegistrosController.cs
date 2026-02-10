@@ -12,9 +12,70 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
+namespace donativos.Controllers
+{
+    /// <summary>
+    /// Helper para verificar y diagnosticar acceso a recursos compartidos UNC
+    /// Enfoque simplificado sin impersonación compleja
+    /// </summary>
+    public static class NetworkShareHelper
+    {
+        /// <summary>
+        /// Verifica si una ruta UNC es accesible
+        /// </summary>
+        public static (bool success, string error) VerifyNetworkPath(string uncPath)
+        {
+            try
+            {
+                Console.WriteLine($"🔍 Verificando acceso a: {uncPath}");
+
+                // Intentar acceso directo
+                if (Directory.Exists(uncPath))
+                {
+                    Console.WriteLine($"✓ Ruta accesible directamente");
+                    return (true, null);
+                }
+
+                Console.WriteLine($"⚠️  Ruta no accesible en acceso directo");
+                
+                // Intentar crear un archivo de prueba
+                string testFile = Path.Combine(uncPath, $".test_{Guid.NewGuid()}");
+                try
+                {
+                    File.WriteAllText(testFile, "test");
+                    File.Delete(testFile);
+                    Console.WriteLine($"✓ Ruta accesible (prueba de lectura/escritura)");
+                    return (true, null);
+                }
+                catch (DirectoryNotFoundException ex)
+                {
+                    return (false, $"Directorio no encontrado: {uncPath}. Asegúrese que la carpeta existe en el NAS.");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return (false, $"Acceso denegado a {uncPath}. Verifique permisos.");
+                }
+                catch (System.Net.Sockets.SocketException ex)
+                {
+                    return (false, $"No se puede conectar al servidor. El servidor NAS puede no estar disponible.");
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"{ex.GetType().Name}: {ex.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+    }
+}
 
 namespace donativos.Controllers
 {
@@ -32,6 +93,185 @@ namespace donativos.Controllers
         private string ApiUrl => _configuration["apiUrl"];
 
         #region Registro Donativos
+
+        /// <summary>
+        /// Endpoint de diagnóstico para verificar la conexión al NAS
+        /// Realiza diagnósticos simples y directos sin complejidad innecesaria
+        /// </summary>
+        [HttpGet]
+        public JsonResult DiagnosticoNAS()
+        {
+            try
+            {
+                var nasPath = _configuration["FileStorage:NasPath"];
+                var username = _configuration["FileStorage:Username"];
+                var password = _configuration["FileStorage:Password"];
+
+                Console.WriteLine("=== INICIO DIAGNÓSTICO NAS ===");
+
+                // 1. Validar configuración
+                Console.WriteLine($"1️⃣ Validando configuración...");
+                if (string.IsNullOrWhiteSpace(nasPath))
+                    return Json(new { exito = false, paso = 1, mensaje = "NasPath no está configurado" });
+
+                if (string.IsNullOrWhiteSpace(username))
+                    return Json(new { exito = false, paso = 2, mensaje = "Username no está configurado" });
+
+                if (string.IsNullOrWhiteSpace(password))
+                    return Json(new { exito = false, paso = 3, mensaje = "Password no está configurado" });
+
+                Console.WriteLine($"   ✓ NasPath: {nasPath}");
+                Console.WriteLine($"   ✓ Username: {username}");
+                Console.WriteLine($"   ✓ Password: ***");
+
+                // 2. Verificar acceso a la ruta
+                Console.WriteLine($"2️⃣ Verificando acceso a NAS...");
+                var (success, error) = NetworkShareHelper.VerifyNetworkPath(nasPath);
+
+                if (!success)
+                {
+                    Console.WriteLine($"   ❌ Error: {error}");
+                    return Json(new
+                    {
+                        exito = false,
+                        paso = 2,
+                        mensaje = "No se puede acceder al NAS",
+                        error = error,
+                        diagnostico = "SOLUCIÓN: " + GetDiagnosticoRecomendado(nasPath, error)
+                    });
+                }
+
+                Console.WriteLine($"   ✓ Acceso OK");
+
+                // 3. Intentar crear directorio si no existe
+                Console.WriteLine($"3️⃣ Verificando/creando directorio...");
+                try
+                {
+                    if (!Directory.Exists(nasPath))
+                    {
+                        Directory.CreateDirectory(nasPath);
+                        Console.WriteLine($"   ✓ Directorio creado");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"   ✓ Directorio ya existe");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"   ❌ Error al crear directorio: {ex.Message}");
+                    return Json(new
+                    {
+                        exito = false,
+                        paso = 3,
+                        mensaje = "No se puede crear el directorio",
+                        error = ex.Message,
+                        diagnostico = "Verifique permisos de escritura en el NAS"
+                    });
+                }
+
+                // 4. Intentar crear archivo de prueba
+                Console.WriteLine($"4️⃣ Creando archivo de prueba...");
+                string testFile = Path.Combine(nasPath, $"test_{Guid.NewGuid()}.txt");
+                try
+                {
+                    System.IO.File.WriteAllText(testFile, "Test de conexión - Este archivo puede ser eliminado");
+                    Console.WriteLine($"   ✓ Archivo creado: {testFile}");
+
+                    // 5. Verificar que el archivo existe
+                    Console.WriteLine($"5️⃣ Verificando archivo...");
+                    if (!System.IO.File.Exists(testFile))
+                    {
+                        Console.WriteLine($"   ❌ Archivo no existe después de crearlo");
+                        return Json(new
+                        {
+                            exito = false,
+                            paso = 5,
+                            mensaje = "El archivo no persiste en el NAS",
+                            diagnostico = "Posible problema de sincronización del sistema de archivos"
+                        });
+                    }
+
+                    // 6. Leer contenido
+                    Console.WriteLine($"6️⃣ Leyendo archivo...");
+                    string contenido = System.IO.File.ReadAllText(testFile);
+                    Console.WriteLine($"   ✓ Contenido leído correctamente");
+
+                    // 7. Eliminar archivo
+                    Console.WriteLine($"7️⃣ Eliminando archivo de prueba...");
+                    System.IO.File.Delete(testFile);
+                    Console.WriteLine($"   ✓ Archivo eliminado");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Console.WriteLine($"   ❌ Acceso denegado: {ex.Message}");
+                    return Json(new
+                    {
+                        exito = false,
+                        paso = 4,
+                        mensaje = "Permisos insuficientes",
+                        error = ex.Message,
+                        diagnostico = "El usuario no tiene permisos de lectura/escritura. Verifique ACLs en el NAS."
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"   ❌ Error: {ex.GetType().Name} - {ex.Message}");
+                    return Json(new
+                    {
+                        exito = false,
+                        paso = 4,
+                        mensaje = "Error al crear/leer archivo",
+                        error = ex.Message,
+                        diagnostico = ex.GetType().Name
+                    });
+                }
+
+                Console.WriteLine("=== ✅ DIAGNÓSTICO EXITOSO ===");
+                return Json(new
+                {
+                    exito = true,
+                    mensaje = "✅ La conexión al NAS está lista",
+                    detalles = new
+                    {
+                        nasPath = nasPath,
+                        usuario = username,
+                        estado = "✓ Conectado",
+                        acceso = "✓ Lectura/Escritura",
+                        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error no manejado: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error inesperado",
+                    error = ex.Message,
+                    diagnostico = ex.GetType().Name
+                });
+            }
+        }
+
+        /// <summary>
+        /// Proporciona recomendaciones de diagnóstico basadas en el error
+        /// </summary>
+        private string GetDiagnosticoRecomendado(string nasPath, string error)
+        {
+            if (error.Contains("no encontrado") || error.Contains("not found"))
+                return $"1) Crear la carpeta '{nasPath}' en el NAS QNAP\n2) Asignar permisos al usuario en esa carpeta";
+            
+            if (error.Contains("denegado") || error.Contains("denied"))
+                return $"1) Verificar que el usuario tiene permisos en '{nasPath}'\n2) Revisar ACLs en el NAS QNAP";
+            
+            if (error.Contains("conectar") || error.Contains("connect"))
+                return $"1) Verificar que el servidor NAS está en línea\n2) Probar conectividad: ping 172.16.59.58\n3) Revisar firewall";
+            
+            return "1) Verificar la configuración en appsettings.json\n2) Revisar logs del NAS";
+        }
+
         /// <summary>
         /// Inserta un registro completo de donativo en una sola petición
         /// Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[]}
@@ -356,6 +596,7 @@ namespace donativos.Controllers
         /// <summary>
         /// Guarda los archivos adjuntos al donativo
         /// Genera nombres aleatorios para los archivos y retorna las URLs de acceso
+        /// Enfoque simplificado sin complejidad innecesaria
         /// </summary>
         [HttpPost]
         public async Task<JsonResult> GuardarArchivos()
@@ -370,72 +611,130 @@ namespace donativos.Controllers
                     return Json(new { exito = false, mensaje = "No hay archivos para guardar" });
                 }
 
-                // Ruta UNC para acceder al NAS (carpeta compartida)
-                // Formato: \\servidor\compartida\ruta
-                string uploadFolder = _configuration["FileStorage:NasPath"];
+                // Obtener ruta del configuration
+                string nasPath = _configuration["FileStorage:NasPath"];
 
-                // Crear directorio si no existe
+                // Validar que la ruta esté configurada
+                if (string.IsNullOrWhiteSpace(nasPath))
+                {
+                    Console.WriteLine("❌ Error: FileStorage:NasPath no configurado");
+                    return Json(new { exito = false, mensaje = "Error de configuración: ruta NAS no configurada" });
+                }
+
+                Console.WriteLine($"📁 Ruta NAS: {nasPath}");
+
+                // Verificar acceso antes de procesar
+                Console.WriteLine($"🔍 Verificando acceso...");
                 try
                 {
-                    if (!Directory.Exists(uploadFolder))
+                    if (!Directory.Exists(nasPath))
                     {
-                        Directory.CreateDirectory(uploadFolder);
-                        Console.WriteLine($"✓ Directorio creado: {uploadFolder}");
+                        Console.WriteLine($"⚠️  Creando directorio...");
+                        Directory.CreateDirectory(nasPath);
                     }
+                }
+                catch (DirectoryNotFoundException ex)
+                {
+                    Console.WriteLine($"❌ Ruta no encontrada: {ex.Message}");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Error: La ruta del NAS no existe",
+                        diagnostico = $"Asegúrese que existe: {nasPath}"
+                    });
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Console.WriteLine($"❌ Acceso denegado: {ex.Message}");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Error: Permisos insuficientes",
+                        diagnostico = "Verifique que el usuario tiene permisos de escritura"
+                    });
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"⚠ Error al crear directorio en NAS: {ex.Message}");
-                    return Json(new { exito = false, mensaje = $"Error al acceder al NAS: {ex.Message}" });
+                    Console.WriteLine($"❌ Error: {ex.GetType().Name} - {ex.Message}");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Error al acceder al NAS",
+                        error = ex.Message
+                    });
                 }
 
                 var archivosGuardados = new List<object>();
 
+                // Guardar archivos
                 for (int i = 0; i < files.Count; i++)
                 {
                     var file = files[i];
                     var nombreOriginal = nombresOriginales.Count > i ? nombresOriginales[i] : file.FileName;
 
-                    // Generar nombre aleatorio manteniendo la extensión original
+                    // Generar nombre aleatorio
                     string extension = Path.GetExtension(file.FileName);
                     string nombreAleatorio = $"{Guid.NewGuid()}{extension}";
-                    string rutaCompleta = Path.Combine(uploadFolder, nombreAleatorio);
+                    string rutaCompleta = Path.Combine(nasPath, nombreAleatorio);
 
                     try
                     {
-                        // Guardar el archivo en el NAS
-                        using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                        Console.WriteLine($"📤 Guardando: {nombreOriginal}");
+
+                        // Guardar archivo
+                        using (var stream = new FileStream(rutaCompleta, FileMode.Create, FileAccess.Write))
                         {
                             await file.CopyToAsync(stream);
                         }
 
-                        // Generar URL para acceso (puede ser HTTP o UNC dependiendo de tu configuración)
-                        string urlArchivo = $"/uploads/donativos/{nombreAleatorio}";
-
                         archivosGuardados.Add(new
                         {
-                            url = urlArchivo,
+                            url = $"/uploads/donativos/{nombreAleatorio}",
                             nombre_original = nombreOriginal,
                             nombre_guardado = nombreAleatorio
                         });
 
-                        Console.WriteLine($"✓ Archivo guardado en NAS: {nombreOriginal} -> {nombreAleatorio}");
+                        Console.WriteLine($"✓ Guardado: {nombreAleatorio}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"❌ Error al guardar archivo {nombreOriginal}: {ex.Message}");
-                        return Json(new { exito = false, mensaje = $"Error al guardar {nombreOriginal}", error = ex.Message });
+                        Console.WriteLine($"❌ Error guardando {nombreOriginal}: {ex.GetType().Name}");
+                        return Json(new
+                        {
+                            exito = false,
+                            mensaje = $"Error al guardar {nombreOriginal}",
+                            error = ex.Message
+                        });
                     }
                 }
 
-                Console.WriteLine($"✓ Total de archivos guardados: {archivosGuardados.Count}");
+                Console.WriteLine($"✓ {archivosGuardados.Count} archivos guardados");
                 return Json(new { exito = true, archivos = archivosGuardados });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error al guardar archivos: {ex.Message}");
-                return Json(new { exito = false, mensaje = "Error al guardar los archivos", error = ex.Message });
+                Console.WriteLine($"❌ Error general: {ex.GetType().Name}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error al guardar archivos",
+                    error = ex.Message
+                });
             }
+        }
+
+        /// <summary>
+        /// Extrae la ruta del servidor y compartida (ej: \\servidor\compartida)
+        /// </summary>
+        private string GetSharePath(string fullPath)
+        {
+            // Remove any trailing slashes and get just \\servidor\compartida
+            var parts = fullPath.TrimEnd('\\').Split('\\');
+            if (parts.Length >= 4)
+            {
+                return $"\\\\{parts[2]}\\{parts[3]}";
+            }
+            return fullPath;
         }
         #endregion
 
