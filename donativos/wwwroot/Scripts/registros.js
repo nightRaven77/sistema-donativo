@@ -77,7 +77,7 @@ function inicializarDataTables() {
             }
         ],
         initComplete: function () {
-            //console.log('✓ DataTables inicializado correctamente');
+            // console.log('✓ DataTables inicializado correctamente');
         }
     });
 }
@@ -86,7 +86,7 @@ function inicializarDataTables() {
  * Carga todos los donativos del servidor y actualiza DataTables
  */
 function cargarDonativos() {
-    //console.log('=== Iniciando cargarDonativos ===');
+    // console.log('=== Iniciando cargarDonativos ===');
 
     const tabla = document.getElementById('tablaDonativos');
 
@@ -107,8 +107,8 @@ function cargarDonativos() {
             toastr.info('Cargando donativos...', 'Procesando');
         },
         success: function (response) {
-            //console.log('=== AJAX Success ===');
-            //console.log('Donativos recibidos:', response);
+            // console.log('=== AJAX Success ===');
+            // console.log('Donativos recibidos:', response);
 
             let donativosArray = [];
 
@@ -122,11 +122,11 @@ function cargarDonativos() {
             }
 
             if (donativosArray.length > 0) {
-                //console.log(`✓ Se cargaron ${donativosArray.length} donativos`);
+                // console.log(`✓ Se cargaron ${donativosArray.length} donativos`);
                 llenarTablaConDataTables(donativosArray);
                 toastr.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
             } else {
-                //console.log('⚠ No hay donativos');
+                // console.log('⚠ No hay donativos');
                 if (dataTable) {
                     dataTable.clear().draw();
                 }
@@ -146,7 +146,7 @@ function cargarDonativos() {
  * Llena DataTables con los donativos
  */
 function llenarTablaConDataTables(donativos) {
-    //console.log('Llenando DataTables con', donativos.length, 'registros');
+    // console.log('Llenando DataTables con', donativos.length, 'registros');
 
     if (!dataTable) {
         inicializarDataTables();
@@ -185,7 +185,7 @@ function llenarTablaConDataTables(donativos) {
 
     // Redibujar la tabla
     dataTable.draw();
-    //console.log('✓ DataTables actualizado correctamente con', donativos.length, 'registros');
+    // console.log('✓ DataTables actualizado correctamente con', donativos.length, 'registros');
 }
 
 /**
@@ -194,7 +194,7 @@ function llenarTablaConDataTables(donativos) {
 function limpiarFormulario() {
     const form = document.getElementById('formRegistroDonativos');
 
-    //console.log('Limpiando formulario...');
+    // console.log('Limpiando formulario...');
 
     // Limpiar el formulario
     form.reset();
@@ -238,7 +238,7 @@ function limpiarFormulario() {
         cargarDonativos();
     }, 500);
 
-    //console.log('✓ Formulario limpiado correctamente');
+    // console.log('✓ Formulario limpiado correctamente');
 }
 
 /**
@@ -262,10 +262,10 @@ function obtenerColorEstatus(estatus) {
  * Evento personalizado cuando la vista de registros se carga
  */
 document.addEventListener('registrosViewLoaded', function () {
-    //console.log('=== registrosViewLoaded evento disparado ===');
+    // console.log('=== registrosViewLoaded evento disparado ===');
 
     setTimeout(function () {
-        //console.log('Iniciando cargarDonativos después de registrosViewLoaded');
+        // console.log('Iniciando cargarDonativos después de registrosViewLoaded');
 
         // Inicializar DataTables primero
         inicializarDataTables();
@@ -276,9 +276,9 @@ document.addEventListener('registrosViewLoaded', function () {
         // Botón refrescar
         const btnRefrescar = document.getElementById('btnRefrescarDonativos');
         if (btnRefrescar) {
-            //console.log('✓ Botón refrescar encontrado, agregando listener');
+            // console.log('✓ Botón refrescar encontrado, agregando listener');
             btnRefrescar.addEventListener('click', function () {
-                //console.log('Botón refrescar clickeado');
+                // console.log('Botón refrescar clickeado');
                 cargarDonativos();
             });
         } else {
@@ -289,12 +289,12 @@ document.addEventListener('registrosViewLoaded', function () {
 
 // Inicialización para cuando se carga el DOM por primera vez
 document.addEventListener('DOMContentLoaded', function () {
-    //console.log('=== DOMContentLoaded ===');
+    // console.log('=== DOMContentLoaded ===');
 
     // Si acceden directamente a la página de registros
     const tabla = document.getElementById('tablaDonativos');
     if (tabla) {
-        //console.log('Tabla encontrada en carga inicial, disparando evento');
+        // console.log('Tabla encontrada en carga inicial, disparando evento');
         document.dispatchEvent(new Event('registrosViewLoaded'));
     }
 });
@@ -310,7 +310,7 @@ function cargarAlmacenes() {
         url: 'ObtenerAlmacenes',
         dataType: 'json',
         success: function (response) {
-            console.log('Almacenes recibidos:', response);
+            // console.log('Almacenes recibidos:', response);
             
             // Procesar la respuesta para extraer el array
             let almacenesArray = [];
@@ -359,7 +359,7 @@ function llenarSelectAlmacenes(almacenesArray) {
     
     // Obtener el Centro ID del usuario desde la sesión
     const centroIDUsuario = $('#centroIDUsuario').val();
-    console.log('Centro ID del usuario:', centroIDUsuario);
+    // console.log('Centro ID del usuario:', centroIDUsuario);
     
     // Agregar las opciones de almacenes
     almacenesArray.forEach((almacen) => {
@@ -375,10 +375,10 @@ function llenarSelectAlmacenes(almacenesArray) {
     // Seleccionar el almacén por defecto si existe
     if (centroIDUsuario && centroIDUsuario !== '' && centroIDUsuario !== '0') {
         selectAlmacen.val(centroIDUsuario);
-        console.log(`✓ Almacén seleccionado por defecto: ${centroIDUsuario}`);
+        // console.log(`✓ Almacén seleccionado por defecto: ${centroIDUsuario}`);
     }
     
-    console.log(`✓ Select de almacenes llenado con ${almacenesArray.length} opciones`);
+    // console.log(`✓ Select de almacenes llenado con ${almacenesArray.length} opciones`);
 }
 
 // ==================== FIN ALMACENES ====================
@@ -395,11 +395,11 @@ function manejarArchivosAdjuntos(e) {
     archivosAdjuntos = [];
     
     if (!files || files.length === 0) {
-        console.log('No se seleccionaron archivos');
+        // console.log('No se seleccionaron archivos');
         return;
     }
     
-    console.log(`Procesando ${files.length} archivo(s)`);
+    // console.log(`Procesando ${files.length} archivo(s)`);
     
     // Validar cada archivo
     for (let i = 0; i < files.length; i++) {
@@ -429,7 +429,7 @@ function manejarArchivosAdjuntos(e) {
     }
     
     if (archivosAdjuntos.length > 0) {
-        console.log(`✓ ${archivosAdjuntos.length} archivo(s) válido(s) seleccionado(s)`);
+       // console.log(`✓ ${archivosAdjuntos.length} archivo(s) válido(s) seleccionado(s)`);
         mostrarResumenArchivos();
         toastr.success(`${archivosAdjuntos.length} archivo(s) seleccionado(s) correctamente`, 'Éxito');
     } else {
@@ -480,7 +480,7 @@ function obtenerFechaHoy() {
  * Se ejecuta cada vez que la vista parcial se carga
  */
 function initRegistrosForm() {
-    //console.log('Inicializando formulario de registros...');
+    // console.log('Inicializando formulario de registros...');
 
     // Validar que jQuery esté disponible
     if (typeof $ === 'undefined') {
@@ -494,7 +494,7 @@ function initRegistrosForm() {
         return;
     }
 
-    //console.log('Formulario encontrado, vinculando eventos...');
+    // console.log('Formulario encontrado, vinculando eventos...');
 
     // Remover eventos previos para evitar duplicados
     $('#selectTipoDonador').off('change');
@@ -571,7 +571,7 @@ function initRegistrosForm() {
     // Asignar Centro ID del usuario desde la sesión
     if (typeof usuarioSession !== 'undefined' && usuarioSession.centroID) {
         $('#centroIDUsuario').val(usuarioSession.centroID);
-        console.log('✓ Centro ID asignado desde sesión:', usuarioSession.centroID);
+        // console.log('✓ Centro ID asignado desde sesión:', usuarioSession.centroID);
     }
 
     // Resetear contador de artículos
@@ -586,7 +586,7 @@ function initRegistrosForm() {
         manejarArchivosAdjuntos(e);
     });
     
-    //console.log('Formulario inicializado correctamente');
+    // console.log('Formulario inicializado correctamente');
 }
 
 /**
@@ -612,11 +612,11 @@ function buscarDonadores(termino) {
         data: { search: termino },
         dataType: 'json',
         success: function (donadores) {
-            console.log('Donadores recibidos:', donadores);
+           // console.log('Donadores recibidos:', donadores);
             mostrarResultadosDonadores(donadores, termino);
         },
         error: function (xhr, status, error) {
-            console.error('Error al buscar donadores:', error);
+            //console.error('Error al buscar donadores:', error);
 
             const listaDonadores = $('#listaDonadores');
             listaDonadores.html(`
@@ -717,7 +717,7 @@ function buscarArticulosPorNumero(termino, numeroArticulo) {
         data: { search: termino },
         dataType: 'json',
         success: function (articulos) {
-            //console.log('Artículos recibidos:', articulos);
+            // console.log('Artículos recibidos:', articulos);
             mostrarResultadosArticulosPorNumero(articulos, numeroArticulo);
         },
         error: function (xhr, status, error) {
@@ -807,7 +807,7 @@ function seleccionarDonador($element) {
             return;
         }
 
-        //console.log('Donador seleccionado con ID:', donador.id_donador);
+        // console.log('Donador seleccionado con ID:', donador.id_donador);
 
         // Guardar el ID en el input hidden
         $('#id_donador').val(donador.id_donador);
@@ -864,7 +864,7 @@ function buscarContactoDonador(idDonador) {
         data: { id_donador: idDonador },
         dataType: 'json',
         success: function (contactos) {
-            //console.log('Contactos recibidos:', contactos);
+            // console.log('Contactos recibidos:', contactos);
             mostrarResultadosContactos(contactos, idDonador);
         },
         error: function (xhr, status, error) {
@@ -890,7 +890,7 @@ function mostrarResultadosContactos(contactosJson, termino) {
             toastr.warning('El contacto no tiene un ID válido', 'Validación');
             return;
         }
-        //console.log('Contacto seleccionado con ID:', contacto.id_contacto);
+        // console.log('Contacto seleccionado con ID:', contacto.id_contacto);
 
         $('#textNombreContacto').val(contacto.nombre || '');
         $('#textPuestoContacto').val(contacto.puesto || '');
@@ -923,8 +923,8 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
             return;
         }
 
-        //console.log('Artículo seleccionado:', articulo);
-        //console.log('ID del artículo:', articulo.id_articulo);
+        // console.log('Artículo seleccionado:', articulo);
+        // console.log('ID del artículo:', articulo.id_articulo);
 
         const $contenedor = $(`[data-articulo="${numeroArticulo}"]`);
 
@@ -945,7 +945,7 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
         // Llenar la unidad de medida
         if (articulo.unidad_medida) {
             $contenedor.find('.input-articulo-unidad').val(articulo.unidad_medida);
-            //console.log('Unidad de medida establecida a:', articulo.unidad_medida);
+            // console.log('Unidad de medida establecida a:', articulo.unidad_medida);
         }
 
         // Llenar la categoría - buscar por nombre en el objeto anidado
@@ -953,12 +953,12 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
             const idCategoria = articulo.categoria.id_categoria;
             const nombreCategoria = articulo.categoria.nombre;
             $contenedor.find('.input-articulo-categoria-select').val(idCategoria);
-            //console.log('Categoría establecida a:', nombreCategoria);
+            // console.log('Categoría establecida a:', nombreCategoria);
         }
 
         // Guardar el ID del artículo en el data attribute
         $contenedor.data('id_articulo', articulo.id_articulo);
-        //console.log('ID del artículo guardado en data attribute:', $contenedor.data('id_articulo'));
+        // console.log('ID del artículo guardado en data attribute:', $contenedor.data('id_articulo'));
 
         // Ocultar lista
         $(`.lista-articulos-${numeroArticulo}`).addClass('d-none');
@@ -977,10 +977,10 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
 function toggleSeccionContacto(tipo, id_donador) {
     const seccionContacto = $('#seccionContacto');
 
-    //console.log('Tipo de donador seleccionado:', tipo);
+    // console.log('Tipo de donador seleccionado:', tipo);
 
     if (tipo === 'organizacion' || tipo === 'empresa') {
-        //console.log('Mostrando sección de contacto');
+        // console.log('Mostrando sección de contacto');
 
         // Mostrar la sección
         seccionContacto.removeClass('hidden');
@@ -993,7 +993,7 @@ function toggleSeccionContacto(tipo, id_donador) {
 
         buscarContactoDonador(id_donador);
     } else {
-        //console.log('Ocultando sección de contacto');
+        // console.log('Ocultando sección de contacto');
 
         // Ocultar la sección
         seccionContacto.addClass('hidden');
@@ -1132,12 +1132,12 @@ function agregarArticulo(numero) {
 
     // Evento para cambio de categoría manual
     $nuevoArticulo.find('.input-articulo-categoria-select').on('change', function () {
-        //console.log('Categoría seleccionada:', $(this).val());
+        // console.log('Categoría seleccionada:', $(this).val());
     });
 
     // Evento para cambio de estado
     $nuevoArticulo.find('.input-articulo-estado').on('change', function () {
-        //console.log('Estado seleccionado:', $(this).val());
+        // console.log('Estado seleccionado:', $(this).val());
     });
 
     // Vinculación de evento para seleccionar artículo
@@ -1229,10 +1229,10 @@ function guardarRegistro() {
         }
     });
 
-    //console.log('Datos del donador:', donador);
-    //console.log('Datos del contacto:', contacto);
-    //console.log('Artículos nuevos:', articulosNuevos);
-    //console.log('Artículos existentes:', articulosExistentes);
+    // console.log('Datos del donador:', donador);
+    // console.log('Datos del contacto:', contacto);
+    // console.log('Artículos nuevos:', articulosNuevos);
+    // console.log('Artículos existentes:', articulosExistentes);
 
     // Enviar datos de forma secuencial
     guardarDonador(donador, contacto, articulosNuevos, articulosExistentes);
@@ -1245,11 +1245,11 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
     const datosString = JSON.stringify(donador);
     const idDonadorExistente = $('#id_donador').val();
 
-    //console.log('ID de donador existente:', idDonadorExistente);
+    // console.log('ID de donador existente:', idDonadorExistente);
 
     // Si ya existe un donador (fue seleccionado de la lista), usar su ID
     if (idDonadorExistente && idDonadorExistente !== '') {
-        //console.log('Usando donador existente con ID:', idDonadorExistente);
+        // console.log('Usando donador existente con ID:', idDonadorExistente);
         toastr.info('Usando donador existente', 'Información');
 
         // Proceder directamente con contacto o artículos
@@ -1263,7 +1263,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
     }
 
     // Si no existe ID, es un donador nuevo, hay que guardarlo
-    //console.log('Guardando donador nuevo');
+    // console.log('Guardando donador nuevo');
 
     $.ajax({
         type: 'POST',
@@ -1275,14 +1275,14 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
             toastr.info('Guardando donador...', 'Procesando');
         },
         success: function (response) {
-            //console.log('Respuesta al guardar donador:', response);
+            // console.log('Respuesta al guardar donador:', response);
 
             // Parsear la respuesta para obtener el ID del donador
             let donadorId = null;
             try {
                 const responseData = typeof response === 'string' ? JSON.parse(response) : response;
                 donadorId = responseData.id_donador || responseData.id;
-                //console.log('ID del donador guardado:', donadorId);
+                // console.log('ID del donador guardado:', donadorId);
             } catch (e) {
                 console.warn('No se pudo extraer ID del donador:', e);
                 toastr.error('No se pudo obtener el ID del donador guardado', 'Error');
@@ -1322,7 +1322,7 @@ function guardarContacto(contacto, articulosNuevos, articulosExistentes, donador
             toastr.info('Guardando contacto...', 'Procesando');
         },
         success: function (response) {
-            //console.log('Respuesta al guardar contacto:', response);
+            // console.log('Respuesta al guardar contacto:', response);
 
             // Proceder a insertar artículos nuevos
             insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
@@ -1363,7 +1363,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
             toastr.info('Guardando artículos nuevos...', 'Procesando');
         },
         success: function (response) {
-            console.log('Respuesta al guardar artículos nuevos:', response);
+            // console.log('Respuesta al guardar artículos nuevos:', response);
 
             // Extraer los IDs de los artículos insertados
             let articulosInsertadosConId = [];
@@ -1372,7 +1372,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
                 if (response && response.respuesta) {
                     try {
                         const articuloInsertado = JSON.parse(response.respuesta);
-                        console.log('Artículo insertado parseado:', articuloInsertado);
+                        // console.log('Artículo insertado parseado:', articuloInsertado);
                         
                         if (articuloInsertado && articuloInsertado.id_articulo) {
                             // El endpoint retorna un solo artículo, pero podría haber múltiples en articulosNuevos
@@ -1387,7 +1387,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
                                     ...articuloOriginal,
                                     id_articulo: articuloInsertado.id_articulo
                                 });
-                                console.log('Artículo emparejado con ID:', articuloInsertado.id_articulo);
+                                // console.log('Artículo emparejado con ID:', articuloInsertado.id_articulo);
                             }
                         }
                     } catch (parseError) {
@@ -1397,7 +1397,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
                     // Estructura alternativa con array de resultados
                     articulosInsertadosConId = response.resultados
                         .map((resultado, index) => {
-                            console.log(`Procesando resultado ${index}:`, resultado);
+                            // console.log(`Procesando resultado ${index}:`, resultado);
                             
                             let idArticulo = null;
                             
@@ -1410,7 +1410,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
                                 idArticulo = parsed.id_articulo;
                             }
                             
-                            console.log(`ID extraído para artículo ${index}: ${idArticulo}`);
+                            // console.log(`ID extraído para artículo ${index}: ${idArticulo}`);
                             
                             return {
                                 ...articulosNuevos[index],
@@ -1437,7 +1437,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
                 articulosInsertadosConId = articulosNuevos;
             }
 
-            console.log('Artículos finales para donativo:', articulosInsertadosConId);
+            // console.log('Artículos finales para donativo:', articulosInsertadosConId);
 
             // Construir y guardar el donativo con todos los artículos
             construirYGuardarDonativo(articulosInsertadosConId, articulosExistentes, donadorId);
@@ -1466,7 +1466,7 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
 
     // Si hay archivos adjuntos, subirlos primero
     if (archivosAdjuntos.length > 0) {
-        console.log('Subiendo archivos antes de guardar donativo...');
+        // console.log('Subiendo archivos antes de guardar donativo...');
         subirArchivos(articulosInsertados, articulosExistentes, donadorId);
         return;
     }
@@ -1497,7 +1497,7 @@ function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
             toastr.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
         },
         success: function (response) {
-            console.log('Respuesta de subida de archivos:', response);
+            // console.log('Respuesta de subida de archivos:', response);
 
             // Procesar respuesta para obtener URLs
             let archivosGuardados = [];
@@ -1511,7 +1511,7 @@ function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
                     archivosGuardados = response.data;
                 }
 
-                console.log('Archivos guardados:', archivosGuardados);
+                // console.log('Archivos guardados:', archivosGuardados);
 
                 // Proceder a guardar donativo con archivos
                 const todosLosArticulos = [...articulosInsertados, ...articulosExistentes];
@@ -1561,7 +1561,7 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
 
     const datosString = JSON.stringify(donativoCompleto);
 
-    console.log('Donativo completo a enviar:', donativoCompleto);
+    // console.log('Donativo completo a enviar:', donativoCompleto);
 
     $.ajax({
         type: 'POST',
@@ -1614,19 +1614,19 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
  * Evento personalizado cuando la vista de registros se carga
  */
 document.addEventListener('registrosViewLoaded', function () {
-    //console.log('=== registrosViewLoaded evento disparado ===');
+    // console.log('=== registrosViewLoaded evento disparado ===');
 
     setTimeout(function () {
-        //console.log('Iniciando cargarDonativos después de registrosViewLoaded');
+        // console.log('Iniciando cargarDonativos después de registrosViewLoaded');
         cargarDonativos();
         cargarAlmacenes();
 
         // Botón refrescar
         const btnRefrescar = document.getElementById('btnRefrescarDonativos');
         if (btnRefrescar) {
-            //console.log('✓ Botón refrescar encontrado, agregando listener');
+            // console.log('✓ Botón refrescar encontrado, agregando listener');
             btnRefrescar.addEventListener('click', function () {
-                //console.log('Botón refrescar clickeado');
+                // console.log('Botón refrescar clickeado');
                 cargarDonativos();
             });
         } else {
@@ -1642,12 +1642,12 @@ document.addEventListener('registrosViewLoaded', function () {
 
 // Inicialización para cuando se carga el DOM por primera vez
 document.addEventListener('DOMContentLoaded', function () {
-    //console.log('=== DOMContentLoaded ===');
+    // console.log('=== DOMContentLoaded ===');
 
     // Si acciden directamente a la página de registros
     const tabla = document.getElementById('tablaDonativos');
     if (tabla) {
-        //console.log('Tabla encontrada en carga inicial, disparando evento');
+        // console.log('Tabla encontrada en carga inicial, disparando evento');
         document.dispatchEvent(new Event('registrosViewLoaded'));
     }
 });
@@ -1675,7 +1675,7 @@ function obtenerColorEstatus(estatus) {
  * Obtiene los detalles completos del servidor y los muestra en un modal
  */
 function verDetalles(idDonativo) {
-    //console.log('Obteniendo detalles del donativo ID:', idDonativo);
+    // console.log('Obteniendo detalles del donativo ID:', idDonativo);
 
     $.ajax({
         type: 'GET',
@@ -1686,7 +1686,7 @@ function verDetalles(idDonativo) {
             toastr.info('Cargando detalles...', 'Procesando');
         },
         success: function (response) {
-            //console.log('Detalles obtenidos:', response);
+            // console.log('Detalles obtenidos:', response);
 
             // Procesar el JSON con la estructura de artículos
             procesarYMostrarDetalles(JSON.parse(response), idDonativo);
@@ -1837,7 +1837,7 @@ function obtenerColorEstado(estado) {
  * Obtiene los datos del donativo y los carga en el formulario
  */
 function editarDonativo(idDonativo) {
-    //console.log('Editando donativo ID:', idDonativo);
+    // console.log('Editando donativo ID:', idDonativo);
 
     $.ajax({
         type: 'GET',
@@ -1848,7 +1848,7 @@ function editarDonativo(idDonativo) {
             toastr.info('Cargando donativo para edición...', 'Procesando');
         },
         success: function (response) {
-            //console.log('Donativo obtenido para edición:', response);
+            // console.log('Donativo obtenido para edición:', response);
 
             // Cargar los datos en el formulario
             cargarDonativoEnFormulario(JSON.parse(response));
@@ -1880,7 +1880,7 @@ function cargarDonativoEnFormulario(donativo) {
     numeroArticulos = 0;
 
     // Información del donador
-    //console.log('Cargando información del donador:', donativo.donador);
+    // console.log('Cargando información del donador:', donativo.donador);
 
     $('#id_donador').val(donativo.donador?.id_donador || '');
     $('#selectTipoDonador').val(donativo.donador?.tipo || '');
@@ -1901,7 +1901,7 @@ function cargarDonativoEnFormulario(donativo) {
     // Información del contacto (si aplica)
     if (donativo.donador?.tipo === 'organizacion' || donativo.donador?.tipo === 'empresa') {
         if (donativo.contacto) {
-            //console.log('Cargando información de contacto:', donativo.contacto);
+            // console.log('Cargando información de contacto:', donativo.contacto);
 
             $('#textNombreContacto').val(donativo.contacto.nombre || '');
             $('#textPuestoContacto').val(donativo.contacto.puesto || '');
@@ -1921,7 +1921,7 @@ function cargarDonativoEnFormulario(donativo) {
     }
 
     // Información del donativo
-    //console.log('Cargando información del donativo');
+    // console.log('Cargando información del donativo');
 
     $('#dateRecepcion').val(donativo.fecha_recepcion ? donativo.fecha_recepcion.split('T')[0] : obtenerFechaHoy());
     $('#selectTipoDonativo').val(donativo.tipo || 'especie');
@@ -1934,7 +1934,7 @@ function cargarDonativoEnFormulario(donativo) {
     }
 
     // Cargar artículos
-    //console.log('Cargando artículos:', donativo.detalles);
+    // console.log('Cargando artículos:', donativo.detalles);
 
     if (donativo.detalles && donativo.detalles.length > 0) {
         donativo.detalles.forEach((detalle, index) => {
@@ -1957,7 +1957,7 @@ function cargarDonativoEnFormulario(donativo) {
         });
     }
 
-    //console.log('✓ Donativo cargado en el formulario correctamente');
+    // console.log('✓ Donativo cargado en el formulario correctamente');
     toastr.success('Donativo cargado en el formulario', 'Éxito');
 }
 
@@ -1976,7 +1976,7 @@ function eliminarDonativo(idDonativo) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            //console.log('Eliminando donativo ID:', idDonativo);
+            // console.log('Eliminando donativo ID:', idDonativo);
 
             $.ajax({
                 type: 'GET',
@@ -1987,7 +1987,7 @@ function eliminarDonativo(idDonativo) {
                     toastr.info('Eliminando donativo...', 'Procesando');
                 },
                 success: function (response) {
-                    //console.log('Donativo eliminado:', response);
+                    // console.log('Donativo eliminado:', response);
                     toastr.success('Donativo eliminado correctamente', 'Éxito');
                     cargarDonativos(); // Refrescar tabla
                 },
