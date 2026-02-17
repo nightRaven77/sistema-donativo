@@ -42,7 +42,8 @@ const CATEGORIAS = [
     { id: 18, nombre: 'PRODUCTOS MISCELÁNEOS Y OTROS ARTÍCULOS' },
     { id: 19, nombre: 'ROPA, CALZAZO Y TEXTILES' },
     { id: 20, nombre: 'SEMILLAS, GRANOS Y ESPECIAS' },
-    { id: 21, nombre: 'SUEROS, HIDRATANTES Y ENERGIZANTES' }
+    { id: 21, nombre: 'SUEROS, HIDRATANTES Y ENERGIZANTES' },
+    { id: 22, nombre: 'ALIMENTOS PREPARADOS' }
 ];
 
 // ==================== DATATABLES ====================
@@ -211,8 +212,6 @@ function limpiarFormulario() {
     $('#seccionContacto').addClass('hidden');
     $('#textNombreContacto').prop('required', false);
     $('#textPuestoContacto').prop('required', false);
-    $('#textCelularContacto').prop('required', false);
-    $('#textEmailContacto').prop('required', false);
 
      // Limpiar artículos
     $('#contenedorArticulos').empty();
@@ -229,6 +228,12 @@ function limpiarFormulario() {
 
     // Ocultar lista de donadores
     $('#listaDonadores').addClass('d-none');
+
+    // Limpiar el select de almacenes y volver a cargar
+    if (centroIDUsuario && centroIDUsuario !== '' && centroIDUsuario !== '0') {
+        $('#selectAlmacenDestino').val(centroIDUsuario);
+        // console.log(`✓ Almacén seleccionado por defecto: ${centroIDUsuario}`);
+    }
 
     // Desplazar al inicio del formulario
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -988,8 +993,6 @@ function toggleSeccionContacto(tipo, id_donador) {
         // Marcar campos específicos como requeridos
         $('#textNombreContacto').prop('required', true);
         $('#textPuestoContacto').prop('required', true);
-        $('#textCelularContacto').prop('required', true);
-        $('#textEmailContacto').prop('required', true);
 
         buscarContactoDonador(id_donador);
     } else {
@@ -1003,8 +1006,8 @@ function toggleSeccionContacto(tipo, id_donador) {
         $('#textPuestoContacto').prop('required', false).val('').removeClass('is-invalid');
         $('#textTelefonoContacto').val('');
         $('#textExtensionContacto').val('');
-        $('#textCelularContacto').prop('required', false).val('').removeClass('is-invalid');
-        $('#textEmailContacto').prop('required', false).val('').removeClass('is-invalid');
+        $('#textCelularContacto').val('');
+        $('#textEmailContacto').val('');
         $('#textHorarioContacto').val('');
         $('#selectMedioPreferido').val('');
         $('#checkEsPrincipal').prop('checked', false);
@@ -1285,7 +1288,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
                 // console.log('ID del donador guardado:', donadorId);
             } catch (e) {
                 console.warn('No se pudo extraer ID del donador:', e);
-                toastr.error('No se pudo obtener el ID del donador guardado', 'Error');
+                toastr.error('No se pudo obtener el ID del donador guardado: ' + e.message, 'Error');
                 return;
             }
 

@@ -6,7 +6,7 @@
         <input type="hidden" id="id_donador" value="">
         <!-- Input hidden para guardar el Centro ID del usuario -->
         <input type="hidden" id="centroIDUsuario" value="">
-        
+
         <!-- SECCIÓN 1: DATOS DEL DONADOR -->
         <div id="seccionDonador" class="mb-8 pb-8 border-b-2 border-stone-200">
             <div class="flex items-center gap-3 mb-6">
@@ -36,13 +36,12 @@
                         <i class="fas fa-user" style="color:var(--dorado)"></i> <b>Nombre</b> <span class="text-red-500">*</span>
                     </label>
                     <div class="position-relative">
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="textNombreDonador" 
-                            placeholder="Busca o crea un donador"
-                            autocomplete="off"
-                            required>
+                        <input type="text"
+                               class="form-control"
+                               id="textNombreDonador"
+                               placeholder="Busca o crea un donador"
+                               autocomplete="off"
+                               required>
                         <div class="invalid-feedback">El nombre es requerido</div>
                         <!-- Lista de resultados de búsqueda -->
                         <div id="listaDonadores" class="position-absolute w-100 bg-white border border-stone-300 rounded-lg mt-1 shadow-lg d-none" style="max-height: 300px; overflow-y: auto; z-index: 1000; top: 100%;">
@@ -58,12 +57,11 @@
                     <label for="textRFC" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-id-card" style="color:var(--dorado)"></i> <b>RFC</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textRFC" 
-                        placeholder="RFC (13 caracteres)"
-                        maxlength="13">
+                    <input type="text"
+                           class="form-control"
+                           id="textRFC"
+                           placeholder="RFC (13 caracteres)"
+                           maxlength="13">
                     <div class="invalid-feedback">RFC requerido y válido</div>
                 </div>
 
@@ -72,11 +70,10 @@
                     <label for="textTelefonoDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>Teléfono</b>
                     </label>
-                    <input 
-                        type="tel" 
-                        class="form-control" 
-                        id="textTelefonoDonador" 
-                        placeholder="+52 (55) 1234-5678">
+                    <input type="tel"
+                           class="form-control"
+                           id="textTelefonoDonador"
+                           placeholder="+52 (55) 1234-5678">
                 </div>
             </div>
 
@@ -86,11 +83,10 @@
                     <label for="textEmailDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b>
                     </label>
-                    <input 
-                        type="email" 
-                        class="form-control" 
-                        id="textEmailDonador" 
-                        placeholder="correo@example.com">
+                    <input type="email"
+                           class="form-control"
+                           id="textEmailDonador"
+                           placeholder="correo@example.com">
                     <div class="invalid-feedback">Email válido requerido</div>
                 </div>
 
@@ -99,11 +95,10 @@
                     <label for="textDireccionDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-map-marker-alt" style="color:var(--dorado)"></i> <b>Dirección</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textDireccionDonador" 
-                        placeholder="Calle y número">
+                    <input type="text"
+                           class="form-control"
+                           id="textDireccionDonador"
+                           placeholder="Calle y número">
                 </div>
             </div>
 
@@ -113,11 +108,10 @@
                     <label for="textColoniaDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-home" style="color:var(--dorado)"></i> <b>Colonia</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textColoniaDonador" 
-                        placeholder="Colonia o zona">
+                    <input type="text"
+                           class="form-control"
+                           id="textColoniaDonador"
+                           placeholder="Colonia o zona">
                 </div>
 
                 <!-- Ciudad -->
@@ -125,11 +119,10 @@
                     <label for="textCiudadDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-building" style="color:var(--dorado)"></i> <b>Ciudad</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textCiudadDonador" 
-                        placeholder="Ciudad o municipio">
+                    <input type="text"
+                           class="form-control"
+                           id="textCiudadDonador"
+                           placeholder="Ciudad o municipio">
                 </div>
             </div>
 
@@ -139,11 +132,10 @@
                     <label for="textEstadoDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-flag" style="color:var(--dorado)"></i> <b>Estado</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textEstadoDonador" 
-                        placeholder="Estado o provincia">
+                    <input type="text"
+                           class="form-control"
+                           id="textEstadoDonador"
+                           placeholder="Estado o provincia">
                 </div>
 
                 <!-- Código Postal -->
@@ -151,11 +143,10 @@
                     <label for="textCodigoPostalDonador" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-mailbox" style="color:var(--dorado)"></i> <b>Código Postal</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textCodigoPostalDonador" 
-                        placeholder="CP">
+                    <input type="text"
+                           class="form-control"
+                           id="textCodigoPostalDonador"
+                           placeholder="CP">
                 </div>
             </div>
 
@@ -163,11 +154,10 @@
                 <label for="textNotasDonador" class="block text-sm font-bold text-stone-700 mb-2">
                     <i class="fas fa-sticky-note" style="color:var(--dorado)"></i> <b>Notas</b>
                 </label>
-                <textarea 
-                    class="form-control" 
-                    id="textNotasDonador" 
-                    rows="3" 
-                    placeholder="Notas adicionales sobre el donador"></textarea>
+                <textarea class="form-control"
+                          id="textNotasDonador"
+                          rows="3"
+                          placeholder="Notas adicionales sobre el donador"></textarea>
             </div>
         </div>
 
@@ -184,12 +174,11 @@
                     <label for="textNombreContacto" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-user-tie" style="color:var(--dorado)"></i> <b>Nombre</b> <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textNombreContacto" 
-                        placeholder="Nombre completo del contacto"
-                        required>
+                    <input type="text"
+                           class="form-control"
+                           id="textNombreContacto"
+                           placeholder="Nombre completo del contacto"
+                           required>
                     <div class="invalid-feedback">El nombre es requerido</div>
                 </div>
 
@@ -198,12 +187,11 @@
                     <label for="textPuestoContacto" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-briefcase" style="color:var(--dorado)"></i> <b>Puesto</b> <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textPuestoContacto" 
-                        placeholder="Cargo o puesto"
-                        required>
+                    <input type="text"
+                           class="form-control"
+                           id="textPuestoContacto"
+                           placeholder="Cargo o puesto"
+                           required>
                     <div class="invalid-feedback">El puesto es requerido</div>
                 </div>
             </div>
@@ -214,11 +202,10 @@
                     <label for="textTelefonoContacto" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>Teléfono Fijo</b>
                     </label>
-                    <input 
-                        type="tel" 
-                        class="form-control" 
-                        id="textTelefonoContacto" 
-                        placeholder="+52 (55) 1234-5678">
+                    <input type="tel"
+                           class="form-control"
+                           id="textTelefonoContacto"
+                           placeholder="+52 (55) 1234-5678">
                 </div>
 
                 <!-- Extensión -->
@@ -226,11 +213,10 @@
                     <label for="textExtensionContacto" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-plus-square" style="color:var(--dorado)"></i> <b>Extensión</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textExtensionContacto" 
-                        placeholder="Extensión (opcional)">
+                    <input type="text"
+                           class="form-control"
+                           id="textExtensionContacto"
+                           placeholder="Extensión (opcional)">
                 </div>
             </div>
 
@@ -240,27 +226,22 @@
                     <label for="textCelularContacto" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-mobile-alt" style="color:var(--dorado)"></i> <b>Celular</b>
                     </label>
-                    <input 
-                        type="tel" 
-                        class="form-control" 
-                        id="textCelularContacto" 
-                        placeholder="+52 (636) 246-4912"
-                        >
-                    <div class="invalid-feedback">El celular es requerido</div>
+                    <input type="tel"
+                           class="form-control"
+                           id="textCelularContacto"
+                           placeholder="+52 (636) 246-4912">
+
                 </div>
 
                 <!-- Email Contacto -->
                 <div class="form-group">
                     <label for="textEmailContacto" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b> 
+                        <i class="fas fa-envelope" style="color:var(--dorado)"></i> <b>Email</b>
                     </label>
-                    <input 
-                        type="email" 
-                        class="form-control" 
-                        id="textEmailContacto" 
-                        placeholder="correo@example.com"
-                        >
-                    <div class="invalid-feedback">Email válido requerido</div>
+                    <input type="email"
+                           class="form-control"
+                           id="textEmailContacto"
+                           placeholder="correo@example.com">
                 </div>
             </div>
 
@@ -270,11 +251,10 @@
                     <label for="textHorarioContacto" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-clock" style="color:var(--dorado)"></i> <b>Horario de Contacto</b>
                     </label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="textHorarioContacto" 
-                        placeholder="de 10 a 15 hrs.">
+                    <input type="text"
+                           class="form-control"
+                           id="textHorarioContacto"
+                           placeholder="de 10 a 15 hrs.">
                 </div>
 
                 <!-- Medio Preferido -->
@@ -296,10 +276,9 @@
                 <!-- Es Principal -->
                 <div class="form-group">
                     <div class="form-check">
-                        <input 
-                            class="form-check-input" 
-                            type="checkbox" 
-                            id="checkEsPrincipal">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="checkEsPrincipal">
                         <label class="form-check-label" for="checkEsPrincipal">
                             <b>¿Es el contacto principal?</b>
                         </label>
@@ -309,11 +288,10 @@
                 <!-- Activo -->
                 <div class="form-group">
                     <div class="form-check">
-                        <input 
-                            class="form-check-input" 
-                            type="checkbox" 
-                            id="checkActivoContacto"
-                            checked>
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="checkActivoContacto"
+                               checked>
                         <label class="form-check-label" for="checkActivoContacto">
                             <b>Contacto activo</b>
                         </label>
@@ -325,11 +303,10 @@
                 <label for="textNotasContacto" class="block text-sm font-bold text-stone-700 mb-2">
                     <i class="fas fa-sticky-note" style="color:var(--dorado)"></i> <b>Notas</b>
                 </label>
-                <textarea 
-                    class="form-control" 
-                    id="textNotasContacto" 
-                    rows="3" 
-                    placeholder="Notas adicionales sobre el contacto"></textarea>
+                <textarea class="form-control"
+                          id="textNotasContacto"
+                          rows="3"
+                          placeholder="Notas adicionales sobre el contacto"></textarea>
             </div>
         </div>
 
@@ -346,11 +323,10 @@
                     <label for="dateRecepcion" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-calendar-alt" style="color:var(--dorado)"></i> <b>Fecha de Recepción</b> <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="date" 
-                        class="form-control" 
-                        id="dateRecepcion"
-                        required>
+                    <input type="date"
+                           class="form-control"
+                           id="dateRecepcion"
+                           required>
                     <div class="invalid-feedback">La fecha de recepción es requerida</div>
                     <small class="text-stone-500 mt-1 block">Por defecto se establece la fecha actual</small>
                 </div>
@@ -373,13 +349,12 @@
                     <label for="numberImporte" class="block text-sm font-bold text-stone-700 mb-2">
                         <i class="fas fa-money-bill" style="color:var(--dorado)"></i> <b>Importe</b> <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="number" 
-                        class="form-control" 
-                        id="numberImporte"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00">
+                    <input type="number"
+                           class="form-control"
+                           id="numberImporte"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
                     <div class="invalid-feedback">El importe es requerido</div>
                 </div>
 
@@ -398,13 +373,12 @@
                 <label for="fileAdjuntos" class="block text-sm font-bold text-stone-700 mb-2">
                     <i class="fas fa-paperclip" style="color:var(--dorado)"></i> <b>Adjuntar Archivos/Imágenes</b>
                 </label>
-                <input 
-                    type="file" 
-                    class="form-control" 
-                    id="fileAdjuntos"
-                    multiple
-                    accept="image/*,.pdf,.doc,.docx,.xlsx,.xls"
-                    placeholder="Selecciona archivos o imágenes">
+                <input type="file"
+                       class="form-control"
+                       id="fileAdjuntos"
+                       multiple
+                       accept="image/*,.pdf,.doc,.docx,.xlsx,.xls"
+                       placeholder="Selecciona archivos o imágenes">
                 <small class="text-stone-500 mt-1 block">
                     Formatos permitidos: Imágenes (JPG, PNG, GIF), PDF, Word (DOC, DOCX), Excel (XLS, XLSX)
                 </small>
@@ -414,11 +388,10 @@
                 <label for="textObservacionesDonativo" class="block text-sm font-bold text-stone-700 mb-2">
                     <i class="fas fa-comments" style="color:var(--dorado)"></i> <b>Observaciones</b>
                 </label>
-                <textarea 
-                    class="form-control" 
-                    id="textObservacionesDonativo" 
-                    rows="3" 
-                    placeholder="Observaciones adicionales sobre el donativo"></textarea>
+                <textarea class="form-control"
+                          id="textObservacionesDonativo"
+                          rows="3"
+                          placeholder="Observaciones adicionales sobre el donativo"></textarea>
             </div>
         </div>
 
