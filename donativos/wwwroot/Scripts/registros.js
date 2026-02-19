@@ -170,6 +170,9 @@ function llenarTablaConDataTables(donativos) {
             <button class="btn btn-sm btn-danger" onclick="eliminarDonativo(${donativo.id_donativo})" title="Eliminar">
                 <i class="fas fa-trash"></i>
             </button>
+            <button class="btn btn-sm btn-primary" onclick="editarDonativo(${donativo.id_donativo})" title="Editar">
+                <i class="fas fa-edit"></i>
+            </button>
         `;
 
         dataTable.row.add([
@@ -231,7 +234,7 @@ function limpiarFormulario() {
 
     // Limpiar el select de almacenes y volver a cargar
     if (centroIDUsuario && centroIDUsuario !== '' && centroIDUsuario !== '0') {
-        $('#selectAlmacenDestino').val(centroIDUsuario);
+        $('#selectAlmacenDestino').val(centroIDUsuario.value);
         // console.log(`✓ Almacén seleccionado por defecto: ${centroIDUsuario}`);
     }
 
@@ -621,7 +624,8 @@ function buscarDonadores(termino) {
             mostrarResultadosDonadores(donadores, termino);
         },
         error: function (xhr, status, error) {
-            //console.error('Error al buscar donadores:', error);
+            console.error('Error al buscar donadores:', error);
+            console.error('Respuesta:', xhr.responseText);
 
             const listaDonadores = $('#listaDonadores');
             listaDonadores.html(`
@@ -874,6 +878,7 @@ function buscarContactoDonador(idDonador) {
         },
         error: function (xhr, status, error) {
             console.error('Error al buscar donadores:', error);
+            console.error('Respuesta:', xhr.responseText);
 
             const listaDonadores = $('#listaDonadores');
             listaDonadores.html(`
@@ -984,7 +989,7 @@ function toggleSeccionContacto(tipo, id_donador) {
 
     // console.log('Tipo de donador seleccionado:', tipo);
 
-    if (tipo === 'organizacion' || tipo === 'empresa') {
+    if (tipo === 'organizacion' || tipo === 'empresa' || tipo === 'gobierno') {
         // console.log('Mostrando sección de contacto');
 
         // Mostrar la sección
@@ -1187,7 +1192,7 @@ function guardarRegistro() {
     // Construir objeto Contacto (si aplica)
     let contacto = null;
     const tipoDonador = $('#selectTipoDonador').val();
-    if (tipoDonador === 'organizacion' || tipoDonador === 'empresa') {
+    if (tipoDonador === 'organizacion' || tipoDonador === 'empresa' || tipoDonador ==='gobierno') {
         contacto = {
             nombre: $('#textNombreContacto').val(),
             puesto: $('#textPuestoContacto').val(),
@@ -1332,6 +1337,7 @@ function guardarContacto(contacto, articulosNuevos, articulosExistentes, donador
         },
         error: function (xhr, status, error) {
             console.error('Error al guardar contacto:', error);
+            console.error('Respuesta del servidor:', xhr.responseText);
             toastr.error('Error al guardar el contacto. Intenta de nuevo.', 'Error');
         }
     });
@@ -1927,7 +1933,8 @@ function cargarDonativoEnFormulario(donativo) {
     // console.log('Cargando información del donativo');
 
     $('#dateRecepcion').val(donativo.fecha_recepcion ? donativo.fecha_recepcion.split('T')[0] : obtenerFechaHoy());
-    $('#selectTipoDonativo').val(donativo.tipo || 'especie');
+    $('#selectTipoDonativo').val(donativo.tipo.toLowerCase() || 'especie');
+    $('#selectAlmacenDestino').val(donativo.id_almacen || centroIDUsuario.value);
     $('#textObservacionesDonativo').val(donativo.observaciones || '');
 
     // Si es efectivo, mostrar el campo de importe
