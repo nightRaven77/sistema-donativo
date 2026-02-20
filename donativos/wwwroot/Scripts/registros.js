@@ -1189,16 +1189,16 @@ function guardarRegistro() {
     // Construir objeto Donador
     const donador = {
         tipo: $('#selectTipoDonador').val(),
-        nombre: $('#textNombreDonador').val(),
-        rfc: $('#textRFC').val(),
-        telefono: $('#textTelefonoDonador').val(),
-        email: $('#textEmailDonador').val(),
-        direccion: $('#textDireccionDonador').val(),
-        colonia: $('#textColoniaDonador').val(),
-        ciudad: $('#textCiudadDonador').val(),
-        estado: $('#textEstadoDonador').val(),
-        codigo_postal: $('#textCodigoPostalDonador').val(),
-        notas: $('#textNotasDonador').val()
+        nombre: $('#textNombreDonador').val().trim(),
+        rfc: $('#textRFC').val().trim(),
+        telefono: $('#textTelefonoDonador').val().trim(),
+        email: $('#textEmailDonador').val().trim(),
+        direccion: $('#textDireccionDonador').val().trim(),
+        colonia: $('#textColoniaDonador').val().trim(),
+        ciudad: $('#textCiudadDonador').val().trim(),
+        estado: $('#textEstadoDonador').val().trim(),
+        codigo_postal: $('#textCodigoPostalDonador').val().trim(),
+        notas: $('#textNotasDonador').val().trim()
     };
 
     // Construir objeto Contacto (si aplica)
@@ -1206,14 +1206,14 @@ function guardarRegistro() {
     const tipoDonador = $('#selectTipoDonador').val();
     if (tipoDonador === 'organizacion' || tipoDonador === 'empresa' || tipoDonador ==='gobierno') {
         contacto = {
-            nombre: $('#textNombreContacto').val(),
-            puesto: $('#textPuestoContacto').val(),
-            telefono: $('#textTelefonoContacto').val(),
-            extension: $('#textExtensionContacto').val(),
-            celular: $('#textCelularContacto').val(),
-            email: $('#textEmailContacto').val(),
-            horario_contacto: $('#textHorarioContacto').val(),
-            medio_preferido: $('#selectMedioPreferido').val(),
+            nombre: $('#textNombreContacto').val().trim(),
+            puesto: $('#textPuestoContacto').val().trim(),
+            telefono: $('#textTelefonoContacto').val().trim(),
+            extension: $('#textExtensionContacto').val().trim(),
+            celular: $('#textCelularContacto').val().trim(),
+            email: $('#textEmailContacto').val().trim(),
+            horario_contacto: $('#textHorarioContacto').val().trim(),
+            medio_preferido: $('#selectMedioPreferido').val().trim(),
             es_principal: $('#checkEsPrincipal').is(':checked'),
             notas: $('#textNotasContacto').val(),
             activo: $('#checkActivoContacto').is(':checked')
@@ -1495,7 +1495,7 @@ function guardarRegistro() {
     // Construir objeto Donador
     const donador = {
         tipo: $('#selectTipoDonador').val(),
-        nombre: $('#textNombreDonador').val(),
+        nombre: $('#textNombreDonador').val().trim(),
         rfc: $('#textRFC').val(),
         telefono: $('#textTelefonoDonador').val(),
         email: $('#textEmailDonador').val(),
@@ -1512,8 +1512,8 @@ function guardarRegistro() {
     const tipoDonador = $('#selectTipoDonador').val();
     if (tipoDonador === 'organizacion' || tipoDonador === 'empresa' || tipoDonador ==='gobierno') {
         contacto = {
-            nombre: $('#textNombreContacto').val(),
-            puesto: $('#textPuestoContacto').val(),
+            nombre: $('#textNombreContacto').val().trim(),
+            puesto: $('#textPuestoContacto').val().trim(),
             telefono: $('#textTelefonoContacto').val(),
             extension: $('#textExtensionContacto').val(),
             celular: $('#textCelularContacto').val(),
@@ -1803,6 +1803,88 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
     guardarDonativoCompleto(todosLosArticulos, donadorId, []);
 }
 
+
+/**
+ * Guarda el donativo completo con los detalles y archivos
+ */
+function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados) {
+    // Construir los detalles con todos los artículos
+    const detalles = todosLosArticulos.map(articulo => ({
+        id_articulo: articulo.id_articulo,
+        cantidad_recibida: articulo.cantidad_recibida,
+        valor_unitario: articulo.valor_unitario,
+        estado: articulo.estado,
+        unidad_medida: articulo.unidad_medida,
+        descripcion: articulo.descripcion
+    }));
+
+    // Construir el JSON completo del donativo
+    const donativoCompleto = {
+        id_donador: donadorId,
+        fecha_recepcion: $('#dateRecepcion').val() + 'T10:30:00',
+        tipo: $('#selectTipoDonativo').val(),
+        estatus: 'Recibido',
+        observaciones: $('#textObservacionesDonativo').val(),
+        id_almacen: $('#selectAlmacenDestino').val(),
+        detalles: detalles
+    };
+
+    // Agregar archivos si los hay
+    if (archivosGuardados && archivosGuardados.length > 0) {
+        donativoCompleto.archivos = archivosGuardados;
+    }
+
+    const datosString = JSON.stringify(donativoCompleto);
+
+    // console.log('Donativo completo a enviar:', donativoCompleto);
+
+    $.ajax({
+        type: 'POST',
+        url: 'insertaDonativo',
+        data: { datos: datosString },
+        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+        dataType: 'json',
+        beforeSend: function () {
+            toastr.info('Guardando donativo...', 'Procesando');
+        },
+        success: function (response) {
+            console.log('Respuesta al guardar donativo:', response);
+
+            if (response.exito) {
+                // Mostrar SweetAlert de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Donativo Registrado!',
+                    text: 'El donativo se ha registrado correctamente',
+                    confirmButtonColor: '#9c223c',
+                    confirmButtonText: 'Aceptar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Ejecutar limpiar formulario después de confirmar
+                        limpiarFormulario();
+                    }
+                });
+
+                toastr.success('Donativo registrado correctamente', 'Éxito');
+            } else {
+                toastr.error(response.mensaje || 'Error al registrar', 'Error');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al guardar donativo:', error);
+            console.error('Respuesta:', xhr.responseText);
+
+            if (xhr.status === 400) {
+                toastr.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
+            } else if (xhr.status === 500) {
+                toastr.error('Error en el servidor. Intenta de nuevo.' & xhr.statusText, 'Error');
+            } else {
+                toastr.error('Error al guardar el donativo: ' + error, 'Error');
+            }
+        }
+    });
+}
+
 /**
  * Actualiza un donativo existente
  * Construye el JSON con la estructura requerida por el endpoint actualizaDonativo
@@ -1893,7 +1975,7 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
             toastr.info('Guardando nuevos artículos...', 'Procesando');
         },
         success: function (response) {
-            console.log('Respuesta al guardar artículos nuevos:', response);
+            //console.log('Respuesta al guardar artículos nuevos:', response);
 
             // Extraer los IDs de los artículos insertados
             let articulosInsertadosConId = [];
@@ -1902,7 +1984,7 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
                 if (response && response.respuesta) {
                     try {
                         const articuloInsertado = JSON.parse(response.respuesta);
-                        console.log('Artículo insertado parseado:', articuloInsertado);
+                        //console.log('Artículo insertado parseado:', articuloInsertado);
                         
                         if (articuloInsertado && articuloInsertado.id_articulo) {
                             // Buscar el artículo original y agregarle el ID
@@ -1916,7 +1998,7 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
                                     ...articuloOriginal,
                                     id_articulo: articuloInsertado.id_articulo
                                 });
-                                console.log('Artículo emparejado con ID:', articuloInsertado.id_articulo);
+                                //console.log('Artículo emparejado con ID:', articuloInsertado.id_articulo);
                             }
                         }
                     } catch (parseError) {
@@ -1926,7 +2008,7 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
                     // Estructura alternativa con array de resultados
                     articulosInsertadosConId = response.resultados
                         .map((resultado, index) => {
-                            console.log(`Procesando resultado ${index}:`, resultado);
+                            //console.log(`Procesando resultado ${index}:`, resultado);
                             
                             let idArticulo = null;
                             
@@ -1967,14 +2049,14 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
                 articulosInsertadosConId = articulosNuevos;
             }
 
-            console.log('Artículos nuevos con IDs:', articulosInsertadosConId);
+           // console.log('Artículos nuevos con IDs:', articulosInsertadosConId);
 
             // Combinar artículos insertados con existentes
             const todosLosArticulos = [...articulosInsertadosConId, ...articulosExistentes];
 
             // Proceder con archivos o actualización directa
             if (archivosAdjuntos.length > 0) {
-                console.log('Subiendo nuevos archivos antes de actualizar...');
+                //console.log('Subiendo nuevos archivos antes de actualizar...');
                 subirArchivosParaActualizacion(idDonativo, todosLosArticulos);
             } else {
                 enviarActualizacionDonativo(idDonativo, todosLosArticulos, []);
@@ -2203,148 +2285,6 @@ function obtenerColorEstatus(estatus) {
     return colores[estatus] || 'bg-secondary';
 }
 
-///**
-// * Ver detalles del donativo
-// * Obtiene los detalles completos del servidor y los muestra en un modal
-// */
-//function verDetalles(idDonativo) {
-//    // console.log('Obteniendo detalles del donativo ID:', idDonativo);
-
-//    $.ajax({
-//        type: 'GET',
-//        url: 'obtenerDonativoDetalle',
-//        data: { id_donativo: idDonativo },
-//        dataType: 'json',
-//        beforeSend: function () {
-//            toastr.info('Cargando detalles...', 'Procesando');
-//        },
-//        success: function (response) {
-//            // console.log('Detalles obtenidos:', response);
-
-//            // Procesar el JSON con la estructura de artículos
-//            procesarYMostrarDetalles(JSON.parse(response), idDonativo);
-
-//            // Mostrar el modal
-//            $('#modalDetallesDonativo').modal('show');
-//            toastr.success('Detalles cargados correctamente', 'Éxito');
-//        },
-//        error: function (xhr, status, error) {
-//            console.error('Error al obtener detalles:', error);
-//            console.error('Respuesta:', xhr.responseText);
-//            toastr.error('Error al cargar los detalles del donativo', 'Error');
-//        }
-//    });
-//}
-
-///**
-// * Procesa y muestra los detalles del donativo en el modal
-// * Estructura esperada: array de artículos con información completa
-// */
-//function procesarYMostrarDetalles(detalles, idDonativo) {
-//    const contenido = document.getElementById('contenidoDetalles');
-
-//    if (!detalles || detalles.length === 0) {
-//        contenido.innerHTML = `
-//            <div class="alert alert-info" role="alert">
-//                <i class="fas fa-info-circle"></i> No hay detalles disponibles para este donativo
-//            </div>
-//        `;
-//        return;
-//    }
-
-//    let detallesHtml = `
-//        <div class="row mb-4">
-//            <div class="col-12">
-//                <h6 class="font-bold text-stone-700">
-//                    <i class="fas fa-box"></i> Artículos Donados
-//                </h6>
-//                <div class="table-responsive">
-//                    <table class="table table-sm table-striped table-hover">
-//                        <thead style="background-color: var(--dorado); color: white;">
-//                            <tr>
-//                                <th>Artículo</th>
-//                                <th>Categoría</th>
-//                                <th>Unidad de Medida</th>
-//                                <th>Cantidad</th>
-//                                <th>Valor Unitario</th>
-//                                <th>Valor Total</th>
-//                                <th>Estado</th>
-//                            </tr>
-//                        </thead>
-//                        <tbody>
-//    `;
-
-//    let totalGeneral = 0;
-
-//    // Iterar sobre los artículos
-//    detalles.forEach((detalle) => {
-//        const subtotal = detalle.valor_total || (detalle.cantidad_recibida * detalle.valor_unitario);
-//        totalGeneral += parseFloat(subtotal);
-
-//        detallesHtml += `
-//            <tr>
-//                <td>
-//                    <strong>${detalle.nombre_articulo || 'N/A'}</strong>
-//                    <br>
-//                    <small class="text-muted">ID: ${detalle.id_articulo}</small>
-//                </td>
-//                <td>${detalle.categoria_articulo || 'N/A'}</td>
-//                <td>${detalle.unidad_medida || 'N/A'}</td>
-//                <td class="text-center">
-//                    <span class="badge badge-primary">${detalle.cantidad_recibida}</span>
-//                </td>
-//                <td class="text-right">$${parseFloat(detalle.valor_unitario).toFixed(2)}</td>
-//                <td class="text-right">
-//                    <strong>$${parseFloat(subtotal).toFixed(2)}</strong>
-//                </td>
-//                <td>
-//                    <span class="badge ${obtenerColorEstado(detalle.estado)}">
-//                        ${detalle.estado || 'N/A'}
-//                    </span>
-//                </td>
-//            </tr>
-//        `;
-//    });
-
-//    // Fila de totales
-//    detallesHtml += `
-//        <tr style="background-color: #f9f9f9; font-weight: bold;">
-//            <td colspan="5" class="text-right">
-//                <strong>TOTAL GENERAL:</strong>
-//            </td>
-//            <td class="text-right">
-//                <strong style="font-size: 1.2rem; color: var(--guinda);">
-//                    $${totalGeneral.toFixed(2)}
-//                </strong>
-//            </td>
-//            <td></td>
-//        </tr>
-//    `;
-
-//    detallesHtml += `
-//                        </tbody>
-//                    </table>
-//                </div>
-//            </div>
-//        </div>
-
-//        <hr>
-
-//        <div class="row">
-//            <div class="col-12">
-//                <h6 class="font-bold text-stone-700">
-//                    <i class="fas fa-file-alt"></i> Resumen
-//                </h6>
-//                <div class="alert alert-light" role="alert">
-//                    <p class="mb-1"><strong>Cantidad Total de Artículos:</strong> ${detalles.length}</p>
-//                    <p class="mb-0"><strong>Valor Total del Donativo:</strong> <span style="color: var(--guinda); font-weight: bold;">$${totalGeneral.toFixed(2)}</span></p>
-//                </div>
-//            </div>
-//        </div>
-//    `;
-
-//    contenido.innerHTML = detallesHtml;
-//}
 
 /**
  * Obtiene el color del badge según el estado del artículo

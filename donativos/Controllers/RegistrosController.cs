@@ -94,7 +94,7 @@ namespace donativos.Controllers
 
         #region Registro Donativos
 
-                /// <summary>
+        /// <summary>
         /// Inserta un registro completo de donativo en una sola petición
         /// Estructura: {id_donador, fecha_recepcion, tipo, estatus, observaciones, detalles[]}
         /// </summary>
@@ -148,7 +148,7 @@ namespace donativos.Controllers
                     return Json(new
                     {
                         exito = false,
-                        mensaje = "Datos de donativo inválidos",
+                        mensaje = "Datos de donativo inválidos: " + ExtraerMensajeError(response.Content),
                         error = response.Content
                     });
                 }
@@ -158,7 +158,7 @@ namespace donativos.Controllers
                     return Json(new
                     {
                         exito = false,
-                        mensaje = "Error interno del servidor",
+                        mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
                         error = response.Content
                     });
                 }
@@ -1135,6 +1135,33 @@ namespace donativos.Controllers
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Extrae el mensaje de error de un response JSON
+        /// </summary>
+        private string ExtraerMensajeError(string jsonContent)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(jsonContent))
+                    return "Error desconocido";
+
+                var obj = JObject.Parse(jsonContent);
+                
+                // Intentar diferentes nombres de campo
+                var mensaje = obj["message"]?.ToString() 
+                           ?? obj["mensaje"]?.ToString() 
+                           ?? obj["error"]?.ToString()
+                           ?? jsonContent;
+                
+                return mensaje;
+            }
+            catch
+            {
+                // Si falla el parseo, devolver el contenido completo
+                return jsonContent;
+            }
         }
 
         #endregion
