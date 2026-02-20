@@ -339,6 +339,71 @@ namespace donativos.Controllers
             return Json(response.Content);
         }
 
+        public async Task<JsonResult> actualizaDonativo(int id_donativo, string datos)
+            {
+            var token = HttpContext.Session.GetString("token");
+            try
+            {
+                Console.WriteLine($"Actualizando donativo ID {id_donativo} con datos: {datos}");
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new { exito = false, mensaje = "Datos de donativo requeridos" });
+                }
+                var response = ExecuteApi(token, $"donativo/{id_donativo}", "PUT", datos);
+                Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Donativo actualizado correctamente");
+                    return Json(new
+                    {
+                        exito = true,
+                        mensaje = "Donativo actualizado correctamente",
+                        data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Datos de donativo inválidos",
+                        error = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = "Error interno del servidor",
+                        error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new
+                    {
+                        exito = false,
+                        mensaje = $"Error {response.StatusCode}",
+                        error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "Error inesperado al actualizar el donativo",
+                    error = ex.Message
+                });
+            }
+        }
+
         /// <summary>
         /// Obtiene la lista de todos los donativos registrados
         /// </summary>
@@ -511,7 +576,7 @@ namespace donativos.Controllers
 
                         archivosGuardados.Add(new
                         {
-                            url = $"/uploads/donativos/{nombreAleatorio}",
+                            url = $"/{nombreAleatorio}",
                             nombre_original = nombreOriginal,
                             nombre_guardado = nombreAleatorio
                         });
@@ -1113,5 +1178,59 @@ namespace donativos.Controllers
             return RedirectToAction("Login", "Acceso");
         }
         #endregion
+
+        /// <summary>
+        /// Sirve un archivo desde el NAS
+        /// </summary>
+        [HttpGet]
+        public IActionResult ObtenerArchivo(string archivo)
+        {
+            try
+            {
+                var nasPath = _configuration["FileStorage:NasPath"];
+                
+                // El archivo viene como "/guid.extension", quitar la barra inicial
+                var nombreArchivo = archivo.TrimStart('/');
+                var rutaCompleta = Path.Combine(nasPath, nombreArchivo);
+                
+                if (!System.IO.File.Exists(rutaCompleta))
+                {
+                    Console.WriteLine($"❌ Archivo no encontrado: {rutaCompleta}");
+                    return NotFound(new { mensaje = "Archivo no encontrado" });
+                }
+                
+                var extension = Path.GetExtension(rutaCompleta).ToLower();
+                var contentType = ObtenerContentType(extension);
+                
+                var bytes = System.IO.File.ReadAllBytes(rutaCompleta);
+                var nombreOriginal = Path.GetFileName(rutaCompleta);
+                
+                Console.WriteLine($"✓ Sirviendo archivo: {nombreOriginal} ({contentType})");
+                
+                return File(bytes, contentType, enableRangeProcessing: true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al obtener archivo: {ex.Message}");
+                return StatusCode(500, new { mensaje = "Error al obtener el archivo", error = ex.Message });
+            }
+        }
+
+        private string ObtenerContentType(string extension)
+        {
+            return extension switch
+            {
+                ".pdf" => "application/pdf",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                _ => "application/octet-stream"
+            };
+        }
     }
 }
