@@ -4,6 +4,8 @@ let donadorSeleccionado = null;
 let timerOcultarListaDonadores = null;
 let almacenes = [];
 let archivosAdjuntos = [];
+// Nueva variable para archivos ya guardados
+let archivosExistentes = [];
 let modoEdicion = false; // Nueva variable para controlar modo edición
 let idDonativoEdicion = null; // Nueva variable para guardar ID del donativo en edición
 
@@ -194,9 +196,6 @@ function llenarTablaConDataTables(donativos) {
     // console.log('✓ DataTables actualizado correctamente with', donativos.length, 'registros');
 }
 
-/**
- * Limpia el formulario después de guardar
- */
 function limpiarFormulario() {
     const form = document.getElementById('formRegistroDonativos');
 
@@ -223,14 +222,19 @@ function limpiarFormulario() {
     $('#textNombreContacto').prop('required', false);
     $('#textPuestoContacto').prop('required', false);
 
-     // Limpiar artículos
+    // Limpiar artículos
     $('#contenedorArticulos').empty();
     numeroArticulos = 0;
     donadorSeleccionado = null;
 
-    // Limpiar archivos adjuntos
+    // ⭐ Limpiar archivos adjuntos Y existentes
     $('#fileAdjuntos').val('');
     archivosAdjuntos = [];
+    archivosExistentes = []; // Limpiar archivos existentes
+
+    // Limpiar el contenedor de archivos existentes
+    $('#archivosExistentes').remove();
+
     const fileAlert = document.querySelector('#fileAdjuntos').parentElement.querySelector('.alert');
     if (fileAlert) {
         fileAlert.remove();
@@ -255,7 +259,6 @@ function limpiarFormulario() {
 
     console.log('✓ Formulario limpiado correctamente');
 }
-
 /**
  * Obtiene el color del badge según el estatus
  */
@@ -2348,15 +2351,22 @@ function cargarDonativoEnFormulario(donativo) {
     form.reset();
     form.classList.remove('was-validated');
 
-    // Limpiar artículos previos
+    // Limpiar contenedores
     $('#contenedorArticulos').empty();
     numeroArticulos = 0;
+
+    // ⭐ Limpiar archivos nuevos pero guardar los existentes
+    archivosAdjuntos = [];
+    archivosExistentes = donativo.archivos || [];
 
     // Activar modo edición
     activarModoEdicion(donativo.id_donativo);
 
-    // Información del donador
-    console.log('Cargando información del donador:', donativo.donador);
+    // Cambiar etiqueta del botón
+    $('#btnGuardarDonativo').html('<i class="fas fa-save"></i> Actualizar Donativo');
+    $('#btnCancelarEdicion').removeClass('d-none');
+
+    console.log('Modo edición activado para donativo ID:', donativo.id_donativo);
 
     $('#id_donador').val(donativo.donador?.id_donador || '');
     $('#selectTipoDonador').val(donativo.donador?.tipo || '');
@@ -2396,7 +2406,6 @@ function cargarDonativoEnFormulario(donativo) {
         $('#seccionContacto').removeClass('hidden');
     }
 
-    // Información del donativo
     console.log('Cargando información del donativo');
 
     $('#dateRecepcion').val(donativo.fecha_recepcion ? donativo.fecha_recepcion.split('T')[0] : obtenerFechaHoy());
@@ -2431,7 +2440,7 @@ function cargarDonativoEnFormulario(donativo) {
             // ⭐ IMPORTANTE: Guardar el ID del artículo Y el ID del detalle del donativo
             $articulo.data('id_articulo', detalle.id_articulo);
             $articulo.data('id_donativo_detalle', detalle.id_donativo_detalle);
-            
+
             // Log para verificar que se guardó correctamente
             console.log(`✓ Artículo #${numeroArticulos}:`, {
                 nombre: detalle.nombre_articulo,
@@ -2441,8 +2450,84 @@ function cargarDonativoEnFormulario(donativo) {
         });
     }
 
+    // ⭐ Cargar archivos existentes
+    mostrarArchivosExistentes();
+
     console.log('✓ Donativo cargado en el formulario correctamente para edición');
     toastr.success('Donativo cargado para editar. Modifica los campos necesarios.', 'Modo Edición');
+}
+
+
+/**
+ * Muestra los archivos existentes del donativo en modo edición
+ */
+function mostrarArchivosExistentes() {
+    const contenedor = $('#fileAdjuntos').parent();
+
+    // Buscar o crear el contenedor de archivos existentes
+    let divArchivosExistentes = contenedor.find('#archivosExistentes');
+    if (divArchivosExistentes.length === 0) {
+        divArchivosExistentes = $('<div id="archivosExistentes" class="mt-2"></div>');
+        contenedor.append(divArchivosExistentes);
+    }
+
+    divArchivosExistentes.empty();
+
+    if (archivosExistentes.length === 0) {
+        divArchivosExistentes.html('<small class="text-muted">No hay archivos adjuntos</small>');
+        return;
+    }
+
+    divArchivosExistentes.append('<strong class="text-muted d-block mb-2">Archivos adjuntos:</strong>');
+
+    archivosExistentes.forEach((archivo, index) => {
+        const extension = archivo.nombre_archivo.split('.').pop().toLowerCase();
+        const icono = obtenerIconoArchivo(extension);
+
+        const archivoHtml = $(`
+            <div class="archivo-existente d-flex align-items-center justify-content-between p-2 mb-2 border rounded" data-index="${index}">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <i class="${icono} mr-2" style="font-size: 1.5rem;"></i>
+                    <div class="flex-grow-1">
+                        <a href="/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.url_archivo)}" 
+                           target="_blank" 
+                           class="text-primary" 
+                           title="Ver archivo">
+                            ${archivo.nombre_archivo}
+                        </a>
+                        <small class="text-muted d-block">${(archivo.tamano_kb || 0).toFixed(2)} KB</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `);
+
+        divArchivosExistentes.append(archivoHtml);
+    });
+}
+
+/**
+ * Elimina un archivo existente de la lista
+ */
+function eliminarArchivoExistente(index) {
+    Swal.fire({
+        title: '¿Eliminar archivo?',
+        text: 'El archivo se eliminará al guardar los cambios',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            archivosExistentes.splice(index, 1);
+            mostrarArchivosExistentes();
+            toastr.info('Archivo marcado para eliminación', 'Información');
+        }
+    });
 }
 
 /**
@@ -2731,10 +2816,13 @@ function subirArchivosParaActualizacion(idDonativo, todosLosArticulos) {
  *   archivos: [{ id_archivo, url, nombre_original }]
  * }
  */
+/**
+ * Envía la actualización del donativo al servidor
+ */
 function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuevos) {
     // Construir detalles de artículos
     const detalles = todosLosArticulos.map(articulo => ({
-        id_donativo_detalle: articulo.id_donativo_detalle || null, // null para nuevos artículos agregados
+        id_donativo_detalle: articulo.id_donativo_detalle || null,
         id_articulo: articulo.id_articulo,
         cantidad_recibida: articulo.cantidad_recibida,
         valor_unitario: articulo.valor_unitario,
@@ -2743,9 +2831,18 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
         unidad_medida: articulo.unidad_medida
     }));
 
-    // Construir archivos (incluir existentes + nuevos)
+    // ⭐ Construir archivos (incluir existentes + nuevos)
     const archivos = [];
-    
+
+    // Agregar archivos existentes que no fueron eliminados
+    archivosExistentes.forEach(archivo => {
+        archivos.push({
+            id_archivo: archivo.id_archivo,
+            url: archivo.url_archivo,
+            nombre_original: archivo.nombre_archivo
+        });
+    });
+
     // Agregar archivos nuevos si los hay
     if (archivosNuevos && archivosNuevos.length > 0) {
         archivosNuevos.forEach(archivo => {
@@ -2761,7 +2858,7 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
     const donativoActualizado = {
         fecha_recepcion: $('#dateRecepcion').val() + 'T10:30:00',
         tipo: $('#selectTipoDonativo').val(),
-        estatus: 'Recibido', // O mantener el estatus actual
+        estatus: 'Recibido',
         observaciones: $('#textObservacionesDonativo').val() || '',
         detalles: detalles,
         archivos: archivos
@@ -2775,9 +2872,9 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
     $.ajax({
         type: 'POST',
         url: 'actualizaDonativo',
-        data: { 
+        data: {
             id_donativo: idDonativo,
-            datos: datosString 
+            datos: datosString
         },
         contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         dataType: 'json',
@@ -2788,7 +2885,6 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
             console.log('Respuesta al actualizar donativo:', response);
 
             if (response.exito) {
-                // Mostrar SweetAlert de éxito
                 Swal.fire({
                     icon: 'success',
                     title: '¡Donativo Actualizado!',
@@ -2796,29 +2892,16 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
                     confirmButtonColor: '#9c223c',
                     confirmButtonText: 'Aceptar'
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Salir del modo edición y limpiar formulario
-                        salirModoEdicion();
-                        limpiarFormulario();
-                    }
+                    limpiarFormulario();
                 });
-
-                toastr.success('Donativo actualizado correctamente', 'Éxito');
             } else {
-                toastr.error(response.mensaje || 'Error al actualizar', 'Error');
-            }   
+                toastr.error(response.mensaje || 'Error al actualizar el donativo', 'Error');
+            }
         },
         error: function (xhr, status, error) {
             console.error('Error al actualizar donativo:', error);
             console.error('Respuesta:', xhr.responseText);
-
-            if (xhr.status === 400) {
-                toastr.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
-            } else if (xhr.status === 500) {
-                toastr.error('Error en el servidor. Intenta de nuevo.', 'Error');
-            } else {
-                toastr.error('Error al actualizar el donativo: ' + error, 'Error');
-            }
+            toastr.error('Error al actualizar el donativo', 'Error');
         }
     });
 }
