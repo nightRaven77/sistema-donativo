@@ -1806,6 +1806,59 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
     guardarDonativoCompleto(todosLosArticulos, donadorId, []);
 }
 
+/**
+ * Sube los archivos al servidor y retorna las URLs
+ */
+function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
+    const formData = new FormData();
+
+    // Agregar cada archivo al FormData
+    archivosAdjuntos.forEach((archivoObj, index) => {
+        formData.append(`archivos`, archivoObj.file);
+        formData.append(`nombres_originales`, archivoObj.nombre);
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: 'GuardarArchivos',
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function () {
+            toastr.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
+        },
+        success: function (response) {
+            // console.log('Respuesta de subida de archivos:', response);
+
+            // Procesar respuesta para obtener URLs
+            let archivosGuardados = [];
+
+            try {
+                if (Array.isArray(response)) {
+                    archivosGuardados = response;
+                } else if (response && response.archivos && Array.isArray(response.archivos)) {
+                    archivosGuardados = response.archivos;
+                } else if (response && response.data && Array.isArray(response.data)) {
+                    archivosGuardados = response.data;
+                }
+
+                // console.log('Archivos guardados:', archivosGuardados);
+
+                // Proceder a guardar donativo con archivos
+                const todosLosArticulos = [...articulosInsertados, ...articulosExistentes];
+                guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados);
+            } catch (e) {
+                console.error('Error al procesar respuesta de archivos:', e);
+                toastr.error('Error al procesar los archivos subidos', 'Error');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al subir archivos:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al subir los archivos', 'Error');
+        }
+    });
+}
 
 /**
  * Guarda el donativo completo con los detalles y archivos
@@ -3059,7 +3112,7 @@ function mostrarModalDetalles(detalles, archivos, idDonativo) {
         archivos.forEach((archivo) => {
             const extension = archivo.nombre_archivo.split('.').pop().toLowerCase();
             const iconoArchivo = obtenerIconoArchivo(extension);
-            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.url_archivo)}`;
+            const urlCompleta = `${APP_BASE_PATH}Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.url_archivo)}`;
 
             html += `
                 <div class="col-md-6 col-lg-4 mb-3">
