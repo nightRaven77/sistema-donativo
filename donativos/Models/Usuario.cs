@@ -6,11 +6,9 @@ namespace donativos.Models
     {
         public int userID { get; set; }
         public string username { get; set; }
-        public string password { get; set; }
         public string centroAcopio { get; set; }
         public string centroID { get; set; }
         public string token { get; set; }
         public string nombreCompleto { get; set; }
-
     }
 }

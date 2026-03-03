@@ -26,9 +26,10 @@ namespace donativos.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Login(Usuario user)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(LoginViewModel model)
         {
-            var result = await _authService.LoginAsync(user?.username, user?.password);
+            var result = await _authService.LoginAsync(model?.username, model?.password);
 
             if (!result.Success)
             {
@@ -54,6 +55,11 @@ namespace donativos.Controllers
                 ViewBag.MensajeError = "Error al inicializar sesión";
                 return View();
             }
+        }
+
+        public ActionResult Error()
+        {
+            return View();
         }
     }
 }

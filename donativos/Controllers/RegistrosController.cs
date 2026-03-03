@@ -3,16 +3,16 @@ using donativos.Models;
 using donativos.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -79,15 +79,18 @@ namespace donativos.Controllers
 
 namespace donativos.Controllers
 {
+    [Authorize]
     public class RegistrosController : Controller
     {
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
+        private readonly ILogger<RegistrosController> _logger;
 
-        public RegistrosController(IConfiguration configuration, IEmailService emailService)
+        public RegistrosController(IConfiguration configuration, IEmailService emailService, ILogger<RegistrosController> logger)
         {
             _configuration = configuration;
             _emailService = emailService;
+            _logger = logger;
         }
 
         private string ApiUrl => _configuration["apiUrl"];
@@ -553,20 +556,74 @@ namespace donativos.Controllers
 
                 var archivosGuardados = new List<object>();
 
+                // Extensiones permitidas
+                var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".gif", ".pdf", ".doc", ".docx", ".xls", ".xlsx" };
+                const long tamañoMaximo = 5 * 1024 * 1024; // 5 MB
+
                 // Guardar archivos
                 for (int i = 0; i < files.Count; i++)
                 {
                     var file = files[i];
                     var nombreOriginal = nombresOriginales.Count > i ? nombresOriginales[i] : file.FileName;
 
+                    // Validar tamaño
+                    if (file.Length > tamañoMaximo)
+                    {
+                        _logger.LogWarning("Archivo {FileName} excede el tamaño máximo permitido: {Size} bytes", nombreOriginal, file.Length);
+                        return Json(new
+                        {
+                            exito = false,
+                            mensaje = $"El archivo '{nombreOriginal}' excede el tamaño máximo permitido de 5 MB"
+                        });
+                    }
+
+                    // Validar extensión
+                    string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(extension) || !extensionesPermitidas.Contains(extension))
+                    {
+                        _logger.LogWarning("Archivo {FileName} tiene extensión no permitida: {Extension}", nombreOriginal, extension);
+                        return Json(new
+                        {
+                            exito = false,
+                            mensaje = $"El archivo '{nombreOriginal}' tiene una extensión no permitida. Solo se aceptan: {string.Join(", ", extensionesPermitidas)}"
+                        });
+                    }
+
+                    // Validar Content-Type
+                    var contentTypesPermitidos = new Dictionary<string, string[]>
+                    {
+                        { ".jpg", new[] { "image/jpeg" } },
+                        { ".jpeg", new[] { "image/jpeg" } },
+                        { ".png", new[] { "image/png" } },
+                        { ".gif", new[] { "image/gif" } },
+                        { ".pdf", new[] { "application/pdf" } },
+                        { ".doc", new[] { "application/msword" } },
+                        { ".docx", new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" } },
+                        { ".xls", new[] { "application/vnd.ms-excel" } },
+                        { ".xlsx", new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" } }
+                    };
+
+                    if (contentTypesPermitidos.TryGetValue(extension, out var tiposEsperados))
+                    {
+                        if (!tiposEsperados.Contains(file.ContentType))
+                        {
+                            _logger.LogWarning("Archivo {FileName} tiene Content-Type incorrecto: {ContentType} (esperado: {Expected})", 
+                                nombreOriginal, file.ContentType, string.Join(", ", tiposEsperados));
+                            return Json(new
+                            {
+                                exito = false,
+                                mensaje = $"El archivo '{nombreOriginal}' no es un archivo válido del tipo esperado"
+                            });
+                        }
+                    }
+
                     // Generar nombre aleatorio
-                    string extension = Path.GetExtension(file.FileName);
                     string nombreAleatorio = $"{Guid.NewGuid()}{extension}";
                     string rutaCompleta = Path.Combine(nasPath, nombreAleatorio);
 
                     try
                     {
-                        Console.WriteLine($"📤 Guardando: {nombreOriginal}");
+                        _logger.LogInformation("Guardando archivo: {FileName} -> {SavedName}", nombreOriginal, nombreAleatorio);
 
                         // Guardar archivo
                         using (var stream = new FileStream(rutaCompleta, FileMode.Create, FileAccess.Write))
@@ -581,11 +638,11 @@ namespace donativos.Controllers
                             nombre_guardado = nombreAleatorio
                         });
 
-                        Console.WriteLine($"✓ Guardado: {nombreAleatorio}");
+                        _logger.LogInformation("Archivo guardado exitosamente: {SavedName}", nombreAleatorio);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"❌ Error guardando {nombreOriginal}: {ex.GetType().Name}");
+                        _logger.LogError(ex, "Error al guardar archivo {FileName}", nombreOriginal);
                         return Json(new
                         {
                             exito = false,
@@ -595,7 +652,7 @@ namespace donativos.Controllers
                     }
                 }
 
-                Console.WriteLine($"✓ {archivosGuardados.Count} archivos guardados");
+                _logger.LogInformation("{Count} archivos guardados correctamente", archivosGuardados.Count);
                 return Json(new { exito = true, archivos = archivosGuardados });
             }
             catch (Exception ex)
@@ -1198,10 +1255,12 @@ namespace donativos.Controllers
             };
         }
 
-        public IActionResult CerrarSesion()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CerrarSesion()
         {
             HttpContext.Session.Clear();
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Acceso");
         }
         #endregion
