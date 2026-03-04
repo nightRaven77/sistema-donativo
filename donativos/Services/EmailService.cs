@@ -20,13 +20,15 @@ namespace donativos.Services
         private readonly IRazorLightEngine _razorEngine;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IWebHostEnvironment webHostEnvironment)
+        public EmailService(
+            IConfiguration configuration, 
+            ILogger<EmailService> logger, 
+            IWebHostEnvironment webHostEnvironment,
+            IRazorLightEngine razorEngine)
         {
             _configuration = configuration;
             _logger = logger;
-            _razorEngine = new RazorLightEngineBuilder()
-                .UseMemoryCachingProvider()
-                .Build();
+            _razorEngine = razorEngine;
             _webHostEnvironment = webHostEnvironment;
         }
 

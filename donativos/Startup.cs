@@ -6,9 +6,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using donativos.Services;
+using donativos.Middleware;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using RazorLight;
 
 namespace donativos
 {
@@ -27,6 +29,10 @@ namespace donativos
         {
             services.AddControllersWithViews();
 
+            // Obtener configuración de cookies
+            var cookieDomain = Configuration["AppSettings:CookieDomain"];
+            var cookiePath = Configuration["AppSettings:CookiePath"] ?? "/";
+
             // Autenticación por cookie
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -36,8 +42,16 @@ namespace donativos
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(180);
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    // En desarrollo, permitir HTTP; en producción, solo HTTPS
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                    options.Cookie.Path = cookiePath;
+
+                    // Configurar dominio solo si está especificado
+                    if (!string.IsNullOrWhiteSpace(cookieDomain))
+                    {
+                        options.Cookie.Domain = cookieDomain;
+                    }
                 });
 
             // Código para guardar variables de session
@@ -47,10 +61,26 @@ namespace donativos
                 options.IdleTimeout = TimeSpan.FromMinutes(180); // Tiempo de inactividad antes de que la sesión caduque
                 options.Cookie.HttpOnly = true; // Configuración del cookie
                 options.Cookie.IsEssential = true; // Necesario para la conformidad del GDPR
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Cookie.Path = cookiePath;
+
+                // Configurar dominio solo si está especificado
+                if (!string.IsNullOrWhiteSpace(cookieDomain))
+                {
+                    options.Cookie.Domain = cookieDomain;
+                }
             });
 
             // ====== AGREGAR SERVICIOS PERSONALIZADOS ======
+
+            // Registrar RazorLightEngine como Singleton (se reutiliza en toda la aplicación)
+            services.AddSingleton<IRazorLightEngine>(sp =>
+            {
+                return new RazorLightEngineBuilder()
+                    .UseMemoryCachingProvider()
+                    .Build();
+            });
+
             // Registrar el servicio de autenticación
             services.AddScoped<IAuthenticationService, AuthenticationService>();
 
@@ -64,6 +94,9 @@ namespace donativos
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, INetworkMappingService networkMappingService, ILogger<Startup> logger)
         {
+            // Middleware de manejo de excepciones (debe ir primero)
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -77,9 +110,9 @@ namespace donativos
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseSession(); // Session debe ir ANTES de Authentication/Authorization
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseSession(); // Esto DEBE estar antes de UseEndpoints
 
             // Mapear la unidad de red al iniciar
             _ = MapNetworkDriveOnStartup(networkMappingService, logger);

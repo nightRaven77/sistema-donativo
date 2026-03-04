@@ -37,7 +37,7 @@ namespace donativos.Services
             try
             {
                 var body = new { username = username.Trim(), password };
-                var response = RestSharpHelper.ExecutePost(_apiUrl, "", "auth/login", body);
+                var response = await RestSharpHelper.ExecutePostAsync(_apiUrl, "", "auth/login", body);
 
                 return ProcessAuthenticationResponse(response, username);
             }

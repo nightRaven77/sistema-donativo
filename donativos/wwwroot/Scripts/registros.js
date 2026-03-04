@@ -515,27 +515,30 @@ function initRegistrosForm() {
 
     // console.log('Formulario encontrado, vinculando eventos...');
 
-    // Remover eventos previos para evitar duplicados
-    $('#selectTipoDonador').off('change');
-    $('#textNombreDonador').off('input').off('focus').off('blur');
-    $('#btnAgregarArticulo').off('click');
-    $(document).off('click', '.btn-eliminar-articulo').off('click', '.donador-opcion');
-    $('#formRegistroDonativos').off('submit');
-    $('#btnCancelar').off('click');
+    // Remover TODOS los eventos previos para evitar duplicados
+    // Usar namespace para remover eventos delegados específicos
+    $('#selectTipoDonador').off('change.registros');
+    $('#textNombreDonador').off('input.registros focus.registros blur.registros');
+    $('#btnAgregarArticulo').off('click.registros');
+    $(document).off('click.registros', '.btn-eliminar-articulo');
+    $(document).off('click.registros', '.donador-opcion');
+    $('#formRegistroDonativos').off('submit.registros');
+    $('#btnCancelar').off('click.registros');
+    $('#fileAdjuntos').off('change.registros');
 
     // Event: Cambio de tipo de donador
-    $('#selectTipoDonador').on('change', function () {
+    $('#selectTipoDonador').on('change.registros', function () {
         toggleSeccionContacto($(this).val());
     });
 
     // Event: Búsqueda de donadores
-    $('#textNombreDonador').on('input', function () {
+    $('#textNombreDonador').on('input.registros', function () {
         buscarDonadores($(this).val());
-    }).on('focus', function () {
+    }).on('focus.registros', function () {
         if ($(this).val().length > 0) {
             buscarDonadores($(this).val());
         }
-    }).on('blur', function () {
+    }).on('blur.registros', function () {
         // Ocultar la lista después de 200ms cuando pierda el foco
         setTimeout(function () {
             $('#listaDonadores').addClass('d-none');
@@ -543,28 +546,28 @@ function initRegistrosForm() {
     });
 
     // Event: Agregar artículo
-    $('#btnAgregarArticulo').on('click', function (e) {
+    $('#btnAgregarArticulo').on('click.registros', function (e) {
         e.preventDefault();
         numeroArticulos++;
         agregarArticulo(numeroArticulos);
     });
 
-    // Event: Eliminar artículo
-    $(document).on('click', '.btn-eliminar-articulo', function (e) {
+    // Event: Eliminar artículo (delegado)
+    $(document).on('click.registros', '.btn-eliminar-articulo', function (e) {
         e.preventDefault();
         $(this).closest('.articulo-item').remove();
     });
 
-    // Event: Seleccionar donador de la lista
-    $(document).on('click', '.donador-opcion', function (e) {
+    // Event: Seleccionar donador de la lista (delegado)
+    $(document).on('click.registros', '.donador-opcion', function (e) {
         e.preventDefault();
         seleccionarDonador($(this));
     });
 
     // Event: Submit del formulario
-    $('#formRegistroDonativos').on('submit', function (e) {
+    $('#formRegistroDonativos').on('submit.registros', function (e) {
         e.preventDefault();
-        
+
         // Verificar modo edición
         if (modoEdicion && idDonativoEdicion) {
             actualizarDonativo(idDonativoEdicion);
@@ -574,7 +577,7 @@ function initRegistrosForm() {
     });
 
     // Event: Botón Cancelar
-    $('#btnCancelar').on('click', function (e) {
+    $('#btnCancelar').on('click.registros', function (e) {
         e.preventDefault();
         const form = document.getElementById('formRegistroDonativos');
         form.reset();
@@ -602,15 +605,15 @@ function initRegistrosForm() {
     // Resetear contador de artículos
     numeroArticulos = 0;
     donadorSeleccionado = null;
-    
+
     // Cargar almacenes
     cargarAlmacenes();
-    
+
     // Event: Manejar archivos adjuntos
-    $('#fileAdjuntos').off('change').on('change', function (e) {
+    $('#fileAdjuntos').on('change.registros', function (e) {
         manejarArchivosAdjuntos(e);
     });
-    
+
     // console.log('Formulario inicializado correctamente');
 }
 
@@ -1804,6 +1807,64 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
 
     // Si no hay archivos, proceder directamente con el donativo
     guardarDonativoCompleto(todosLosArticulos, donadorId, []);
+}
+
+/**
+ * Sube los archivos adjuntos al servidor antes de guardar el donativo
+ */
+function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
+    const formData = new FormData();
+
+    // Agregar cada archivo al FormData
+    archivosAdjuntos.forEach((archivoObj) => {
+        formData.append('archivos', archivoObj.file);
+        formData.append('nombres_originales', archivoObj.nombre);
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: 'GuardarArchivos',
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function () {
+            toastr.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
+        },
+        success: function (response) {
+            console.log('Respuesta de subida de archivos:', response);
+
+            // Procesar respuesta para obtener URLs
+            let archivosGuardados = [];
+
+            try {
+                if (response.exito && response.archivos && Array.isArray(response.archivos)) {
+                    archivosGuardados = response.archivos;
+                } else if (Array.isArray(response)) {
+                    archivosGuardados = response;
+                } else if (response.archivos && Array.isArray(response.archivos)) {
+                    archivosGuardados = response.archivos;
+                } else if (response.data && Array.isArray(response.data)) {
+                    archivosGuardados = response.data;
+                }
+
+                console.log('Archivos guardados:', archivosGuardados);
+
+                // Combinar todos los artículos
+                const todosLosArticulos = [...articulosInsertados, ...articulosExistentes];
+
+                // Proceder a guardar donativo con archivos
+                guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados);
+            } catch (e) {
+                console.error('Error al procesar respuesta de archivos:', e);
+                toastr.error('Error al procesar los archivos subidos', 'Error');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al subir archivos:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al subir los archivos. Intenta de nuevo.', 'Error');
+        }
+    });
 }
 
 

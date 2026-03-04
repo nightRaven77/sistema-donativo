@@ -1,41 +1,39 @@
 using RestSharp;
+using System;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace donativos.Extensions
 {
     /// <summary>
-    /// Helper para facilitar la migración de RestSharp v106 a v107+
-    /// Proporciona métodos sincronos que envuelven las llamadas asincronivas
+    /// Helper para ejecutar llamadas HTTP con RestSharp de forma eficiente.
+    /// Usa un RestClient singleton para evitar socket exhaustion.
     /// </summary>
     public static class RestSharpHelper
     {
+        private static readonly Lazy<RestClient> _client = new Lazy<RestClient>(() => new RestClient());
+
         /// <summary>
-        /// Ejecuta una solicitud GET
+        /// Ejecuta una solicitud GET de forma asíncrona
         /// </summary>
-        public static RestResponse ExecuteGet(string baseUrl, string token, string resourcePath)
+        public static async Task<RestResponse> ExecuteGetAsync(string baseUrl, string token, string resourcePath)
         {
-            var options = new RestClientOptions(baseUrl + resourcePath);
-            var client = new RestClient(options);
-            var request = new RestRequest();
+            var request = new RestRequest(baseUrl + resourcePath, Method.Get);
 
             if (!string.IsNullOrEmpty(token))
             {
                 request.AddHeader("Authorization", "Bearer " + token);
             }
 
-            // GET es el método por defecto
-            return client.ExecuteAsync(request).Result;
+            return await _client.Value.ExecuteAsync(request);
         }
 
         /// <summary>
-        /// Ejecuta una solicitud POST con body JSON
+        /// Ejecuta una solicitud POST con body JSON de forma asíncrona
         /// </summary>
-        public static RestResponse ExecutePost(string baseUrl, string token, string resourcePath, object body)
+        public static async Task<RestResponse> ExecutePostAsync(string baseUrl, string token, string resourcePath, object body)
         {
-            var options = new RestClientOptions(baseUrl + resourcePath);
-            var client = new RestClient(options);
-            var request = new RestRequest();
+            var request = new RestRequest(baseUrl + resourcePath, Method.Post);
 
             if (body != null)
             {
@@ -47,18 +45,15 @@ namespace donativos.Extensions
                 request.AddHeader("Authorization", "Bearer " + token);
             }
 
-            // Especificar el método HTTP
-            return client.ExecuteAsync(request, Method.Post).Result;
+            return await _client.Value.ExecuteAsync(request);
         }
 
         /// <summary>
-        /// Ejecuta una solicitud PUT con body JSON
+        /// Ejecuta una solicitud PUT con body JSON de forma asíncrona
         /// </summary>
-        public static RestResponse ExecutePut(string baseUrl, string token, string resourcePath, object body)
+        public static async Task<RestResponse> ExecutePutAsync(string baseUrl, string token, string resourcePath, object body)
         {
-            var options = new RestClientOptions(baseUrl + resourcePath);
-            var client = new RestClient(options);
-            var request = new RestRequest();
+            var request = new RestRequest(baseUrl + resourcePath, Method.Put);
 
             if (body != null)
             {
@@ -70,24 +65,22 @@ namespace donativos.Extensions
                 request.AddHeader("Authorization", "Bearer " + token);
             }
 
-            return client.ExecuteAsync(request, Method.Put).Result;
+            return await _client.Value.ExecuteAsync(request);
         }
 
         /// <summary>
-        /// Ejecuta una solicitud DELETE
+        /// Ejecuta una solicitud DELETE de forma asíncrona
         /// </summary>
-        public static RestResponse ExecuteDelete(string baseUrl, string token, string resourcePath)
+        public static async Task<RestResponse> ExecuteDeleteAsync(string baseUrl, string token, string resourcePath)
         {
-            var options = new RestClientOptions(baseUrl + resourcePath);
-            var client = new RestClient(options);
-            var request = new RestRequest();
+            var request = new RestRequest(baseUrl + resourcePath, Method.Delete);
 
             if (!string.IsNullOrEmpty(token))
             {
                 request.AddHeader("Authorization", "Bearer " + token);
             }
 
-            return client.ExecuteAsync(request, Method.Delete).Result;
+            return await _client.Value.ExecuteAsync(request);
         }
     }
 }
