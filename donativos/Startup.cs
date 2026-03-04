@@ -27,7 +27,15 @@ namespace donativos
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            // ? Configurar serialización JSON global con camelCase
+            services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    // Usar camelCase para todas las propiedades JSON
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    // Permitir lectura de números como strings
+                    options.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString;
+                });
 
             // Obtener configuración de cookies
             var cookieDomain = Configuration["AppSettings:CookieDomain"];

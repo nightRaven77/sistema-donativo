@@ -164,7 +164,7 @@ const AjaxService = (function() {
         insertar(datos) {
             return _ejecutarAjax({
                 type: 'POST',
-                url: 'insertaContactoDonaodor',
+                url: 'insertaContactoDonador',
                 data: { datos: JSON.stringify(datos) }
             });
         }
