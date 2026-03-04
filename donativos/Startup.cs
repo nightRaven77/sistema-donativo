@@ -26,7 +26,35 @@ namespace donativos
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+<<<<<<< Updated upstream
             services.AddMvc();
+=======
+            services.AddControllersWithViews();
+
+            // Obtener configuración de cookies
+            var cookieDomain = Configuration["AppSettings:CookieDomain"];
+            var cookiePath = Configuration["AppSettings:CookiePath"] ?? "/";
+
+            // Autenticación por cookie
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Acceso/Login";
+                    options.LogoutPath = "/Registros/CerrarSesion";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(180);
+                    options.SlidingExpiration = true;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.Cookie.Path = cookiePath;
+
+                    // Configurar dominio solo si está especificado
+                    if (!string.IsNullOrWhiteSpace(cookieDomain))
+                    {
+                        options.Cookie.Domain = cookieDomain;
+                    }
+                });
+>>>>>>> Stashed changes
 
             // Código para guardar variables de session
             services.AddDistributedMemoryCache(); // Usar caché en memoria
@@ -35,6 +63,17 @@ namespace donativos
                 options.IdleTimeout = TimeSpan.FromMinutes(180); // Tiempo de inactividad antes de que la sesión caduque
                 options.Cookie.HttpOnly = true; // Configuración del cookie
                 options.Cookie.IsEssential = true; // Necesario para la conformidad del GDPR
+<<<<<<< Updated upstream
+=======
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.Path = cookiePath;
+
+                // Configurar dominio solo si está especificado
+                if (!string.IsNullOrWhiteSpace(cookieDomain))
+                {
+                    options.Cookie.Domain = cookieDomain;
+                }
+>>>>>>> Stashed changes
             });
 
             services.AddControllersWithViews(); // O cualquier otro servicio que necesites
