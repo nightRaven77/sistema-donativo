@@ -9,6 +9,28 @@ let archivosExistentes = [];
 let modoEdicion = false; // Nueva variable para controlar modo edición
 let idDonativoEdicion = null; // Nueva variable para guardar ID del donativo en edición
 
+// Variable global para categorías (se cargan dinámicamente)
+let categorias = [];
+
+// Cache de selectores jQuery para mejorar rendimiento
+let SELECTORS = {};
+
+// Configuración global
+const CONFIG = {
+    TIMEOUTS: {
+        HIDE_LIST: 200,
+        AUTO_HIDE_LIST: 5000,
+        REFRESH_DELAY: 500
+    },
+    FILES: {
+        MAX_SIZE: 5 * 1024 * 1024, // 5MB
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx']
+    },
+    AJAX: {
+        TIMEOUT: 10000
+    }
+};
+
 // Estados disponibles para artículos
 const ESTADOS_ARTICULO = [
     { value: 'nuevo', label: 'Nuevo' },
@@ -24,31 +46,41 @@ const TIPOS_DONATIVO = [
     { value: 'efectivo', label: 'Efectivo' }
 ];
 
-// Categorías disponibles
-const CATEGORIAS = [
-    { id: 1, nombre: 'AGUA' },
-    { id: 2, nombre: 'ALIMENTOS ENLATADOS' },
-    { id: 3, nombre: 'ARTÍCULOS DE HIGIENE PERSONAL Y SANEAMIENTO' },
-    { id: 4, nombre: 'ARTÍCULOS DE LIMPIEZA Y DESINFECCIÓN' },
-    { id: 5, nombre: 'ARTÍCULOS DESECHABLES EN GENERAL' },
-    { id: 6, nombre: 'ARTÍCULOS PARA BEBÉ' },
-    { id: 7, nombre: 'ARTÍCULOS PARA COCINA' },
-    { id: 8, nombre: 'ARTÍCULOS Y ALIMENTO PARA MASCOTAS' },
-    { id: 9, nombre: 'COLCHONETAS, COLCHONES, COBIJAS, ROPA DE CAMA EN GENERAL' },
-    { id: 10, nombre: 'DESPENSA ALIMENTARIA' },
-    { id: 11, nombre: 'FRUTAS Y VERDURAS FRESCAS' },
-    { id: 12, nombre: 'INSUMOS MÉDICOS' },
-    { id: 13, nombre: 'MAQUINARIA, HERRAMIENTAS Y EQUIPO DE SEGURIDAD' },
-    { id: 14, nombre: 'MEDICAMENTO' },
-    { id: 15, nombre: 'MEDICAMENTOS E INSUMO MEDICO' },
-    { id: 16, nombre: 'OTROS' },
-    { id: 17, nombre: 'PRODUCTO TERMINADO EN KIT' },
-    { id: 18, nombre: 'PRODUCTOS MISCELÁNEOS Y OTROS ARTÍCULOS' },
-    { id: 19, nombre: 'ROPA, CALZAZO Y TEXTILES' },
-    { id: 20, nombre: 'SEMILLAS, GRANOS Y ESPECIAS' },
-    { id: 21, nombre: 'SUEROS, HIDRATANTES Y ENERGIZANTES' },
-    { id: 22, nombre: 'ALIMENTOS PREPARADOS' }
-];
+/**
+ * Parsea respuestas del API de forma segura
+ * @param {*} response - Respuesta del servidor
+ * @param {string[]} possibleKeys - Claves posibles donde está el array
+ * @returns {Array} Array parseado o vacío
+ */
+function parseApiResponse(response, possibleKeys = ['data', 'items']) {
+    try {
+        // Si ya es array
+        if (Array.isArray(response)) {
+            return response;
+        }
+
+        // Si es string JSON
+        if (typeof response === 'string') {
+            const parsed = JSON.parse(response);
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+            response = parsed;
+        }
+
+        // Buscar en claves posibles
+        for (const key of possibleKeys) {
+            if (response && response[key] && Array.isArray(response[key])) {
+                return response[key];
+            }
+        }
+
+        return [];
+    } catch (e) {
+        console.error('Error al parsear respuesta API:', e);
+        return [];
+    }
+}
 
 // ==================== DATATABLES ====================
 
@@ -91,8 +123,6 @@ function inicializarDataTables() {
  * Carga todos los donativos del servidor y actualiza DataTables
  */
 function cargarDonativos() {
-    // console.log('=== Iniciando cargarDonativos ===');
-
     const tabla = document.getElementById('tablaDonativos');
 
     if (!tabla) {
@@ -100,51 +130,31 @@ function cargarDonativos() {
         return;
     }
 
-    $.ajax({
-        type: 'GET',
-        url: 'ObtenerDonativos',
-        dataType: 'json',
-        timeout: 10000,
-        beforeSend: function () {
-            if (dataTable) {
-                dataTable.clear().draw();
-            }
-            toastr.info('Cargando donativos...', 'Procesando');
-        },
-        success: function (response) {
-            // console.log('=== AJAX Success ===');
-            // console.log('Donativos recibidos:', response);
+    if (dataTable) {
+        dataTable.clear().draw();
+    }
 
-            let donativosArray = [];
+    toastr.info('Cargando donativos...', 'Procesando');
 
-            // Extraer array de la respuesta
-            if (Array.isArray(response)) {
-                donativosArray = response;
-            } else if (response && response.data && Array.isArray(response.data)) {
-                donativosArray = response.data;
-            } else if (response && response.donativos && Array.isArray(response.donativos)) {
-                donativosArray = response.donativos;
-            }
+    AjaxService.donativos.obtenerTodos()
+        .done(function(response) {
+            const donativosArray = parseApiResponse(response, ['data', 'donativos', 'items']);
 
             if (donativosArray.length > 0) {
-                // console.log(`✓ Se cargaron ${donativosArray.length} donativos`);
                 llenarTablaConDataTables(donativosArray);
                 toastr.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
             } else {
-                // console.log('⚠ No hay donativos');
                 if (dataTable) {
                     dataTable.clear().draw();
                 }
                 toastr.info('No hay donativos registrados', 'Información');
             }
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('=== AJAX Error ===');
             console.error('Error:', error);
-
             toastr.error('Error al cargar los donativos', 'Error');
-        }
-    });
+        });
 }
 
 /**
@@ -252,10 +262,10 @@ function limpiarFormulario() {
     // Desplazar al inicio del formulario
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Refrescar tabla de donativos después de un pequeño retraso
+    // Refrescar tabla de donativos después de CONFIG.TIMEOUTS.REFRESH_DELAY ms
     setTimeout(() => {
         cargarDonativos();
-    }, 500);
+    }, CONFIG.TIMEOUTS.REFRESH_DELAY);
 
     console.log('✓ Formulario limpiado correctamente');
 }
@@ -324,36 +334,21 @@ document.addEventListener('DOMContentLoaded', function () {
  * Carga los almacenes disponibles desde el servidor
  */
 function cargarAlmacenes() {
-    $.ajax({
-        type: 'GET',
-        url: 'ObtenerAlmacenes',
-        dataType: 'json',
-        success: function (response) {
-            // console.log('Almacenes recibidos:', response);
-            
-            // Procesar la respuesta para extraer el array
-            let almacenesArray = [];
-            
-            if (Array.isArray(JSON.parse(response))) {
-                almacenesArray = JSON.parse(response);
-            } else if (response && response.data && Array.isArray(response.data)) {
-                almacenesArray = response.data;
-            } else if (response && response.almacenes && Array.isArray(response.almacenes)) {
-                almacenesArray = response.almacenes;
-            }
-            
+    AjaxService.almacenes.obtenerTodos()
+        .done(function(response) {
+            const almacenesArray = parseApiResponse(response, ['data', 'almacenes', 'items']);
+
             // Guardar en variable global
             almacenes = almacenesArray;
-            
+
             // Llenar el select
             llenarSelectAlmacenes(almacenesArray);
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('Error al cargar almacenes:', error);
             console.error('Respuesta:', xhr.responseText);
             toastr.error('Error al cargar los almacenes', 'Error');
-        }
-    });
+        });
 }
 
 /**
@@ -403,59 +398,105 @@ function llenarSelectAlmacenes(almacenesArray) {
 // ==================== FIN ALMACENES ====================
 
 /**
+ * Carga las categorías disponibles desde el servidor
+ */
+function cargarCategorias() {
+    AjaxService.categorias.obtenerTodas()
+        .done(function(response) {
+            const categoriasArray = parseApiResponse(response, ['data', 'categorias', 'items']);
+
+            // Guardar en variable global
+            categorias = categoriasArray;
+
+            // console.log(`✓ ${categorias.length} categorías cargadas correctamente`);
+        })
+        .fail(function(xhr, status, error) {
+            console.error('Error al cargar categorías:', error);
+            console.error('Respuesta:', xhr.responseText);
+            toastr.error('Error al cargar las categorías', 'Error');
+
+            // En caso de error, dejar el array vacío
+            categorias = [];
+        });
+}
+
+// ==================== FIN CATEGORÍAS ====================
+
+/**
  * Maneja los archivos adjuntos seleccionados
  * Valida tipo y tamaño de archivos
  */
 function manejarArchivosAdjuntos(e) {
     const files = e.target.files;
-    const maxFileSize = 5 * 1024 * 1024; // 5 MB por archivo
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
-    
-    archivosAdjuntos = [];
-    
+
     if (!files || files.length === 0) {
-        // console.log('No se seleccionaron archivos');
         return;
     }
-    
-    // console.log(`Procesando ${files.length} archivo(s)`);
-    
-    // Validar cada archivo
+
+    archivosAdjuntos = [];
+    const archivosValidos = [];
+    const errores = [];
+
+    // Validar todos los archivos
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExtension = file.name.split('.').pop().toLowerCase();
-        
-        // Validar extensión
-        if (!allowedExtensions.includes(fileExtension)) {
-            toastr.warning(`Archivo "${file.name}" no permitido. Formato: ${fileExtension}`, 'Tipo de archivo no permitido');
-            continue;
+        const validacion = validarArchivo(file);
+
+        if (validacion.valido) {
+            archivosValidos.push({
+                file: file,
+                nombre: file.name,
+                tamaño: (file.size / 1024).toFixed(2) + ' KB',
+                tipo: file.type
+            });
+        } else {
+            errores.push(validacion.error);
         }
-        
-        // Validar tamaño
-        if (file.size > maxFileSize) {
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            toastr.warning(`Archivo "${file.name}" excede el límite de 5MB (${sizeMB}MB)`, 'Archivo demasiado grande');
-            continue;
-        }
-        
-        // Agregar archivo válido a la lista
-        archivosAdjuntos.push({
-            file: file,
-            nombre: file.name,
-            tamaño: (file.size / 1024).toFixed(2) + ' KB',
-            tipo: file.type
-        });
     }
-    
+
+    // Mostrar errores agrupados
+    if (errores.length > 0) {
+        errores.forEach(error => toastr.warning(error, 'Validación'));
+    }
+
+    // Guardar archivos válidos
+    archivosAdjuntos = archivosValidos;
+
     if (archivosAdjuntos.length > 0) {
-       // console.log(`✓ ${archivosAdjuntos.length} archivo(s) válido(s) seleccionado(s)`);
         mostrarResumenArchivos();
         toastr.success(`${archivosAdjuntos.length} archivo(s) seleccionado(s) correctamente`, 'Éxito');
     } else {
         console.warn('⚠ No hay archivos válidos para procesar');
         toastr.error('No hay archivos válidos para adjuntar', 'Error');
-        archivosAdjuntos = [];
     }
+}
+
+/**
+ * Valida un archivo individual
+ * @param {File} file - Archivo a validar
+ * @returns {Object} Resultado de validación
+ */
+function validarArchivo(file) {
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+    // Validar extensión
+    if (!CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension)) {
+        return {
+            valido: false,
+            error: `"${file.name}" - Tipo no permitido: ${fileExtension}`
+        };
+    }
+
+    // Validar tamaño
+    if (file.size > CONFIG.FILES.MAX_SIZE) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        return {
+            valido: false,
+            error: `"${file.name}" excede 5MB (${sizeMB}MB)`
+        };
+    }
+
+    return { valido: true };
 }
 
 /**
@@ -515,38 +556,77 @@ function initRegistrosForm() {
 
     // console.log('Formulario encontrado, vinculando eventos...');
 
+    // ✅ Cachear selectores jQuery para mejorar rendimiento
+    SELECTORS = {
+        form: $('#formRegistroDonativos'),
+        selectTipoDonador: $('#selectTipoDonador'),
+        textNombreDonador: $('#textNombreDonador'),
+        idDonador: $('#id_donador'),
+        textRFC: $('#textRFC'),
+        textTelefonoDonador: $('#textTelefonoDonador'),
+        textEmailDonador: $('#textEmailDonador'),
+        textDireccionDonador: $('#textDireccionDonador'),
+        textColoniaDonador: $('#textColoniaDonador'),
+        textCiudadDonador: $('#textCiudadDonador'),
+        textEstadoDonador: $('#textEstadoDonador'),
+        textCodigoPostalDonador: $('#textCodigoPostalDonador'),
+        textNotasDonador: $('#textNotasDonador'),
+        listaDonadores: $('#listaDonadores'),
+        btnAgregarArticulo: $('#btnAgregarArticulo'),
+        contenedorArticulos: $('#contenedorArticulos'),
+        btnCancelar: $('#btnCancelar'),
+        fileAdjuntos: $('#fileAdjuntos'),
+        dateRecepcion: $('#dateRecepcion'),
+        centroIDUsuario: $('#centroIDUsuario'),
+        seccionContacto: $('#seccionContacto'),
+        textNombreContacto: $('#textNombreContacto'),
+        textPuestoContacto: $('#textPuestoContacto'),
+        textTelefonoContacto: $('#textTelefonoContacto'),
+        textExtensionContacto: $('#textExtensionContacto'),
+        textCelularContacto: $('#textCelularContacto'),
+        textEmailContacto: $('#textEmailContacto'),
+        textHorarioContacto: $('#textHorarioContacto'),
+        selectMedioPreferido: $('#selectMedioPreferido'),
+        checkEsPrincipal: $('#checkEsPrincipal'),
+        checkActivoContacto: $('#checkActivoContacto'),
+        textNotasContacto: $('#textNotasContacto'),
+        selectAlmacenDestino: $('#selectAlmacenDestino'),
+        selectTipoDonativo: $('#selectTipoDonativo'),
+        textObservacionesDonativo: $('#textObservacionesDonativo')
+    };
+
     // Remover TODOS los eventos previos para evitar duplicados
     // Usar namespace para remover eventos delegados específicos
-    $('#selectTipoDonador').off('change.registros');
-    $('#textNombreDonador').off('input.registros focus.registros blur.registros');
-    $('#btnAgregarArticulo').off('click.registros');
+    SELECTORS.selectTipoDonador.off('change.registros');
+    SELECTORS.textNombreDonador.off('input.registros focus.registros blur.registros');
+    SELECTORS.btnAgregarArticulo.off('click.registros');
     $(document).off('click.registros', '.btn-eliminar-articulo');
     $(document).off('click.registros', '.donador-opcion');
-    $('#formRegistroDonativos').off('submit.registros');
-    $('#btnCancelar').off('click.registros');
-    $('#fileAdjuntos').off('change.registros');
+    SELECTORS.form.off('submit.registros');
+    SELECTORS.btnCancelar.off('click.registros');
+    SELECTORS.fileAdjuntos.off('change.registros');
 
     // Event: Cambio de tipo de donador
-    $('#selectTipoDonador').on('change.registros', function () {
+    SELECTORS.selectTipoDonador.on('change.registros', function () {
         toggleSeccionContacto($(this).val());
     });
 
     // Event: Búsqueda de donadores
-    $('#textNombreDonador').on('input.registros', function () {
+    SELECTORS.textNombreDonador.on('input.registros', function () {
         buscarDonadores($(this).val());
     }).on('focus.registros', function () {
         if ($(this).val().length > 0) {
             buscarDonadores($(this).val());
         }
     }).on('blur.registros', function () {
-        // Ocultar la lista después de 200ms cuando pierda el foco
+        // Ocultar la lista después de CONFIG.TIMEOUTS.HIDE_LIST ms cuando pierda el foco
         setTimeout(function () {
-            $('#listaDonadores').addClass('d-none');
-        }, 200);
+            SELECTORS.listaDonadores.addClass('d-none');
+        }, CONFIG.TIMEOUTS.HIDE_LIST);
     });
 
     // Event: Agregar artículo
-    $('#btnAgregarArticulo').on('click.registros', function (e) {
+    SELECTORS.btnAgregarArticulo.on('click.registros', function (e) {
         e.preventDefault();
         numeroArticulos++;
         agregarArticulo(numeroArticulos);
@@ -565,7 +645,7 @@ function initRegistrosForm() {
     });
 
     // Event: Submit del formulario
-    $('#formRegistroDonativos').on('submit.registros', function (e) {
+    SELECTORS.form.on('submit.registros', function (e) {
         e.preventDefault();
 
         // Verificar modo edición
@@ -577,28 +657,17 @@ function initRegistrosForm() {
     });
 
     // Event: Botón Cancelar
-    $('#btnCancelar').on('click.registros', function (e) {
+    SELECTORS.btnCancelar.on('click.registros', function (e) {
         e.preventDefault();
-        const form = document.getElementById('formRegistroDonativos');
-        form.reset();
-        document.getElementById('id_donador').value = '';
-        document.getElementById('seccionContacto').classList.add('hidden');
-        document.getElementById('grupoImporte').style.display = 'none';
-        document.getElementById('contenedorArticulos').innerHTML = '';
-        form.classList.remove('was-validated');
-        $('#textNombreDonador').css('background-color', '');
-        numeroArticulos = 0;
-        donadorSeleccionado = null;
-        $('#listaDonadores').addClass('d-none');
-        toastr.info('Formulario limpiado', 'Operación realizada');
+        limpiarFormularioCancelacion();
     });
 
     // Establecer fecha de recepción a la fecha de hoy
-    $('#dateRecepcion').val(obtenerFechaHoy());
+    SELECTORS.dateRecepcion.val(obtenerFechaHoy());
 
     // Asignar Centro ID del usuario desde la sesión
     if (typeof usuarioSession !== 'undefined' && usuarioSession.centroID) {
-        $('#centroIDUsuario').val(usuarioSession.centroID);
+        SELECTORS.centroIDUsuario.val(usuarioSession.centroID);
         // console.log('✓ Centro ID asignado desde sesión:', usuarioSession.centroID);
     }
 
@@ -609,8 +678,11 @@ function initRegistrosForm() {
     // Cargar almacenes
     cargarAlmacenes();
 
+    // Cargar categorías
+    cargarCategorias();
+
     // Event: Manejar archivos adjuntos
-    $('#fileAdjuntos').on('change.registros', function (e) {
+    SELECTORS.fileAdjuntos.on('change.registros', function (e) {
         manejarArchivosAdjuntos(e);
     });
 
@@ -618,10 +690,37 @@ function initRegistrosForm() {
 }
 
 /**
+ * Limpia el formulario cuando se cancela (botón Cancelar)
+ */
+function limpiarFormularioCancelacion() {
+    const form = document.getElementById('formRegistroDonativos');
+    form.reset();
+
+    SELECTORS.idDonador.val('');
+    SELECTORS.seccionContacto.addClass('hidden');
+    SELECTORS.contenedorArticulos.empty();
+
+    form.classList.remove('was-validated');
+    SELECTORS.textNombreDonador.css('background-color', '');
+    SELECTORS.listaDonadores.addClass('d-none');
+
+    numeroArticulos = 0;
+    donadorSeleccionado = null;
+
+    // Ocultar grupo importe si existe
+    const grupoImporte = document.getElementById('grupoImporte');
+    if (grupoImporte) {
+        grupoImporte.style.display = 'none';
+    }
+
+    toastr.info('Formulario limpiado', 'Operación realizada');
+}
+
+/**
  * Busca donadores por nombre
  */
 function buscarDonadores(termino) {
-    const listaDonadores = $('#listaDonadores');
+    const listaDonadores = SELECTORS.listaDonadores;
 
     // Limpiar el timer anterior si existe
     if (timerOcultarListaDonadores) {
@@ -634,20 +733,15 @@ function buscarDonadores(termino) {
         return;
     }
 
-    $.ajax({
-        type: 'GET',
-        url: 'ObtenerDonadores',
-        data: { search: termino },
-        dataType: 'json',
-        success: function (donadores) {
-           // console.log('Donadores recibidos:', donadores);
+    AjaxService.donadores.buscar(termino)
+        .done(function(donadores) {
+            // console.log('Donadores recibidos:', donadores);
             mostrarResultadosDonadores(donadores, termino);
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('Error al buscar donadores:', error);
             console.error('Respuesta:', xhr.responseText);
 
-            const listaDonadores = $('#listaDonadores');
             listaDonadores.html(`
                 <div class="p-3 text-center text-stone-500">
                     <i class="fas fa-exclamation-circle"></i>
@@ -656,8 +750,7 @@ function buscarDonadores(termino) {
                 </div>
             `);
             listaDonadores.removeClass('d-none');
-        }
-    });
+        });
 }
 
 /**
@@ -688,11 +781,11 @@ function mostrarResultadosDonadores(donadores, termino) {
         `);
         listaDonadores.removeClass('d-none');
 
-        // Ocultar automáticamente después de 5 segundos
+        // Ocultar automáticamente después de CONFIG.TIMEOUTS.AUTO_HIDE_LIST ms
         timerOcultarListaDonadores = setTimeout(function () {
             listaDonadores.addClass('d-none');
             timerOcultarListaDonadores = null;
-        }, 5000);
+        }, CONFIG.TIMEOUTS.AUTO_HIDE_LIST);
         return;
     }
 
@@ -740,18 +833,13 @@ function buscarArticulosPorNumero(termino, numeroArticulo) {
         return;
     }
 
-    $.ajax({
-        type: 'GET',
-        url: 'ObtenerArticulos',
-        data: { search: termino },
-        dataType: 'json',
-        success: function (articulos) {
+    AjaxService.articulos.buscar(termino)
+        .done(function(articulos) {
             // console.log('Artículos recibidos:', articulos);
             mostrarResultadosArticulosPorNumero(articulos, numeroArticulo);
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('Error al buscar artículos:', error);
-            const listaArticulos = $(`.lista-articulos-${numeroArticulo}`);
             listaArticulos.html(`    
                 <div class="p-2 text-center text-stone-500" style="font-size: 0.875rem;">
                     <i class="fas fa-exclamation-circle"></i>
@@ -760,8 +848,7 @@ function buscarArticulosPorNumero(termino, numeroArticulo) {
                 </div>
             `);
             listaArticulos.removeClass('d-none');
-        }
-    });
+        });
 }
 
 /**
@@ -839,32 +926,32 @@ function seleccionarDonador($element) {
         // console.log('Donador seleccionado con ID:', donador.id_donador);
 
         // Guardar el ID en el input hidden
-        $('#id_donador').val(donador.id_donador);
+        SELECTORS.idDonador.val(donador.id_donador);
 
         // Llenar campos del formulario directamente
-        $('#selectTipoDonador').val(donador.tipo || '');
-        $('#textNombreDonador').val(donador.nombre || '');
-        $('#textRFC').val(donador.rfc || '');
-        $('#textTelefonoDonador').val(donador.telefono || '');
-        $('#textEmailDonador').val(donador.email || '');
-        $('#textDireccionDonador').val(donador.direccion || '');
-        $('#textColoniaDonador').val(donador.colonia || '');
-        $('#textCiudadDonador').val(donador.ciudad || '');
-        $('#textEstadoDonador').val(donador.estado || '');
-        $('#textCodigoPostalDonador').val(donador.codigo_postal || '');
-        $('#textNotasDonador').val(donador.notas || '');
+        SELECTORS.selectTipoDonador.val(donador.tipo || '');
+        SELECTORS.textNombreDonador.val(donador.nombre || '');
+        SELECTORS.textRFC.val(donador.rfc || '');
+        SELECTORS.textTelefonoDonador.val(donador.telefono || '');
+        SELECTORS.textEmailDonador.val(donador.email || '');
+        SELECTORS.textDireccionDonador.val(donador.direccion || '');
+        SELECTORS.textColoniaDonador.val(donador.colonia || '');
+        SELECTORS.textCiudadDonador.val(donador.ciudad || '');
+        SELECTORS.textEstadoDonador.val(donador.estado || '');
+        SELECTORS.textCodigoPostalDonador.val(donador.codigo_postal || '');
+        SELECTORS.textNotasDonador.val(donador.notas || '');
 
         // Ocultar lista de donadores
-        $('#listaDonadores').addClass('d-none');
+        SELECTORS.listaDonadores.addClass('d-none');
 
         // Mostrar sección de contacto si es organización o empresa
         toggleSeccionContacto(donador.tipo || '', donador.id_donador || '');
 
         // Permitir cambiar de opción cuando el campo se vacíe
-        $('#textNombreDonador').off('input').on('input', function() {
+        SELECTORS.textNombreDonador.off('input').on('input', function() {
             if ($(this).val().trim() === '') {
                 $(this).css('background-color', '');
-                $('#id_donador').val('');
+                SELECTORS.idDonador.val('');
                 donadorSeleccionado = null;
             }
         });
@@ -884,22 +971,17 @@ function buscarContactoDonador(idDonador) {
         return;
     }
 
-    $.ajax({
-        type: 'GET',
-        url: 'ObtenerContactos',
-        data: { id_donador: idDonador },
-        dataType: 'json',
-        success: function (contactos) {
+    AjaxService.contactos.obtenerPorDonador(idDonador)
+        .done(function(contactos) {
             // console.log('Contactos recibidos:', contactos);
             mostrarResultadosContactos(contactos, idDonador);
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('Error al buscar donadores:', error);
             console.error('Respuesta:', xhr.responseText);
 
-            const listaDonadores = $('#listaDonadores');
+            const listaDonadores = SELECTORS.listaDonadores;
             listaDonadores.html(`
-
                 <div class="p-3 text-center text-stone-500">
                     <i class="fas fa-exclamation-circle"></i>
                     <p>Error al buscar donadores</p>
@@ -907,8 +989,7 @@ function buscarContactoDonador(idDonador) {
                 </div>
             `);
             listaDonadores.removeClass('d-none');
-        }
-    });
+        });
 }
 
 function mostrarResultadosContactos(contactosJson, termino) {
@@ -1003,39 +1084,37 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
  * Muestra u oculta la sección de contacto según el tipo de donador
  */
 function toggleSeccionContacto(tipo, id_donador) {
-    const seccionContacto = $('#seccionContacto');
-
     // console.log('Tipo de donador seleccionado:', tipo);
 
     if (tipo === 'organizacion' || tipo === 'empresa' || tipo === 'gobierno') {
         // console.log('Mostrando sección de contacto');
 
         // Mostrar la sección
-        seccionContacto.removeClass('hidden');
+        SELECTORS.seccionContacto.removeClass('hidden');
 
         // Marcar campos específicos como requeridos
-        $('#textNombreContacto').prop('required', true);
-        $('#textPuestoContacto').prop('required', true);
+        SELECTORS.textNombreContacto.prop('required', true);
+        SELECTORS.textPuestoContacto.prop('required', true);
 
         buscarContactoDonador(id_donador);
     } else {
         // console.log('Ocultando sección de contacto');
 
         // Ocultar la sección
-        seccionContacto.addClass('hidden');
+        SELECTORS.seccionContacto.addClass('hidden');
 
         // Remover validación y limpiar campos
-        $('#textNombreContacto').prop('required', false).val('').removeClass('is-invalid');
-        $('#textPuestoContacto').prop('required', false).val('').removeClass('is-invalid');
-        $('#textTelefonoContacto').val('');
-        $('#textExtensionContacto').val('');
-        $('#textCelularContacto').val('');
-        $('#textEmailContacto').val('');
-        $('#textHorarioContacto').val('');
-        $('#selectMedioPreferido').val('');
-        $('#checkEsPrincipal').prop('checked', false);
-        $('#checkActivoContacto').prop('checked', true);
-        $('#textNotasContacto').val('');
+        SELECTORS.textNombreContacto.prop('required', false).val('').removeClass('is-invalid');
+        SELECTORS.textPuestoContacto.prop('required', false).val('').removeClass('is-invalid');
+        SELECTORS.textTelefonoContacto.val('');
+        SELECTORS.textExtensionContacto.val('');
+        SELECTORS.textCelularContacto.val('');
+        SELECTORS.textEmailContacto.val('');
+        SELECTORS.textHorarioContacto.val('');
+        SELECTORS.selectMedioPreferido.val('');
+        SELECTORS.checkEsPrincipal.prop('checked', false);
+        SELECTORS.checkActivoContacto.prop('checked', true);
+        SELECTORS.textNotasContacto.val('');
     }
 }
 
@@ -1079,7 +1158,7 @@ function agregarArticulo(numero) {
                     </label>
                     <select class="form-control input-articulo-categoria-select" required>
                         <option value="">-- Seleccione una Categoría --</option>
-                        ${CATEGORIAS.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('')}
+                        ${categorias.map(cat => `<option value="${cat.id_categoria}">${cat.nombre}</option>`).join('')}
                     </select>
                     <div class="invalid-feedback">Selecciona una categoría</div>
                 </div>
@@ -1150,10 +1229,10 @@ function agregarArticulo(numero) {
             buscarArticulosPorNumero($(this).val(), numero);
         }
     }).on('blur', function () {
-        // Ocultar la lista después de 200ms cuando pierda el foco
+        // Ocultar la lista después de CONFIG.TIMEOUTS.HIDE_LIST ms cuando pierda el foco
         setTimeout(function () {
             $(`.lista-articulos-${numero}`).addClass('d-none');
-        }, 200);
+        }, CONFIG.TIMEOUTS.HIDE_LIST);
     });
 
     // Evento para cambio de categoría manual
@@ -1174,63 +1253,81 @@ function agregarArticulo(numero) {
 }
 
 /**
- * Obtiene los datos del formulario y construye los objetos JSON
+ * Valida el formulario de registro
+ * @returns {boolean} True si es válido
  */
-function guardarRegistro() {
+function validarFormularioRegistro() {
     const form = document.getElementById('formRegistroDonativos');
 
-    // Validar que al menos haya un artículo
-    if ($('#contenedorArticulos').find('.articulo-item').length === 0) {
+    if (SELECTORS.contenedorArticulos.find('.articulo-item').length === 0) {
         toastr.warning('Agrega al menos un artículo', 'Validación');
-        return;
+        return false;
     }
 
-    // Validar el formulario
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
         toastr.error('Por favor completa todos los campos requeridos', 'Validación');
-        return;
+        return false;
     }
 
-    // Construir objeto Donador
-    const donador = {
-        tipo: $('#selectTipoDonador').val(),
-        nombre: $('#textNombreDonador').val().trim(),
-        rfc: $('#textRFC').val().trim(),
-        telefono: $('#textTelefonoDonador').val().trim(),
-        email: $('#textEmailDonador').val().trim(),
-        direccion: $('#textDireccionDonador').val().trim(),
-        colonia: $('#textColoniaDonador').val().trim(),
-        ciudad: $('#textCiudadDonador').val().trim(),
-        estado: $('#textEstadoDonador').val().trim(),
-        codigo_postal: $('#textCodigoPostalDonador').val().trim(),
-        notas: $('#textNotasDonador').val().trim()
+    return true;
+}
+
+/**
+ * Construye el objeto donador desde el formulario
+ * @returns {Object} Objeto donador
+ */
+function construirObjetoDonador() {
+    return {
+        tipo: SELECTORS.selectTipoDonador.val(),
+        nombre: SELECTORS.textNombreDonador.val().trim(),
+        rfc: SELECTORS.textRFC.val().trim(),
+        telefono: SELECTORS.textTelefonoDonador.val().trim(),
+        email: SELECTORS.textEmailDonador.val().trim(),
+        direccion: SELECTORS.textDireccionDonador.val().trim(),
+        colonia: SELECTORS.textColoniaDonador.val().trim(),
+        ciudad: SELECTORS.textCiudadDonador.val().trim(),
+        estado: SELECTORS.textEstadoDonador.val().trim(),
+        codigo_postal: SELECTORS.textCodigoPostalDonador.val().trim(),
+        notas: SELECTORS.textNotasDonador.val().trim()
     };
+}
 
-    // Construir objeto Contacto (si aplica)
-    let contacto = null;
-    const tipoDonador = $('#selectTipoDonador').val();
-    if (tipoDonador === 'organizacion' || tipoDonador === 'empresa' || tipoDonador ==='gobierno') {
-        contacto = {
-            nombre: $('#textNombreContacto').val().trim(),
-            puesto: $('#textPuestoContacto').val().trim(),
-            telefono: $('#textTelefonoContacto').val().trim(),
-            extension: $('#textExtensionContacto').val().trim(),
-            celular: $('#textCelularContacto').val().trim(),
-            email: $('#textEmailContacto').val().trim(),
-            horario_contacto: $('#textHorarioContacto').val().trim(),
-            medio_preferido: $('#selectMedioPreferido').val().trim(),
-            es_principal: $('#checkEsPrincipal').is(':checked'),
-            notas: $('#textNotasContacto').val(),
-            activo: $('#checkActivoContacto').is(':checked')
-        };
+/**
+ * Construye el objeto contacto desde el formulario
+ * @returns {Object|null} Objeto contacto o null si no aplica
+ */
+function construirObjetoContacto() {
+    const tipoDonador = SELECTORS.selectTipoDonador.val();
+
+    if (!['organizacion', 'empresa', 'gobierno'].includes(tipoDonador)) {
+        return null;
     }
 
-    // Separar artículos nuevos de existentes
+    return {
+        nombre: SELECTORS.textNombreContacto.val().trim(),
+        puesto: SELECTORS.textPuestoContacto.val().trim(),
+        telefono: SELECTORS.textTelefonoContacto.val().trim(),
+        extension: SELECTORS.textExtensionContacto.val().trim(),
+        celular: SELECTORS.textCelularContacto.val().trim(),
+        email: SELECTORS.textEmailContacto.val().trim(),
+        horario_contacto: SELECTORS.textHorarioContacto.val().trim(),
+        medio_preferido: SELECTORS.selectMedioPreferido.val().trim(),
+        es_principal: SELECTORS.checkEsPrincipal.is(':checked'),
+        notas: SELECTORS.textNotasContacto.val(),
+        activo: SELECTORS.checkActivoContacto.is(':checked')
+    };
+}
+
+/**
+ * Construye los arrays de artículos nuevos y existentes
+ * @returns {Object} { articulosNuevos, articulosExistentes }
+ */
+function construirArticulos() {
     const articulosNuevos = [];
     const articulosExistentes = [];
 
-    $('#contenedorArticulos').find('.articulo-item').each(function () {
+    SELECTORS.contenedorArticulos.find('.articulo-item').each(function () {
         const $item = $(this);
         const idArticulo = $item.data('id_articulo');
 
@@ -1239,28 +1336,37 @@ function guardarRegistro() {
             unidad_medida: $item.find('.input-articulo-unidad').val(),
             id_categoria: parseInt($item.find('.input-articulo-categoria-select').val()),
             descripcion: $item.find('.input-articulo-descripcion').val(),
-            // Datos del detalle
             cantidad_recibida: parseInt($item.find('.input-articulo-cantidad').val()) || 0,
             valor_unitario: parseFloat($item.find('.input-articulo-valor').val()) || 0,
             estado: $item.find('.input-articulo-estado').val()
         };
 
-        // Si tiene ID, es un artículo existente
         if (idArticulo) {
             articulo.id_articulo = idArticulo;
             articulosExistentes.push(articulo);
         } else {
-            // Si no tiene ID, es un artículo nuevo
             articulosNuevos.push(articulo);
         }
     });
 
-    // console.log('Datos del donador:', donador);
-    // console.log('Datos del contacto:', contacto);
-    // console.log('Artículos nuevos:', articulosNuevos);
-    // console.log('Artículos existentes:', articulosExistentes);
+    return { articulosNuevos, articulosExistentes };
+}
 
-    // Enviar datos de forma secuencial
+/**
+ * Obtiene los datos del formulario y construye los objetos JSON
+ */
+function guardarRegistro() {
+    // 1. Validación
+    if (!validarFormularioRegistro()) {
+        return;
+    }
+
+    // 2. Construcción de datos
+    const donador = construirObjetoDonador();
+    const contacto = construirObjetoContacto();
+    const { articulosNuevos, articulosExistentes } = construirArticulos();
+
+    // 3. Envío
     guardarDonador(donador, contacto, articulosNuevos, articulosExistentes);
 }
 
@@ -1574,14 +1680,10 @@ function guardarRegistro() {
  * Guarda el donador y procede con contacto y artículos
  */
 function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes) {
-    const datosString = JSON.stringify(donador);
-    const idDonadorExistente = $('#id_donador').val();
-
-    // console.log('ID de donador existente:', idDonadorExistente);
+    const idDonadorExistente = SELECTORS.idDonador.val();
 
     // Si ya existe un donador (fue seleccionado de la lista), usar su ID
     if (idDonadorExistente && idDonadorExistente !== '') {
-        // console.log('Usando donador existente con ID:', idDonadorExistente);
         toastr.info('Usando donador existente', 'Información');
 
         // Proceder directamente con contacto o artículos
@@ -1595,26 +1697,15 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
     }
 
     // Si no existe ID, es un donador nuevo, hay que guardarlo
-    // console.log('Guardando donador nuevo');
+    toastr.info('Guardando donador...', 'Procesando');
 
-    $.ajax({
-        type: 'POST',
-        url: 'insertaDonador',
-        data: { datos: datosString },
-        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
-        dataType: 'json',
-        beforeSend: function () {
-            toastr.info('Guardando donador...', 'Procesando');
-        },
-        success: function (response) {
-            // console.log('Respuesta al guardar donador:', response);
-
+    AjaxService.donadores.insertar(donador)
+        .done(function(response) {
             // Parsear la respuesta para obtener el ID del donador
             let donadorId = null;
             try {
                 const responseData = typeof response === 'string' ? JSON.parse(response) : response;
                 donadorId = responseData.id_donador || responseData.id;
-                // console.log('ID del donador guardado:', donadorId);
             } catch (e) {
                 console.warn('No se pudo extraer ID del donador:', e);
                 toastr.error('No se pudo obtener el ID del donador guardado: ' + e.message, 'Error');
@@ -1626,16 +1717,14 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
                 contacto.id_donador = donadorId;
                 guardarContacto(contacto, articulosNuevos, articulosExistentes, donadorId);
             } else {
-                // Si no hay contacto, proceder directamente a insertar artículos nuevos
                 insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
             }
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('Error al guardar donador:', error);
             console.error('Respuesta del servidor:', xhr.responseText);
             toastr.error('Error al guardar el donador. Intenta de nuevo.', 'Error');
-        }
-    });
+        });
 }
 
 /**

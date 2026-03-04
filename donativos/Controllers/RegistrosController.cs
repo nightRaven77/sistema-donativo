@@ -998,6 +998,22 @@ namespace donativos.Controllers
             }
             return Json(response.Content);
         }
+
+        /// <summary>
+        /// Obtiene la lista de categorías desde el API
+        /// </summary>
+        public async Task<JsonResult> ObtenerCategorias()
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = await ExecuteApiAsync(token, "catalogos/articulo/categoria", "GET");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener categorías" });
+            }
+
+            return Json(response.Content);
+        }
         #endregion
 
         #region Utilidades API
