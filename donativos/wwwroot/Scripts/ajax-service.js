@@ -251,7 +251,7 @@ const AjaxService = (function() {
     };
     
     // ============ API PÚBLICA ============
-    
+
     return {
         donativos,
         donadores,
@@ -259,6 +259,27 @@ const AjaxService = (function() {
         articulos,
         almacenes,
         categorias,
-        archivos
+        archivos,
+        // Métodos de conveniencia para acceso directo
+        get: function(url, data) {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: url,
+                data: data
+            });
+        },
+        post: function(url, data) {
+            return _ejecutarAjax({
+                type: 'POST',
+                url: url,
+                data: data
+            });
+        }
     };
 })();
+
+// Crear alias en minúscula para compatibilidad
+const ajaxService = AjaxService;
+
+// Log de inicialización
+console.log('✓ AjaxService cargado correctamente');

@@ -33,6 +33,7 @@ namespace donativos.Controllers
         private const string VIEW_SALIDAS = "_Salidas";
         private const string VIEW_REPORTES = "_Reportes";
         private const string VIEW_DASHBOARD = "_Dashboard";
+        private const string VIEW_TRASPASOS = "_Traspasos";
         private const string VIEW_ERROR = "_Error";
 
         public RegistrosController(IConfiguration configuration, IEmailService emailService, ILogger<RegistrosController> logger)
@@ -647,6 +648,403 @@ namespace donativos.Controllers
         }
         #endregion
 
+        #region Salidas
+
+        /// <summary>
+        /// Inserta una salida completa (donación o merma)
+        /// Estructura: {fecha_salida, id_almacen_origen, id_beneficiario, motivo, tipo_salida, detalles[]}
+        /// </summary>
+        public async Task<JsonResult> insertaSalida(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando salida: {datos}");
+
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "Datos de salida requeridos" 
+                    });
+                }
+
+                var response = await ExecuteApiAsync(token, "salida", "POST", datos);
+
+                Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Salida registrada correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Salida registrada correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de salida inválidos: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado al procesar la salida",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de salidas del usuario actual
+        /// </summary>
+        public async Task<IActionResult> ObtenerSalidas()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine("=== Obteniendo Salidas ===");
+
+                var response = await ExecuteApiAsync(token, "salida", "GET");
+
+                Console.WriteLine($"Status Code: {response.StatusCode}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Respuesta OK del API");
+
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Content("[]", "application/json");
+                    }
+
+                    return Content(response.Content, "application/json");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error al obtener salidas: {response.StatusCode}");
+                    return Content($"{{\"error\":\"Error {response.StatusCode}\"}}", "application/json");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción en ObtenerSalidas: {ex.Message}");
+                return Content($"{{\"error\":\"{ex.Message}\"}}", "application/json");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene una salida específica por ID
+        /// </summary>
+        public async Task<JsonResult> obtenerSalida(int id_salida)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                var response = await ExecuteApiAsync(token, $"salida/{id_salida}", "GET");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Salida no encontrada"
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al obtener salida",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en obtenerSalida: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el inventario/stock de un almacén específico con búsqueda opcional
+        /// Endpoint: GET /catalogos/articulo/stock/{idAlmacen}?buscar={termino}
+        /// </summary>
+        public async Task<JsonResult> ObtenerInventario(int id_almacen, string buscar = "")
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Obteniendo inventario del almacén: {id_almacen}, búsqueda: '{buscar}'");
+
+                // Construir la ruta con parámetro de búsqueda opcional
+                string relativePath = string.IsNullOrEmpty(buscar)
+                    ? $"catalogos/articulo/stock/{id_almacen}"
+                    : $"catalogos/articulo/stock/{id_almacen}?buscar={Uri.EscapeDataString(buscar)}";
+
+                var response = await ExecuteApiAsync(token, relativePath, "GET");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Json(new List<InventarioDTO>());
+                    }
+
+                    // Parsear el inventario - el API retorna directamente un array
+                    var parsedResponse = JsonConvert.DeserializeObject<dynamic>(response.Content);
+
+                    List<InventarioDTO> inventario = new List<InventarioDTO>();
+
+                    if (parsedResponse is JArray jArray)
+                    {
+                        foreach (var item in jArray)
+                        {
+                            var inv = ConvertirAInventarioNuevo(item);
+                            if (inv != null)
+                            {
+                                inventario.Add(inv);
+                            }
+                        }
+                    }
+                    else if (parsedResponse is JObject jObject)
+                    {
+                        // Por si el API envuelve la respuesta en un objeto
+                        JArray arrayData = null;
+
+                        if (jObject["data"] is JArray)
+                            arrayData = (JArray)jObject["data"];
+                        else if (jObject["inventario"] is JArray)
+                            arrayData = (JArray)jObject["inventario"];
+                        else if (jObject["items"] is JArray)
+                            arrayData = (JArray)jObject["items"];
+
+                        if (arrayData != null)
+                        {
+                            foreach (var item in arrayData)
+                            {
+                                var inv = ConvertirAInventarioNuevo(item);
+                                if (inv != null)
+                                {
+                                    inventario.Add(inv);
+                                }
+                            }
+                        }
+                    }
+
+                    Console.WriteLine($"✓ Inventario obtenido: {inventario.Count} artículos con stock");
+                    return Json(inventario);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine("⚠ No hay artículos con stock en este almacén");
+                    return Json(new List<InventarioDTO>());
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new { error = "Error al obtener inventario" });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new { error = $"Error {response.StatusCode}" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en ObtenerInventario: {ex.Message}");
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene beneficiarios con búsqueda opcional (similar a donadores)
+        /// </summary>
+        public async Task<JsonResult> ObtenerBeneficiarios(string search = "")
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            string relativePath = string.IsNullOrEmpty(search)
+                ? "catalogos/beneficiario"
+                : $"catalogos/beneficiario/buscar/{Uri.EscapeDataString(search)}";
+
+            var response = await ExecuteApiAsync(token, relativePath, "GET");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener beneficiarios" });
+            }
+
+            try
+            {
+                if (string.IsNullOrEmpty(response.Content))
+                {
+                    return Json(new List<BeneficiarioDTO>());
+                }
+
+                Console.WriteLine($"API Raw Response: {response.Content}");
+
+                var parsedResponse = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                List<BeneficiarioDTO> beneficiarios = new List<BeneficiarioDTO>();
+
+                if (parsedResponse is JArray jArray)
+                {
+                    beneficiarios = jArray
+                        .Select(item => ConvertirABeneficiario(item))
+                        .Where(b => b != null)
+                        .ToList();
+                }
+                else if (parsedResponse is JObject jObject)
+                {
+                    JArray arrayData = null;
+
+                    if (jObject["data"] is JArray)
+                        arrayData = (JArray)jObject["data"];
+                    else if (jObject["beneficiarios"] is JArray)
+                        arrayData = (JArray)jObject["beneficiarios"];
+                    else if (jObject["items"] is JArray)
+                        arrayData = (JArray)jObject["items"];
+
+                    if (arrayData != null)
+                    {
+                        beneficiarios = arrayData
+                            .Select(item => ConvertirABeneficiario(item))
+                            .Where(b => b != null)
+                            .ToList();
+                    }
+                }
+
+                Console.WriteLine($"Beneficiarios convertidos: {beneficiarios.Count}");
+                return Json(beneficiarios);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al parsear beneficiarios: {ex.Message}");
+                return Json(new List<BeneficiarioDTO>());
+            }
+        }
+
+        /// <summary>
+        /// Inserta un nuevo beneficiario
+        /// </summary>
+        public async Task<JsonResult> insertaBeneficiario(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando beneficiario: {datos}");
+
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de beneficiario requeridos"
+                    });
+                }
+
+                var response = await ExecuteApiAsync(token, "catalogos/beneficiario", "POST", datos);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Beneficiario insertado correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Beneficiario registrado correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error interno del servidor",
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en insertaBeneficiario: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        #endregion
+
         #region Catalogos
         /// <summary>
         /// Creates a new donor record by sending the provided donor data to the API.
@@ -1016,6 +1414,288 @@ namespace donativos.Controllers
         }
         #endregion
 
+        #region Traspasos
+
+        /// <summary>
+        /// Inserta un traspaso entre almacenes
+        /// Estructura: {fecha_traspaso, almacen_origen, almacen_destino, motivo, is_instantaneo, detalles[]}
+        /// </summary>
+        public async Task<JsonResult> insertaTraspaso(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando traspaso: {datos}");
+
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "Datos de traspaso requeridos" 
+                    });
+                }
+
+                var response = await ExecuteApiAsync(token, "traspaso", "POST", datos);
+
+                Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Traspaso registrado correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Traspaso registrado correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de traspaso inválidos: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado al procesar el traspaso",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de traspasos
+        /// </summary>
+        public async Task<IActionResult> ObtenerTraspasos()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine("=== Obteniendo Traspasos ===");
+
+                var response = await ExecuteApiAsync(token, "traspaso", "GET");
+
+                Console.WriteLine($"Status Code: {response.StatusCode}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Respuesta OK del API");
+
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Content("[]", "application/json");
+                    }
+
+                    return Content(response.Content, "application/json");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error al obtener traspasos: {response.StatusCode}");
+                    return Content($"{{\"error\":\"Error {response.StatusCode}\"}}", "application/json");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción en ObtenerTraspasos: {ex.Message}");
+                return Content($"{{\"error\":\"{ex.Message}\"}}", "application/json");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene un traspaso específico por ID
+        /// </summary>
+        public async Task<JsonResult> obtenerTraspaso(int id_traspaso)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                var response = await ExecuteApiAsync(token, $"traspaso/{id_traspaso}", "GET");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Traspaso no encontrado"
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al obtener traspaso",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en obtenerTraspaso: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Recibe/Aprueba un traspaso
+        /// </summary>
+        public async Task<JsonResult> RecibirTraspaso(int id_traspaso, string observaciones)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Recibiendo traspaso ID: {id_traspaso}");
+
+                var datos = new { observaciones = observaciones ?? "" };
+                var response = await ExecuteApiAsync(token, $"traspaso/{id_traspaso}/recibir", "PUT", datos);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Traspaso recibido correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Traspaso recibido correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al recibir traspaso: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en RecibirTraspaso: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Cancela un traspaso
+        /// </summary>
+        public async Task<JsonResult> CancelarTraspaso(int id_traspaso, string motivo_cancelacion)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Cancelando traspaso ID: {id_traspaso}");
+
+                var datos = new { motivo_cancelacion = motivo_cancelacion ?? "Sin motivo especificado" };
+                var response = await ExecuteApiAsync(token, $"traspaso/{id_traspaso}/cancelar", "POST", datos);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Traspaso cancelado correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Traspaso cancelado correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al cancelar traspaso: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en CancelarTraspaso: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        #endregion
+
         #region Utilidades API
         /// <summary>
         /// Executes a REST API request using the specified HTTP method, authentication token, and request parameters.
@@ -1187,13 +1867,13 @@ namespace donativos.Controllers
                     return "Error desconocido";
 
                 var obj = JObject.Parse(jsonContent);
-                
+
                 // Intentar diferentes nombres de campo
                 var mensaje = obj["message"]?.ToString() 
                            ?? obj["mensaje"]?.ToString() 
                            ?? obj["error"]?.ToString()
                            ?? jsonContent;
-                
+
                 return mensaje;
             }
             catch
@@ -1201,6 +1881,161 @@ namespace donativos.Controllers
                 // Si falla el parseo, devolver el contenido completo
                 return jsonContent;
             }
+        }
+
+        /// <summary>
+        /// Convierte un JToken a un objeto BeneficiarioDTO
+        /// </summary>
+        private BeneficiarioDTO ConvertirABeneficiario(JToken token)
+        {
+            try
+            {
+                if (token == null) return null;
+
+                var beneficiario = new BeneficiarioDTO
+                {
+                    id_beneficiario = ExtractIntValue(token, "id_beneficiario", "idBeneficiario", "id"),
+                    codigo = ExtractStringValue(token, "codigo"),
+                    tipo = ExtractStringValue(token, "tipo"),
+                    nombre = ExtractStringValue(token, "nombre"),
+                    rfc = ExtractStringValue(token, "rfc", "RFC"),
+                    telefono = ExtractStringValue(token, "telefono"),
+                    email = ExtractStringValue(token, "email"),
+                    direccion = ExtractStringValue(token, "direccion"),
+                    colonia = ExtractStringValue(token, "colonia"),
+                    ciudad = ExtractStringValue(token, "ciudad"),
+                    estado = ExtractStringValue(token, "estado"),
+                    codigo_postal = ExtractStringValue(token, "codigo_postal", "codigoPostal"),
+                    notas = ExtractStringValue(token, "notas")
+                };
+
+                // Validar que tenga al menos un nombre
+                if (string.IsNullOrEmpty(beneficiario.nombre))
+                    return null;
+
+                return beneficiario;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error convirtiendo beneficiario: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convierte un JToken a un objeto InventarioDTO (nuevo endpoint con camelCase)
+        /// Estructura del endpoint: GET /catalogos/articulo/stock/{idAlmacen}
+        /// </summary>
+        private InventarioDTO ConvertirAInventarioNuevo(JToken token)
+        {
+            try
+            {
+                if (token == null) return null;
+
+                var inventario = new InventarioDTO
+                {
+                    idArticulo = ExtractIntValue(token, "idArticulo", "id_articulo") ?? 0,
+                    nombre = ExtractStringValue(token, "nombre"),
+                    idCategoria = ExtractIntValue(token, "idCategoria", "id_categoria"),
+                    nombreCategoria = ExtractStringValue(token, "nombreCategoria", "nombre_categoria"),
+                    stockActual = ExtractDecimalValue(token, "stockActual", "stock_actual", "stock") ?? 0,
+                    idAlmacen = ExtractIntValue(token, "idAlmacen", "id_almacen") ?? 0,
+                    nombreAlmacen = ExtractStringValue(token, "nombreAlmacen", "nombre_almacen"),
+                    fechaUltimaEntrada = ExtractDateTimeValue(token, "fechaUltimaEntrada", "fecha_ultima_entrada"),
+                    fechaUltimaSalida = ExtractDateTimeValue(token, "fechaUltimaSalida", "fecha_ultima_salida"),
+                    activo = ExtractBoolValue(token, "activo") ?? true,
+                    unidadMedida = ExtractStringValue(token, "unidadMedida", "unidad_medida", "unidad")
+                };
+
+                // Validar que tenga información mínima
+                if (inventario.idArticulo == 0)
+                {
+                    Console.WriteLine("⚠ Artículo sin ID válido");
+                    return null;
+                }
+
+                if (inventario.stockActual <= 0)
+                {
+                    Console.WriteLine($"⚠ Artículo {inventario.nombre} sin stock disponible");
+                    return null;
+                }
+
+                return inventario;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error convirtiendo inventario: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extrae un valor decimal de un JToken
+        /// </summary>
+        private decimal? ExtractDecimalValue(JToken token, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                var value = token[fieldName];
+                if (value == null) continue;
+
+                if (value is JArray array)
+                {
+                    if (array.Count > 0 && decimal.TryParse(array[0].ToString(), out decimal result))
+                        return result;
+                }
+                else if (value.Type != JTokenType.Null && decimal.TryParse(value.ToString(), out decimal result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Extrae un valor DateTime de un JToken
+        /// </summary>
+        private DateTime? ExtractDateTimeValue(JToken token, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                var value = token[fieldName];
+                if (value == null) continue;
+
+                if (value is JArray array)
+                {
+                    if (array.Count > 0 && DateTime.TryParse(array[0].ToString(), out DateTime result))
+                        return result;
+                }
+                else if (value.Type != JTokenType.Null && DateTime.TryParse(value.ToString(), out DateTime result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Extrae un valor bool de un JToken
+        /// </summary>
+        private bool? ExtractBoolValue(JToken token, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                var value = token[fieldName];
+                if (value == null) continue;
+
+                if (value is JArray array)
+                {
+                    if (array.Count > 0 && bool.TryParse(array[0].ToString(), out bool result))
+                        return result;
+                }
+                else if (value.Type != JTokenType.Null && bool.TryParse(value.ToString(), out bool result))
+                {
+                    return result;
+                }
+            }
+            return null;
         }
 
         #region Vistas y navegación
@@ -1228,6 +2063,7 @@ namespace donativos.Controllers
                 "inicio" => PartialView(VIEW_INICIO),
                 "registros" => PartialView(VIEW_REGISTROS),
                 "consulta" => PartialView(VIEW_CONSULTA),
+                "traspasos" => PartialView(VIEW_TRASPASOS),
                 "salidas" => PartialView(VIEW_SALIDAS),
                 "reportes" => PartialView(VIEW_REPORTES),
                 "dashboard" => PartialView(VIEW_DASHBOARD),

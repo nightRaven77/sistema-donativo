@@ -134,7 +134,7 @@ function cargarDonativos() {
         dataTable.clear().draw();
     }
 
-    toastr.info('Cargando donativos...', 'Procesando');
+    notificaciones.info('Cargando donativos...', 'Procesando');
 
     AjaxService.donativos.obtenerTodos()
         .done(function(response) {
@@ -142,18 +142,18 @@ function cargarDonativos() {
 
             if (donativosArray.length > 0) {
                 llenarTablaConDataTables(donativosArray);
-                toastr.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
+                notificaciones.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
             } else {
                 if (dataTable) {
                     dataTable.clear().draw();
                 }
-                toastr.info('No hay donativos registrados', 'Información');
+                notificaciones.info('No hay donativos registrados', 'Información');
             }
         })
         .fail(function(xhr, status, error) {
             console.error('=== AJAX Error ===');
             console.error('Error:', error);
-            toastr.error('Error al cargar los donativos', 'Error');
+            notificaciones.error('Error al cargar los donativos', 'Error');
         });
 }
 
@@ -172,25 +172,25 @@ function llenarTablaConDataTables(donativos) {
 
     // Agregar filas
     donativos.forEach((donativo) => {
-        const fechaFormato = donativo.fecha_recepcion
-            ? new Date(donativo.fecha_recepcion).toLocaleDateString('es-MX')
+        const fechaFormato = donativo.fechaRecepcion
+            ? new Date(donativo.fechaRecepcion).toLocaleDateString('es-MX')
             : 'N/A';
-        const cantidadArticulos = donativo.cantidad_articulos || 0;
+        const cantidadArticulos = donativo.cantidadArticulos || 0;
 
         const botones = `
-            <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.id_donativo})" title="Ver detalles">
+            <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.idDonativo})" title="Ver detalles">
                 <i class="fas fa-eye"></i>
             </button>
-            <button class="btn btn-sm btn-danger" onclick="eliminarDonativo(${donativo.id_donativo})" title="Eliminar">
+            <button class="btn btn-sm btn-danger" onclick="eliminarDonativo(${donativo.idDonativo})" title="Eliminar">
                 <i class="fas fa-trash"></i>
             </button>
-            <button class="btn btn-sm btn-primary" onclick="editarDonativo(${donativo.id_donativo})" title="Editar">
+            <button class="btn btn-sm btn-primary" onclick="editarDonativo(${donativo.idDonativo})" title="Editar">
                 <i class="fas fa-edit"></i>
             </button>
         `;
 
         dataTable.row.add([
-            donativo.id_donativo || '-',
+            donativo.idDonativo || '-',
             `<strong>${donativo.folio || '-'}</strong>`,
             donativo.nombre || 'N/A',
             fechaFormato,
@@ -347,7 +347,7 @@ function cargarAlmacenes() {
         .fail(function(xhr, status, error) {
             console.error('Error al cargar almacenes:', error);
             console.error('Respuesta:', xhr.responseText);
-            toastr.error('Error al cargar los almacenes', 'Error');
+            notificaciones.error('Error al cargar los almacenes', 'Error');
         });
 }
 
@@ -367,7 +367,7 @@ function llenarSelectAlmacenes(almacenesArray) {
     
     if (!almacenesArray || almacenesArray.length === 0) {
         console.warn('⚠ No hay almacenes disponibles');
-        toastr.warning('No hay almacenes disponibles', 'Información');
+        notificaciones.warning('No hay almacenes disponibles', 'Información');
         return;
     }
     
@@ -413,7 +413,7 @@ function cargarCategorias() {
         .fail(function(xhr, status, error) {
             console.error('Error al cargar categorías:', error);
             console.error('Respuesta:', xhr.responseText);
-            toastr.error('Error al cargar las categorías', 'Error');
+            notificaciones.error('Error al cargar las categorías', 'Error');
 
             // En caso de error, dejar el array vacío
             categorias = [];
@@ -456,7 +456,7 @@ function manejarArchivosAdjuntos(e) {
 
     // Mostrar errores agrupados
     if (errores.length > 0) {
-        errores.forEach(error => toastr.warning(error, 'Validación'));
+        errores.forEach(error => notificaciones.warning(error, 'Validación'));
     }
 
     // Guardar archivos válidos
@@ -464,10 +464,10 @@ function manejarArchivosAdjuntos(e) {
 
     if (archivosAdjuntos.length > 0) {
         mostrarResumenArchivos();
-        toastr.success(`${archivosAdjuntos.length} archivo(s) seleccionado(s) correctamente`, 'Éxito');
+        notificaciones.success(`${archivosAdjuntos.length} archivo(s) seleccionado(s) correctamente`, 'Éxito');
     } else {
         console.warn('⚠ No hay archivos válidos para procesar');
-        toastr.error('No hay archivos válidos para adjuntar', 'Error');
+        notificaciones.error('No hay archivos válidos para adjuntar', 'Error');
     }
 }
 
@@ -713,7 +713,7 @@ function limpiarFormularioCancelacion() {
         grupoImporte.style.display = 'none';
     }
 
-    toastr.info('Formulario limpiado', 'Operación realizada');
+    notificaciones.info('Formulario limpiado', 'Operación realizada');
 }
 
 /**
@@ -919,7 +919,7 @@ function seleccionarDonador($element) {
 
         // Validar que tenga ID válido
         if (!donador.id_donador) {
-            toastr.warning('El donador no tiene un ID válido', 'Validación');
+            notificaciones.warning('El donador no tiene un ID válido', 'Validación');
             return;
         }
 
@@ -956,10 +956,10 @@ function seleccionarDonador($element) {
             }
         });
 
-        toastr.success(`✓ Donador "${donador.nombre}" seleccionado correctamente`, 'Éxito');
+        notificaciones.success(`✓ Donador "${donador.nombre}" seleccionado correctamente`, 'Éxito');
     } catch (error) {
         console.error('Error al seleccionar donador:', error);
-        toastr.error('Error al seleccionar donador', 'Error');
+        notificaciones.error('Error al seleccionar donador', 'Error');
     }
 }
 
@@ -996,7 +996,7 @@ function mostrarResultadosContactos(contactosJson, termino) {
     try {
         const contacto = JSON.parse(contactosJson);
         if (!contacto.id_contacto) {
-            toastr.warning('El contacto no tiene un ID válido', 'Validación');
+            notificaciones.warning('El contacto no tiene un ID válido', 'Validación');
             return;
         }
         // console.log('Contacto seleccionado con ID:', contacto.id_contacto);
@@ -1012,10 +1012,10 @@ function mostrarResultadosContactos(contactosJson, termino) {
         $('#checkEsPrincipal').val(contacto.es_principal || '');
         $('#checkActivoContacto').val(contacto.activo || '');
         $('#textNotasContacto').val(contacto.notas || '');
-        toastr.success(`✓ Contacto "${contacto.nombre}" seleccionado correctamente`, 'Éxito');
+        notificaciones.success(`✓ Contacto "${contacto.nombre}" seleccionado correctamente`, 'Éxito');
     } catch (error) {
         console.error('Error al seleccionar donador:', error);
-        toastr.error('Error al seleccionar donador', 'Error');
+        notificaciones.error('Error al seleccionar donador', 'Error');
     }
 }
 
@@ -1028,7 +1028,7 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
         const articulo = JSON.parse($element.attr('data-articulo'));
 
         if (!articulo.id_articulo) {
-            toastr.warning('El artículo no tiene un ID válido', 'Validación');
+            notificaciones.warning('El artículo no tiene un ID válido', 'Validación');
             return;
         }
 
@@ -1072,11 +1072,11 @@ function seleccionarArticuloEnContenedor($element, numeroArticulo) {
         // Ocultar lista
         $(`.lista-articulos-${numeroArticulo}`).addClass('d-none');
 
-        toastr.success(`✓ Artículo "${articulo.nombre}" seleccionado`, 'Éxito');
+        notificaciones.success(`✓ Artículo "${articulo.nombre}" seleccionado`, 'Éxito');
     } catch (error) {
         console.error('Error al seleccionar artículo:', error);
         console.error('Data completo:', $element.attr('data-articulo'));
-        toastr.error('Error al seleccionar artículo', 'Error');
+        notificaciones.error('Error al seleccionar artículo', 'Error');
     }
 }
 
@@ -1260,13 +1260,13 @@ function validarFormularioRegistro() {
     const form = document.getElementById('formRegistroDonativos');
 
     if (SELECTORS.contenedorArticulos.find('.articulo-item').length === 0) {
-        toastr.warning('Agrega al menos un artículo', 'Validación');
+        notificaciones.warning('Agrega al menos un artículo', 'Validación');
         return false;
     }
 
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
-        toastr.error('Por favor completa todos los campos requeridos', 'Validación');
+        notificaciones.error('Por favor completa todos los campos requeridos', 'Validación');
         return false;
     }
 
@@ -1378,7 +1378,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
 
     // Si ya existe un donador (fue seleccionado de la lista), usar su ID
     if (idDonadorExistente && idDonadorExistente !== '') {
-        toastr.info('Usando donador existente', 'Información');
+        notificaciones.info('Usando donador existente', 'Información');
 
         // Proceder directamente con contacto o artículos
         if (contacto) {
@@ -1391,7 +1391,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
     }
 
     // Si no existe ID, es un donador nuevo, hay que guardarlo
-    toastr.info('Guardando donador...', 'Procesando');
+    notificaciones.info('Guardando donador...', 'Procesando');
 
     AjaxService.donadores.insertar(donador)
         .done(function(response) {
@@ -1402,7 +1402,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
                 donadorId = responseData.id_donador || responseData.id;
             } catch (e) {
                 console.warn('No se pudo extraer ID del donador:', e);
-                toastr.error('No se pudo obtener el ID del donador guardado: ' + e.message, 'Error');
+                notificaciones.error('No se pudo obtener el ID del donador guardado: ' + e.message, 'Error');
                 return;
             }
 
@@ -1417,7 +1417,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
         .fail(function(xhr, status, error) {
             console.error('Error al guardar donador:', error);
             console.error('Respuesta del servidor:', xhr.responseText);
-            toastr.error('Error al guardar el donador. Intenta de nuevo.', 'Error');
+            notificaciones.error('Error al guardar el donador. Intenta de nuevo.', 'Error');
         });
 }
 
@@ -1425,7 +1425,7 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
  * Guarda el contacto y procede con los artículos
  */
 function guardarContacto(contacto, articulosNuevos, articulosExistentes, donadorId) {
-    toastr.info('Guardando contacto...', 'Procesando');
+    notificaciones.info('Guardando contacto...', 'Procesando');
 
     AjaxService.contactos.insertar(contacto)
         .done(function(response) {
@@ -1435,7 +1435,7 @@ function guardarContacto(contacto, articulosNuevos, articulosExistentes, donador
         })
         .fail(function(xhr, status, error) {
             console.error('Error al guardar contacto:', error);
-            toastr.warning('Error al guardar contacto, continuando con artículos...', 'Advertencia');
+            notificaciones.warning('Error al guardar contacto, continuando con artículos...', 'Advertencia');
             // Continuar con artículos aunque falle el contacto
             insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
         });
@@ -1457,7 +1457,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
         idCategoria: articulo.idCategoria
     }));
 
-    toastr.info('Guardando artículos...', 'Procesando');
+    notificaciones.info('Guardando artículos...', 'Procesando');
 
     AjaxService.articulos.insertar(articulosParaInsertar)
         .then(response => {
@@ -1508,7 +1508,7 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
         })
         .catch(error => {
             console.error('Error al guardar artículos:', error);
-            toastr.error('Error al guardar los artículos. Intenta de nuevo.', 'Error');
+            notificaciones.error('Error al guardar los artículos. Intenta de nuevo.', 'Error');
         });
 }
 
@@ -1521,7 +1521,7 @@ function construirYGuardarDonativo(articulosInsertados, articulosExistentes, don
     const todosLosArticulos = [...articulosInsertados, ...articulosExistentes];
 
     if (todosLosArticulos.length === 0) {
-        toastr.warning('No hay artículos para registrar', 'Validación');
+        notificaciones.warning('No hay artículos para registrar', 'Validación');
         return;
     }
 
@@ -1548,7 +1548,7 @@ function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
         formData.append('nombres_originales', archivoObj.nombre);
     });
 
-    toastr.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
+    notificaciones.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
 
     AjaxService.archivos.subir(formData)
         .done(function(response) {
@@ -1577,13 +1577,13 @@ function subirArchivos(articulosInsertados, articulosExistentes, donadorId) {
                 guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados);
             } catch (e) {
                 console.error('Error al procesar respuesta de archivos:', e);
-                toastr.error('Error al procesar los archivos subidos', 'Error');
+                notificaciones.error('Error al procesar los archivos subidos', 'Error');
             }
         })
         .fail(function(xhr, status, error) {
             console.error('Error al subir archivos:', error);
             console.error('Respuesta:', xhr.responseText);
-            toastr.error('Error al subir los archivos. Intenta de nuevo.', 'Error');
+            notificaciones.error('Error al subir los archivos. Intenta de nuevo.', 'Error');
         });
 }
 
@@ -1620,7 +1620,7 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
 
     // console.log('Donativo completo a enviar:', donativoCompleto);
 
-    toastr.info('Guardando donativo...', 'Procesando');
+    notificaciones.info('Guardando donativo...', 'Procesando');
 
     AjaxService.donativos.insertar(donativoCompleto)
         .done(function(response) {
@@ -1640,9 +1640,9 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
                     }
                 });
 
-                toastr.success('Donativo registrado correctamente', 'Éxito');
+                notificaciones.success('Donativo registrado correctamente', 'Éxito');
             } else {
-                toastr.error(response.mensaje || 'Error al registrar', 'Error');
+                notificaciones.error(response.mensaje || 'Error al registrar', 'Error');
             }
         })
         .fail(function(xhr, status, error) {
@@ -1650,11 +1650,11 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
             console.error('Respuesta:', xhr.responseText);
 
             if (xhr.status === 400) {
-                toastr.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
+                notificaciones.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
             } else if (xhr.status === 500) {
-                toastr.error('Error en el servidor. Intenta de nuevo.', 'Error');
+                notificaciones.error('Error en el servidor. Intenta de nuevo.', 'Error');
             } else {
-                toastr.error('Error al guardar el donativo: ' + error, 'Error');
+                notificaciones.error('Error al guardar el donativo: ' + error, 'Error');
             }
         });
 }
@@ -1668,14 +1668,14 @@ function actualizarDonativo(idDonativo) {
 
     // Validar que al menos haya un artículo
     if ($('#contenedorArticulos').find('.articulo-item').length === 0) {
-        toastr.warning('Agrega al menos un artículo', 'Validación');
+        notificaciones.warning('Agrega al menos un artículo', 'Validación');
         return;
     }
 
     // Validar el formulario
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
-        toastr.error('Por favor completa todos los campos requeridos', 'Validación');
+        notificaciones.error('Por favor completa todos los campos requeridos', 'Validación');
         return;
     }
 
@@ -1737,7 +1737,7 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
         idCategoria: articulo.idCategoria
     }));
 
-    toastr.info('Guardando nuevos artículos...', 'Procesando');
+    notificaciones.info('Guardando nuevos artículos...', 'Procesando');
 
     AjaxService.articulos.insertar(articulosParaInsertar)
         .then(response => {
@@ -1795,20 +1795,20 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
                         .filter(articulo => articulo.idArticulo !== null && articulo.idArticulo !== undefined);
                 } else {
                     console.warn('Respuesta sin estructura esperada:', response);
-                    toastr.error('No se pudo obtener el ID de los artículos nuevos', 'Error');
+                    notificaciones.error('No se pudo obtener el ID de los artículos nuevos', 'Error');
                     return;
                 }
             } catch (e) {
                 console.error('Error al procesar artículos insertados:', e);
                 console.error('Response completa:', response);
-                toastr.error('Error al procesar artículos insertados', 'Error');
+                notificaciones.error('Error al procesar artículos insertados', 'Error');
                 return;
             }
 
             // Validar que se obtuvieron IDs
             if (articulosInsertadosConId.length === 0) {
                 console.warn('⚠ No se pudieron extraer los IDs de los artículos insertados');
-                toastr.warning('Se insertaron artículos pero no se pudo obtener sus IDs', 'Advertencia');
+                notificaciones.warning('Se insertaron artículos pero no se pudo obtener sus IDs', 'Advertencia');
                 // Continuar igualmente con los artículos sin IDs
                 articulosInsertadosConId = articulosNuevos;
             }
@@ -1828,7 +1828,7 @@ function insertarArticulosNuevosParaActualizacion(articulosNuevos, articulosExis
         })
         .catch(error => {
             console.error('Error al guardar artículos nuevos:', error);
-            toastr.error('Error al guardar los artículos nuevos. Intenta de nuevo.', 'Error');
+            notificaciones.error('Error al guardar los artículos nuevos. Intenta de nuevo.', 'Error');
         });
 }
 
@@ -1851,7 +1851,7 @@ function subirArchivosParaActualizacion(idDonativo, todosLosArticulos) {
         processData: false,
         contentType: false,
         beforeSend: function () {
-            toastr.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
+            notificaciones.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
         },
         success: function (response) {
             console.log('Respuesta de subida de archivos:', response);
@@ -1874,13 +1874,13 @@ function subirArchivosParaActualizacion(idDonativo, todosLosArticulos) {
                 enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosGuardados);
             } catch (e) {
                 console.error('Error al procesar respuesta de archivos:', e);
-                toastr.error('Error al procesar los archivos subidos', 'Error');
+                notificaciones.error('Error al procesar los archivos subidos', 'Error');
             }
         },
         error: function (xhr, status, error) {
             console.error('Error al subir archivos:', error);
             console.error('Respuesta:', xhr.responseText);
-            toastr.error('Error al subir los archivos', 'Error');
+            notificaciones.error('Error al subir los archivos', 'Error');
         }
     });
 }
@@ -1942,7 +1942,7 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
     console.log('Actualizando donativo ID:', idDonativo);
     console.log('Datos a enviar:', donativoActualizado);
 
-    toastr.info('Actualizando donativo...', 'Procesando');
+    notificaciones.info('Actualizando donativo...', 'Procesando');
 
     AjaxService.donativos.actualizar(idDonativo, donativoActualizado)
         .done(function(response) {
@@ -1964,9 +1964,9 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
                     }
                 });
 
-                toastr.success('Donativo actualizado correctamente', 'Éxito');
+                notificaciones.success('Donativo actualizado correctamente', 'Éxito');
             } else {
-                toastr.error(response.mensaje || 'Error al actualizar', 'Error');
+                notificaciones.error(response.mensaje || 'Error al actualizar', 'Error');
             }   
         })
         .fail(function(xhr, status, error) {
@@ -1974,11 +1974,11 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
             console.error('Respuesta:', xhr.responseText);
 
             if (xhr.status === 400) {
-                toastr.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
+                notificaciones.error('Datos de donativo inválidos. Por favor revisa los campos.', 'Error');
             } else if (xhr.status === 500) {
-                toastr.error('Error en el servidor. Intenta de nuevo.', 'Error');
+                notificaciones.error('Error en el servidor. Intenta de nuevo.', 'Error');
             } else {
-                toastr.error('Error al actualizar el donativo: ' + error, 'Error');
+                notificaciones.error('Error al actualizar el donativo: ' + error, 'Error');
             }
         });
 }
@@ -2070,7 +2070,7 @@ function obtenerColorEstado(estado) {
 function editarDonativo(idDonativo) {
     // console.log('Editando donativo ID:', idDonativo);
 
-    toastr.info('Cargando donativo para edición...', 'Procesando');
+    notificaciones.info('Cargando donativo para edición...', 'Procesando');
 
     AjaxService.donativos.obtenerPorId(idDonativo)
         .then(response => {
@@ -2082,11 +2082,11 @@ function editarDonativo(idDonativo) {
             // Hacer scroll al formulario
             document.getElementById('formRegistroDonativos').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            toastr.success('Donativo cargado para editar', 'Éxito');
+            notificaciones.success('Donativo cargado para editar', 'Éxito');
         })
         .catch(error => {
             console.error('Error al obtener donativo:', error);
-            toastr.error('Error al cargar el donativo para edición', 'Error');
+            notificaciones.error('Error al cargar el donativo para edición', 'Error');
         });
 }
 
@@ -2114,9 +2114,9 @@ function cargarDonativoEnFormulario(donativo) {
     $('#btnGuardarDonativo').html('<i class="fas fa-save"></i> Actualizar Donativo');
     $('#btnCancelarEdicion').removeClass('d-none');
 
-    console.log('Modo edición activado para donativo ID:', donativo.id_donativo);
+    console.log('Modo edición activado para donativo ID:', donativo.idDonativo);
 
-    $('#id_donador').val(donativo.donador?.id_donador || '');
+    $('#id_donador').val(donativo.donador?.idDonador || '');
     $('#selectTipoDonador').val(donativo.donador?.tipo || '');
     $('#textNombreDonador').val(donativo.donador?.nombre || '');
     $('#textRFC').val(donativo.donador?.rfc || '');
@@ -2126,7 +2126,7 @@ function cargarDonativoEnFormulario(donativo) {
     $('#textColoniaDonador').val(donativo.donador?.colonia || '');
     $('#textCiudadDonador').val(donativo.donador?.ciudad || '');
     $('#textEstadoDonador').val(donativo.donador?.estado || '');
-    $('#textCodigoPostalDonador').val(donativo.donador?.codigo_postal || '');
+    $('#textCodigoPostalDonador').val(donativo.donador?.codigoPostal || '');
     $('#textNotasDonador').val(donativo.donador?.notas || '');
 
     // Indicar que fue seleccionado
@@ -2143,9 +2143,9 @@ function cargarDonativoEnFormulario(donativo) {
             $('#textExtensionContacto').val(donativo.contacto.extension || '');
             $('#textCelularContacto').val(donativo.contacto.celular || '');
             $('#textEmailContacto').val(donativo.contacto.email || '');
-            $('#textHorarioContacto').val(donativo.contacto.horario_contacto || '');
-            $('#selectMedioPreferido').val(donativo.contacto.medio_preferido || '');
-            $('#checkEsPrincipal').prop('checked', donativo.contacto.es_principal === true || donativo.contacto.es_principal === 1);
+            $('#textHorarioContacto').val(donativo.contacto.horarioContacto || '');
+            $('#selectMedioPreferido').val(donativo.contacto.medioPreferido || '');
+            $('#checkEsPrincipal').prop('checked', donativo.contacto.esPrincipal === true || donativo.contacto.esPrincipal === 1);
             $('#checkActivoContacto').prop('checked', donativo.contacto.activo === true || donativo.contacto.activo === 1);
             $('#textNotasContacto').val(donativo.contacto.notas || '');
         }
@@ -2156,9 +2156,9 @@ function cargarDonativoEnFormulario(donativo) {
 
     console.log('Cargando información del donativo');
 
-    $('#dateRecepcion').val(donativo.fecha_recepcion ? donativo.fecha_recepcion.split('T')[0] : obtenerFechaHoy());
+    $('#dateRecepcion').val(donativo.fechaRecepcion ? donativo.fechaRecepcion.split('T')[0] : obtenerFechaHoy());
     $('#selectTipoDonativo').val(donativo.tipo.toLowerCase() || 'especie');
-    $('#selectAlmacenDestino').val(donativo.id_almacen || centroIDUsuario.value);
+    $('#selectAlmacenDestino').val(donativo.idAlmacen || centroIDUsuario.value);
     $('#textObservacionesDonativo').val(donativo.observaciones || '');
 
     // Si es efectivo, mostrar el campo de importe
@@ -2177,23 +2177,23 @@ function cargarDonativoEnFormulario(donativo) {
             const $articulo = $(`[data-articulo="${numeroArticulos}"]`);
 
             // Llenar datos del artículo
-            $articulo.find('.input-articulo-nombre').val(detalle.nombre_articulo || '').prop('readonly', true).css('background-color', '#e8f5e9');
+            $articulo.find('.input-articulo-nombre').val(detalle.nombreArticulo || '').prop('readonly', true).css('background-color', '#e8f5e9');
             $articulo.find('.input-articulo-descripcion').val(detalle.descripcion || '');
-            $articulo.find('.input-articulo-unidad').val(detalle.unidad_medida.toLowerCase() || '');
+            $articulo.find('.input-articulo-unidad').val(detalle.unidadMedida.toLowerCase() || '');
             $articulo.find('.input-articulo-categoria-select').val(detalle.categoria || '');
-            $articulo.find('.input-articulo-cantidad').val(detalle.cantidad_recibida || 0);
-            $articulo.find('.input-articulo-valor').val(parseFloat(detalle.valor_unitario || 0).toFixed(2));
+            $articulo.find('.input-articulo-cantidad').val(detalle.cantidadRecibida || 0);
+            $articulo.find('.input-articulo-valor').val(parseFloat(detalle.valorUnitario || 0).toFixed(2));
             $articulo.find('.input-articulo-estado').val(detalle.estado.toLowerCase() || '');
 
             // ⭐ IMPORTANTE: Guardar el ID del artículo Y el ID del detalle del donativo
-            $articulo.data('id_articulo', detalle.id_articulo);
-            $articulo.data('id_donativo_detalle', detalle.id_donativo_detalle);
+            $articulo.data('id_articulo', detalle.idArticulo);
+            $articulo.data('id_donativo_detalle', detalle.idDonativoDetalle);
 
             // Log para verificar que se guardó correctamente
             console.log(`✓ Artículo #${numeroArticulos}:`, {
-                nombre: detalle.nombre_articulo,
-                id_articulo: detalle.id_articulo,
-                id_donativo_detalle: detalle.id_donativo_detalle
+                nombre: detalle.nombreArticulo,
+                id_articulo: detalle.idArticulo,
+                id_donativo_detalle: detalle.idDonativoDetalle
             });
         });
     }
@@ -2202,7 +2202,7 @@ function cargarDonativoEnFormulario(donativo) {
     mostrarArchivosExistentes();
 
     console.log('✓ Donativo cargado en el formulario correctamente para edición');
-    toastr.success('Donativo cargado para editar. Modifica los campos necesarios.', 'Modo Edición');
+    notificaciones.success('Donativo cargado para editar. Modifica los campos necesarios.', 'Modo Edición');
 }
 
 
@@ -2229,7 +2229,7 @@ function mostrarArchivosExistentes() {
     divArchivosExistentes.append('<strong class="text-muted d-block mb-2">Archivos adjuntos:</strong>');
 
     archivosExistentes.forEach((archivo, index) => {
-        const extension = archivo.nombre_archivo.split('.').pop().toLowerCase();
+        const extension = archivo.nombreArchivo.split('.').pop().toLowerCase();
         const icono = obtenerIconoArchivo(extension);
 
         const archivoHtml = $(`
@@ -2237,11 +2237,11 @@ function mostrarArchivosExistentes() {
                 <div class="d-flex align-items-center flex-grow-1">
                     <i class="${icono} mr-2" style="font-size: 1.5rem;"></i>
                     <div class="flex-grow-1">
-                        <a href="/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.url_archivo)}" 
+                        <a href="/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}" 
                            target="_blank" 
                            class="text-primary" 
                            title="Ver archivo">
-                            ${archivo.nombre_archivo}
+                            ${archivo.nombreArchivo}
                         </a>
                         <small class="text-muted d-block">${(archivo.tamano_kb || 0).toFixed(2)} KB</small>
                     </div>
@@ -2273,7 +2273,7 @@ function eliminarArchivoExistente(index) {
         if (result.isConfirmed) {
             archivosExistentes.splice(index, 1);
             mostrarArchivosExistentes();
-            toastr.info('Archivo marcado para eliminación', 'Información');
+            notificaciones.info('Archivo marcado para eliminación', 'Información');
         }
     });
 }
@@ -2301,16 +2301,16 @@ function eliminarDonativo(idDonativo) {
                 data: { id_donativo: idDonativo },
                 dataType: 'json',
                 beforeSend: function () {
-                    toastr.info('Eliminando donativo...', 'Procesando');
+                    notificaciones.info('Eliminando donativo...', 'Procesando');
                 },
                 success: function (response) {
-                    // console.log('Donativo eliminado:', response);
-                    toastr.success('Donativo eliminado correctamente', 'Éxito');
+                    console.log('Donativo eliminado:', response);
+                    notificaciones.success('Donativo eliminado correctamente', 'Éxito');
                     cargarDonativos(); // Refrescar tabla
                 },
                 error: function (xhr, status, error) {
                     console.error('Error al eliminar donativo:', error);
-                    toastr.error('Error al eliminar el donativo', 'Error');
+                    notificaciones.error('Error al eliminar el donativo', 'Error');
                 }
             });
         }
@@ -2366,7 +2366,7 @@ function salirModoEdicion() {
 function verDetalles(idDonativo) {
     console.log('Cargando detalles del donativo ID:', idDonativo);
 
-    toastr.info('Cargando detalles...', 'Procesando');
+    notificaciones.info('Cargando detalles...', 'Procesando');
 
     AjaxService.donativos.obtenerDetalles(idDonativo)
         .then(response => {
@@ -2380,7 +2380,7 @@ function verDetalles(idDonativo) {
                     datosCompletos = JSON.parse(response);
                 } catch (e) {
                     console.error('Error al parsear respuesta:', e);
-                    toastr.error('Error al procesar los detalles', 'Error');
+                    notificaciones.error('Error al procesar los detalles', 'Error');
                     return;
                 }
             } else {
@@ -2390,7 +2390,7 @@ function verDetalles(idDonativo) {
             // Validar estructura
             if (!datosCompletos || !datosCompletos.detalles) {
                 console.error('Formato de respuesta inesperado:', datosCompletos);
-                toastr.error('Formato de detalles inesperado', 'Error');
+                notificaciones.error('Formato de detalles inesperado', 'Error');
                 return;
             }
 
@@ -2399,7 +2399,7 @@ function verDetalles(idDonativo) {
         })
         .catch(error => {
             console.error('Error al cargar detalles:', error);
-            toastr.error('Error al cargar los detalles del donativo', 'Error');
+            notificaciones.error('Error al cargar los detalles del donativo', 'Error');
         });
 }
 
@@ -2427,26 +2427,26 @@ function mostrarModalDetalles(detalles, archivos, idDonativo) {
     html += '<h4 class="mb-4"><i class="fas fa-box-open"></i> Artículos Donados</h4>';
 
     detalles.forEach((detalle, index) => {
-        const valorTotal = (detalle.cantidad_recibida * detalle.valor_unitario).toFixed(2);
+        const valorTotal = (detalle.cantidadRecibida * detalle.valorUnitario).toFixed(2);
 
         html += `
             <div class="card mb-4 shadow-sm">
                 <div class="card-header" style="background-color: var(--guinda); color: white;">
                     <h5 class="mb-0">
-                        <i class="fas fa-box"></i> ${detalle.nombre_articulo}
-                        <span class="badge badge-light float-right">${detalle.categoria_articulo}</span>
+                        <i class="fas fa-box"></i> ${detalle.nombreArticulo}
+                        <span class="badge badge-light float-right">${detalle.categoriaArticulo}</span>
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p class="mb-2"><strong>Categoría:</strong> ${detalle.categoria_articulo}</p>
-                            <p class="mb-2"><strong>Unidad de Medida:</strong> ${detalle.unidad_medida}</p>
+                            <p class="mb-2"><strong>Categoría:</strong> ${detalle.categoriaArticulo}</p>
+                            <p class="mb-2"><strong>Unidad de Medida:</strong> ${detalle.unidadMedida}</p>
                             <p class="mb-2"><strong>Estado:</strong> <span class="badge badge-info">${detalle.estado}</span></p>
                         </div>
                         <div class="col-md-6">
-                            <p class="mb-2"><strong>Cantidad:</strong> ${detalle.cantidad_recibida}</p>
-                            <p class="mb-2"><strong>Valor Unitario:</strong> $${parseFloat(detalle.valor_unitario).toFixed(2)}</p>
+                            <p class="mb-2"><strong>Cantidad:</strong> ${detalle.cantidadRecibida}</p>
+                            <p class="mb-2"><strong>Valor Unitario:</strong> $${parseFloat(detalle.valorUnitario).toFixed(2)}</p>
                             <p class="mb-2"><strong>Valor Total:</strong> $${valorTotal}</p>
                         </div>
                     </div>
@@ -2462,30 +2462,30 @@ function mostrarModalDetalles(detalles, archivos, idDonativo) {
             <div class="row">`;
 
         archivos.forEach((archivo) => {
-            const extension = archivo.nombre_archivo.split('.').pop().toLowerCase();
+            const extension = archivo.nombreArchivo.split('.').pop().toLowerCase();
             const iconoArchivo = obtenerIconoArchivo(extension);
-            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.url_archivo)}`;
+            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`;
 
             html += `
                 <div class="col-md-6 col-lg-4 mb-3">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body text-center">
                             <i class="${iconoArchivo} fa-3x mb-3" style="color: var(--dorado);"></i>
-                            <h6 class="card-title text-truncate" title="${archivo.nombre_archivo}">
-                                ${archivo.nombre_archivo}
+                            <h6 class="card-title text-truncate" title="${archivo.nombreArchivo}">
+                                ${archivo.nombreArchivo}
                             </h6>
-                            <small class="text-muted">ID: ${archivo.id_archivo}</small>
+                            <small class="text-muted">ID: ${archivo.idArchivo}</small>
                             <div class="mt-3">
                                 ${extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif'
-                    ? `<button type="button" class="btn btn-sm btn-info mb-2" onclick="visualizarArchivo('${urlCompleta}', '${archivo.nombre_archivo}', 'imagen')">
+                    ? `<button type="button" class="btn btn-sm btn-info mb-2" onclick="visualizarArchivo('${urlCompleta}', '${archivo.nombreArchivo}', 'imagen')">
                                         <i class="fas fa-eye"></i> Ver
                                        </button>`
                     : extension === 'pdf'
-                        ? `<button type="button" class="btn btn-sm btn-info mb-2" onclick="visualizarArchivo('${urlCompleta}', '${archivo.nombre_archivo}', 'pdf')">
+                        ? `<button type="button" class="btn btn-sm btn-info mb-2" onclick="visualizarArchivo('${urlCompleta}', '${archivo.nombreArchivo}', 'pdf')">
                                             <i class="fas fa-eye"></i> Ver
                                            </button>`
                         : ''}
-                                <a href="${urlCompleta}" download="${archivo.nombre_archivo}" class="btn btn-sm btn-success mb-2">
+                                <a href="${urlCompleta}" download="${archivo.nombreArchivo}" class="btn btn-sm btn-success mb-2">
                                     <i class="fas fa-download"></i> Descargar
                                 </a>
                             </div>

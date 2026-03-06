@@ -31,8 +31,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- Servicio AJAX centralizado -->
     <script src="~/Scripts/ajax-service.js"></script>
-    <!-- Script externo -->
+    <!-- Servicio de Notificaciones Unificado -->
+    <script src="~/Scripts/notificaciones-service.js"></script>
+    <!-- Scripts de módulos -->
     <script src="~/Scripts/registros.js"></script>
+    <script src="~/Scripts/salidas.js"></script>
+    <script src="~/Scripts/traspasos.js"></script>
     <link href="~/Scripts/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
 
@@ -89,8 +93,12 @@
                     <i class="fas fa-arrow-up w-6"></i>
                     <span class="ml-3">Salidas</span>
                 </a>
+                <a href="#" onclick="App.loadView(event, 'traspasos'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
+                <i class="fa-solid fa-arrows-h w-6"></i>
+                    <span class="ml-3">Traspasos</span>
+                </a>
                 <a href="#" onclick="App.loadView(event, 'reportes'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                    <i class="fa-solid fa-chart-line"></i>
+                    <i class="fa-solid fa-file-text"></i>
                     <span class="ml-3">Reportes</span>
                 </a>
                 <a href="#" onclick="App.loadView(event, 'dashboard'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
@@ -164,6 +172,7 @@
                 'registros': 'Cargando formulario de registro',
                 'consulta': 'Cargando consulta de registros',
                 'salidas': 'Cargando salidas',
+                'traspasos': 'Cargando traspasos',
                 'reportes': 'Cargando reportes',
                 'dashboard': 'Cargando dashboard'
             },
@@ -204,19 +213,31 @@
                         container.innerHTML = html;
                         this.currentView = viewName;
                         $("html,body").animate({ scrollTop: 0 }, 300);
-                        
+
                         // Marcar como activa la opción del menú correspondiente
                         this.updateActiveMenu(viewName);
 
-                        // IMPORTANTE: Reinicializar el formulario si es la vista de registros
+                        // ⭐ INICIALIZAR MÓDULOS SEGÚN LA VISTA CARGADA
                         if (viewName === 'registros') {
-                            initRegistrosForm();
-                            
-                            // ⭐ DISPARAR EVENTO PERSONALIZADO DESPUÉS DE CARGAR LA VISTA
+                            if (typeof initRegistrosForm === 'function') {
+                                initRegistrosForm();
+                            }
+
                             setTimeout(() => {
-                                // console.log('Disparando evento registrosViewLoaded');
                                 document.dispatchEvent(new Event('registrosViewLoaded'));
                             }, 100);
+                        } else if (viewName === 'salidas') {
+                            // Inicializar módulo de salidas
+                            if (typeof inicializarSalidas === 'function') {
+                                console.log('🚀 Inicializando módulo Salidas');
+                                setTimeout(() => inicializarSalidas(), 100);
+                            }
+                        } else if (viewName === 'traspasos') {
+                            // Inicializar módulo de traspasos
+                            if (typeof inicializarTraspasos === 'function') {
+                                console.log('🚀 Inicializando módulo Traspasos');
+                                setTimeout(() => inicializarTraspasos(), 100);
+                            }
                         }
                     },
                     error: (xhr, status, error) => {
@@ -232,7 +253,8 @@
                     'inicio': 0,
                     'registros': 1,
                     'consulta': 2,
-                    'salidas': 4,
+                    'salidas': 3,
+                    'traspasos': 4,
                     'reportes': 5,
                     'dashboard': 6
                 };
