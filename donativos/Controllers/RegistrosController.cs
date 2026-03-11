@@ -1708,7 +1708,7 @@ namespace donativos.Controllers
                 Console.WriteLine($"📤 Enviando al API: {datosJson}");
 
                 // Enviar al API
-                var response = await ExecuteApiAsync(token, $"traspaso/{idTraspaso.Value}/recibir", "PUT", datosJson);
+                var response = await ExecuteApiAsync(token, $"traspaso/{idTraspaso.Value}/recibir", "POST", datosJson);
 
                 Console.WriteLine($"✓ Respuesta del API: {response.StatusCode}");
 

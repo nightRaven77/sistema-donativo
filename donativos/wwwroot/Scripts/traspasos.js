@@ -765,7 +765,7 @@ function renderizarDetalleTraspaso(traspaso) {
     const almacenDestino = traspaso.almacenDestinoNombre || '-';
     const motivo = traspaso.motivo || '-';
     const observaciones = traspaso.observaciones || '-';
-    const estado = traspaso.estado || 'pendiente';
+    const estado = traspaso.estatus || 'pendiente';
     const isInstantaneo = traspaso.is_instantaneo || traspaso.isInstantaneo || false;
     const estadoBadge = obtenerBadgeEstado(estado);
     const tipoBadge = isInstantaneo ? '<span class="badge badge-warning">Instantáneo</span>' : '<span class="badge badge-secondary">Normal</span>';
@@ -823,7 +823,105 @@ function renderizarDetalleTraspaso(traspaso) {
     }
     
     html += '</tbody></table>';
+
+    // ⭐ Sección de archivos adjuntos (si los hay)
+    if (traspaso.archivos && traspaso.archivos.length > 0) {
+        html += `
+            <hr class="my-4">
+            <h6 class="font-weight-bold"><i class="fas fa-paperclip"></i> Archivos Adjuntos (${traspaso.archivos.length})</h6>
+            <div class="row">`;
+
+        traspaso.archivos.forEach((archivo) => {
+            const extension = (archivo.nombreArchivo || '').split('.').pop().toLowerCase();
+            const iconoArchivo = obtenerIconoArchivoTraspaso(extension);
+            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo || archivo.url || '')}`;
+            const tipoArchivo = archivo.tipoArchivo || 'General';
+
+            // Badge según el tipo de archivo
+            let badgeTipo = '';
+            if (tipoArchivo === 'Recepcion') {
+                badgeTipo = '<span class="badge badge-success">Recepción</span>';
+            } else if (tipoArchivo === 'Envio') {
+                badgeTipo = '<span class="badge badge-primary">Envío</span>';
+            } else {
+                badgeTipo = '<span class="badge badge-secondary">General</span>';
+            }
+
+            html += `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="${iconoArchivo} fa-3x mb-3" style="color: var(--dorado);"></i>
+                            <h6 class="card-title text-truncate" title="${archivo.nombreArchivo || 'Archivo'}">
+                                ${archivo.nombreArchivo || 'Archivo'}
+                            </h6>
+                            <small class="text-muted">${badgeTipo}</small>
+                            <div class="mt-3">
+                                ${extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif'
+                    ? `<button type="button" class="btn btn-sm btn-info mb-2" onclick="visualizarArchivoTraspaso('${urlCompleta}', '${archivo.nombreArchivo}', 'imagen')">
+                                        <i class="fas fa-eye"></i> Ver
+                                       </button>`
+                    : extension === 'pdf'
+                        ? `<button type="button" class="btn btn-sm btn-info mb-2" onclick="visualizarArchivoTraspaso('${urlCompleta}', '${archivo.nombreArchivo}', 'pdf')">
+                                            <i class="fas fa-eye"></i> Ver
+                                           </button>`
+                        : ''}
+                                <a href="${urlCompleta}" download="${archivo.nombreArchivo}" class="btn btn-sm btn-success mb-2">
+                                    <i class="fas fa-download"></i> Descargar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        html += `
+            </div>`;
+    }
+
     $contenido.html(html);
+}
+
+/**
+ * Obtiene el icono de Font Awesome según la extensión del archivo
+ */
+function obtenerIconoArchivoTraspaso(extension) {
+    switch(extension.toLowerCase()) {
+        case 'pdf': return 'fas fa-file-pdf text-danger';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif': return 'fas fa-file-image text-primary';
+        case 'doc':
+        case 'docx': return 'fas fa-file-word text-primary';
+        case 'xls':
+        case 'xlsx': return 'fas fa-file-excel text-success';
+        default: return 'fas fa-file text-secondary';
+    }
+}
+
+/**
+ * Visualiza un archivo en un modal (imágenes o PDFs)
+ */
+function visualizarArchivoTraspaso(url, nombreArchivo, tipo) {
+    let contenidoModal = '';
+
+    if (tipo === 'imagen') {
+        contenidoModal = `<img src="${url}" alt="${nombreArchivo}" style="max-width: 100%; height: auto;">`;
+    } else if (tipo === 'pdf') {
+        contenidoModal = `<iframe src="${url}" style="width: 100%; height: 70vh;" frameborder="0"></iframe>`;
+    }
+
+    Swal.fire({
+        title: nombreArchivo,
+        html: contenidoModal,
+        width: '80%',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-wide'
+        }
+    });
 }
 
 /**
@@ -831,10 +929,10 @@ function renderizarDetalleTraspaso(traspaso) {
  */
 function agregarBotonesAccionModal(traspaso) {
     const $acciones = $('#accionesDetalleTraspaso');
-    const estado = traspaso.estado || 'pendiente';
+    const estado = traspaso.estatus || 'pendiente';
     const id = traspaso.id_traspaso || traspaso.idTraspaso || traspaso.id;
     
-    let botones = '<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>';
+    let botones = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>';
     
     if (estado.toLowerCase() === 'pendiente') {
         botones += `
@@ -948,7 +1046,7 @@ function confirmarRecepcionConArchivos(id, observaciones, archivosGuardados, $bt
             console.error('❌ Error:', error);
             mostrarNotificacion('Error al procesar la recepción', 'error');
         })
-        .finally(() => {
+        .always(() => {
             $btn.prop('disabled', false).html('<i class="fas fa-check"></i> Confirmar Recepción');
         });
 }
@@ -1385,6 +1483,8 @@ window.abrirModalRecibirTraspaso = abrirModalRecibirTraspaso;
 window.confirmarRecepcionTraspaso = confirmarRecepcionTraspaso;
 window.abrirModalCancelarTraspaso = abrirModalCancelarTraspaso;
 window.confirmarCancelacionTraspaso = confirmarCancelacionTraspaso;
+window.obtenerIconoArchivoTraspaso = obtenerIconoArchivoTraspaso;
+window.visualizarArchivoTraspaso = visualizarArchivoTraspaso;
 
 // ===================================================================
 // LOG DE CARGA

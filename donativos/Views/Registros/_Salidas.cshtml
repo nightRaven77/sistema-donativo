@@ -2,6 +2,63 @@
     Layout = null;
 }
 
+<!-- Estilos personalizados para la tabla de salidas -->
+<style>
+    /* Estilos para optimizar la tabla de salidas */
+    #tablaSalidas {
+        font-size: 0.875rem; /* Reducir tamaño general de fuente */
+    }
+
+    /* Columnas con texto más pequeño y word wrap */
+    #tablaSalidas tbody td:nth-child(2), /* Fecha */
+    #tablaSalidas tbody td:nth-child(4), /* Beneficiario */
+    #tablaSalidas tbody td:nth-child(5)  /* Almacén Origen */
+    {
+        font-size: 0.75rem;
+        max-width: 150px;
+        word-wrap: break-word;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    /* ID más pequeño */
+    #tablaSalidas tbody td:nth-child(1) {
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    /* Tipo más compacto */
+    #tablaSalidas tbody td:nth-child(3) {
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* Badges más pequeños */
+    #tablaSalidas .badge {
+        font-size: 0.7rem;
+        padding: 0.25em 0.5em;
+    }
+
+    /* Botones de acción más compactos */
+    #tablaSalidas .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+
+    /* Headers más compactos */
+    #tablaSalidas thead th {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* Celdas más compactas */
+    #tablaSalidas tbody td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+</style>
+
 <div class="bg-white rounded-lg shadow-md p-8">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Registro de Salidas</h2>
@@ -44,6 +101,7 @@
                     <thead class="table-light">
                         <tr style="background-color: var(--guinda); color: white;">
                             <th>ID</th>
+                            <th>Folio</th>
                             <th>Fecha</th>
                             <th>Tipo</th>
                             <th>Beneficiario</th>
