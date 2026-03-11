@@ -5,7 +5,7 @@
 <div class="bg-white rounded-lg shadow-md p-8">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Registro de Salidas</h2>
-        <button type="button" class="btn btn-guinda" onclick="abrirModalNuevaSalida()">
+        <button type="button" class="btn btn-outline-dark" onclick="abrirModalNuevaSalida()">
             <i class="fas fa-plus"></i> Nueva Salida
         </button>
     </div>
@@ -40,9 +40,9 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="tablaSalidas" class="table table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
+                <table id="tablaSalidas" class="table table-striped table-hover nowrap w-100">
+                    <thead class="table-light">
+                        <tr style="background-color: var(--guinda); color: white;">
                             <th>ID</th>
                             <th>Fecha</th>
                             <th>Tipo</th>
@@ -67,7 +67,7 @@
                 <h5 class="modal-title">
                     <i class="fas fa-sign-out-alt"></i> <span id="tituloModalSalida">Nueva Salida</span>
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
@@ -212,7 +212,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-guinda" onclick="guardarSalida()" style="background-color: var(--guinda) !important;">
@@ -256,7 +256,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" onclick="guardarNuevoBeneficiario()">
                     <i class="fas fa-save"></i> Guardar
                 </button>
@@ -281,7 +281,7 @@
                 <!-- Se llena dinámicamente -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

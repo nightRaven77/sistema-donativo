@@ -17,6 +17,7 @@ let timerBusquedaBeneficiario = null;
 let timerBusquedaArticulo = null;
 let archivosAdjuntosSalida = [];
 let archivosExistentesSalida = [];
+let dataTableSalidas = null; // DataTable para la tabla de salidas
 
 // ===================================================================
 // CONFIGURACIÓN
@@ -39,9 +40,6 @@ const CONFIG_SALIDAS = {
 // ===================================================================
 // INICIALIZACIÓN
 // ===================================================================
-
-// NO usar $(document).ready() porque esto es una SPA
-// La inicialización se hace cuando se carga la vista
 
 /**
  * Inicializa el módulo de salidas
@@ -574,6 +572,7 @@ function guardarSalidaCompleta(tipoSalida, archivosGuardados, $btn) {
         idAlmacenOrigen: parseInt($('#selectAlmacenOrigen').val()),
         idBeneficiario: tipoSalida === CONFIG_SALIDAS.TIPOS_SALIDA.DONACION ? parseInt($('#id_beneficiario').val()) : null,
         motivo: motivoTexto,
+        estatus: 'Entregada',
         observaciones: observacionesTexto,
         tipoSalida: tipoSalida,
         detalles: articulosSalidaSeleccionados.map(art => ({
@@ -719,6 +718,44 @@ function guardarNuevoBeneficiario() {
 // ===================================================================
 
 /**
+ * Inicializa DataTables para salidas
+ */
+function inicializarDataTablesSalidas() {
+    if (dataTableSalidas) {
+        dataTableSalidas.destroy();
+    }
+
+    dataTableSalidas = $('#tablaSalidas').DataTable({
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        },
+        pageLength: 10,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        paging: true,
+        responsive: true,
+        order: [[1, 'desc']], // Ordenar por fecha descendente por defecto
+        columnDefs: [
+            {
+                targets: -1, // Última columna (Acciones)
+                orderable: false,
+                searchable: false
+            },
+            {
+                targets: 2, // Columna Tipo (badges)
+                orderable: true,
+                searchable: true
+            }
+        ],
+        initComplete: function () {
+            console.log('✓ DataTables Salidas inicializado correctamente');
+        }
+    });
+}
+
+/**
  * Carga la tabla de salidas
  */
 function cargarSalidas() {
@@ -737,28 +774,30 @@ function cargarSalidas() {
 }
 
 /**
- * Renderiza la tabla de salidas
+ * Renderiza la tabla de salidas usando DataTables
  */
 function renderizarTablaSalidas(salidas) {
-    const $tbody = $('#tablaSalidas tbody');
-    $tbody.empty();
+    // Inicializar DataTables si no existe
+    if (!dataTableSalidas) {
+        inicializarDataTablesSalidas();
+    }
+
+    // Limpiar tabla
+    dataTableSalidas.clear();
 
     if (salidas.length === 0) {
-        $tbody.html('<tr><td colspan="7" class="text-center text-muted">No hay salidas registradas</td></tr>');
+        dataTableSalidas.draw();
+        console.log('⚠ No hay salidas para mostrar');
         return;
     }
 
+    // Agregar filas usando DataTables
     salidas.forEach(salida => {
         const id = salida.id_salida || salida.idSalida || salida.id;
         const fecha = formatearFecha(salida.fecha_salida || salida.fechaSalida);
 
         // ⭐ IMPORTANTE: Asegurarse de obtener el TIPO correcto (no el motivo)
         const tipo = salida.tipo_salida || salida.tipoSalida || salida.tipo || '';
-        const motivo = salida.motivo || '';
-
-        // Log para debugging
-        console.log(`Salida #${id}: tipo="${tipo}", motivo="${motivo}"`);
-
         const beneficiario = salida.beneficiario?.nombre || salida.nombreBeneficiario || '-';
         const almacen = salida.almacenOrigen?.nombre || salida.nombreAlmacen || '-';
         const numArticulos = salida.cantidadArticulos || 0;
@@ -770,28 +809,34 @@ function renderizarTablaSalidas(salidas) {
         } else if (tipo.toLowerCase() === 'merma') {
             tipoBadge = '<span class="badge badge-warning">Merma</span>';
         } else {
-            // Si no coincide, mostrar el valor tal cual para debugging
             tipoBadge = `<span class="badge badge-secondary">${tipo || 'N/A'}</span>`;
         }
 
-        $tbody.append(`
-            <tr>
-                <td>${id}</td>
-                <td>${fecha}</td>
-                <td>${tipoBadge}</td>
-                <td>${beneficiario}</td>
-                <td>${almacen}</td>
-                <td class="text-center"><span class="badge badge-info">${numArticulos}</span></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-info" onclick="verDetalleSalida(${id})" title="Ver detalle">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            </tr>
-        `);
+        // Botones de acción
+        const botones = `
+            <button class="btn btn-sm btn-info" onclick="verDetalleSalida(${id})" title="Ver detalle">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="eliminarSalida(${id})" title="Eliminar">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+
+        // Agregar fila a DataTables
+        dataTableSalidas.row.add([
+            id,
+            fecha,
+            tipoBadge,
+            beneficiario,
+            almacen,
+            `<span class="badge badge-info">${numArticulos}</span>`,
+            botones
+        ]);
     });
 
-    console.log(`✓ Tabla de salidas renderizada con ${salidas.length} registros`);
+    // Redibujar tabla
+    dataTableSalidas.draw();
+    console.log(`✓ DataTables Salidas actualizado con ${salidas.length} registros`);
 }
 
 /**
@@ -915,6 +960,48 @@ function renderizarDetalleSalida(salida) {
 function filtrarSalidas() {
     // Implementar filtrado si es necesario
     cargarSalidas();
+}
+
+// ===================================================================
+// ELIMINAR SALIDAS
+// ===================================================================
+
+/**
+ * Elimina la salida 
+ */
+function eliminarSalida(id) {
+    Swal.fire({
+        title: '¿Eliminar salida?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            $.ajax({
+                type: 'GET',
+                url: 'EliminarSalida',
+                data: { id_salida: id },
+                dataType: 'json',
+                beforeSend: function () {
+                    notificaciones.info('Eliminando Salida...', 'Procesando');
+                },
+                success: function (response) {
+                    console.log('Salida eliminada:', response);
+                    notificaciones.success('Salida eliminada correctamente', 'Éxito');
+                    cargarSalidas()
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error al eliminar salida:', error);
+                    notificaciones.error('Error al eliminar la salida', 'Error');
+                }
+            });
+        }
+    });
 }
 
 // ===================================================================

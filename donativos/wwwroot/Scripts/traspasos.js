@@ -16,6 +16,8 @@ let timerBusquedaArticuloTraspaso = null;
 let traspasoActual = null;
 let archivosAdjuntosTraspaso = [];
 let archivosExistentesTraspaso = [];
+let archivosAdjuntosRecepcion = []; // Archivos para la recepción
+let dataTableTraspasos = null; // DataTable para la tabla de traspasos
 
 // ===================================================================
 // CONFIGURACIÓN
@@ -66,6 +68,11 @@ function inicializarTraspasos() {
 function configurarEventosArchivosTraspaso() {
     $('#fileAdjuntosTraspaso').on('change', function(e) {
         manejarArchivosAdjuntosTraspaso(e);
+    });
+
+    // Archivos de recepción
+    $('#fileAdjuntosRecepcion').on('change', function(e) {
+        manejarArchivosAdjuntosRecepcion(e);
     });
 }
 
@@ -467,8 +474,12 @@ function guardarTraspasoCompleto(almacenOrigen, almacenDestino, archivosGuardado
 
     // Agregar archivos si los hay
     if (archivosGuardados && archivosGuardados.length > 0) {
-        traspaso.archivos = archivosGuardados;
-        console.log(`📎 Incluyendo ${archivosGuardados.length} archivo(s)`);
+        // Agregar tipo de archivo a cada archivo individual
+        traspaso.archivos = archivosGuardados.map(archivo => ({
+            ...archivo,
+            tipoArchivo: 'Envio'
+        }));
+        console.log(`📎 Incluyendo ${archivosGuardados.length} archivo(s) de tipo Envio`);
     }
 
     console.log('📤 Datos a enviar:', traspaso);
@@ -499,7 +510,7 @@ function guardarTraspasoCompleto(almacenOrigen, almacenDestino, archivosGuardado
             console.error('❌ Error al guardar traspaso:', error);
             notificaciones.error('Error al guardar el traspaso', 'error');
         })
-        .finally(() => {
+        .always(() => {
             $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Crear Traspaso');
         });
 }
@@ -507,6 +518,95 @@ function guardarTraspasoCompleto(almacenOrigen, almacenDestino, archivosGuardado
 // ===================================================================
 // CONSULTA DE TRASPASOS
 // ===================================================================
+
+/**
+ * Inicializa DataTables para traspasos
+ */
+function inicializarDataTablesTraspasos() {
+    if (dataTableTraspasos) {
+        dataTableTraspasos.destroy();
+    }
+
+    dataTableTraspasos = $('#tablaTraspasos').DataTable({
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        },
+        pageLength: 10,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        paging: true,
+        responsive: true,
+        autoWidth: false, // Deshabilitar ancho automático
+        order: [[2, 'desc']], // Ordenar por fecha descendente por defecto (cambió índice por nueva columna)
+        columnDefs: [
+            {
+                targets: 0, // ID
+                width: '50px',
+                className: 'text-center'
+            },
+            {
+                targets: 1, // Folio
+                width: '100px',
+                className: 'small-text'
+            },
+            {
+                targets: 2, // Fecha
+                width: '90px',
+                className: 'text-center'
+            },
+            {
+                targets: 3, // Almacén Origen
+                width: '150px',
+                render: function(data, type, row) {
+                    if (type === 'display' && data.length > 25) {
+                        return '<span title="' + data + '">' + data.substr(0, 25) + '...</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 4, // Almacén Destino
+                width: '150px',
+                render: function(data, type, row) {
+                    if (type === 'display' && data.length > 25) {
+                        return '<span title="' + data + '">' + data.substr(0, 25) + '...</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 5, // Artículos
+                width: '70px',
+                className: 'text-center',
+                orderable: false
+            },
+            {
+                targets: 6, // Estado
+                width: '110px',
+                orderable: true,
+                searchable: true
+            },
+            {
+                targets: 7, // Tipo
+                width: '100px',
+                orderable: true,
+                searchable: true
+            },
+            {
+                targets: -1, // Última columna (Acciones)
+                width: '120px',
+                orderable: false,
+                searchable: false,
+                className: 'text-center'
+            }
+        ],
+        initComplete: function () {
+            console.log('✓ DataTables Traspasos inicializado correctamente');
+        }
+    });
+}
 
 /**
  * Carga la tabla de traspasos
@@ -527,46 +627,58 @@ function cargarTraspasos() {
 }
 
 /**
- * Renderiza la tabla de traspasos
+ * Renderiza la tabla de traspasos usando DataTables
  */
 function renderizarTablaTraspasos(traspasos) {
-    const $tbody = $('#tablaTraspasos tbody');
-    $tbody.empty();
-    
+    // Inicializar DataTables si no existe
+    if (!dataTableTraspasos) {
+        inicializarDataTablesTraspasos();
+    }
+
+    // Limpiar tabla
+    dataTableTraspasos.clear();
+
     if (traspasos.length === 0) {
-        $tbody.html('<tr><td colspan="8" class="text-center text-muted">No hay traspasos registrados</td></tr>');
+        dataTableTraspasos.draw();
+        console.log('⚠ No hay traspasos para mostrar');
         return;
     }
-    
+
+    // Agregar filas usando DataTables
     traspasos.forEach(traspaso => {
         const id = traspaso.id_traspaso || traspaso.idTraspaso || traspaso.id;
+        const folio = traspaso.folio || '-';
         const fecha = formatearFecha(traspaso.fecha_traspaso || traspaso.fechaTraspaso);
-        const almacenOrigen = traspaso.almacen_origen_info?.nombre || traspaso.nombreAlmacenOrigen || '-';
-        const almacenDestino = traspaso.almacen_destino_info?.nombre || traspaso.nombreAlmacenDestino || '-';
-        const numArticulos = traspaso.detalles?.length || 0;
-        const estado = traspaso.estado || 'pendiente';
+        const almacenOrigen = traspaso.almacenOrigenNombre || '-';
+        const almacenDestino = traspaso.almacenDestinoNombre || '-';
+        const numArticulos = traspaso.cantidadArticulos || 0;
+        const estado = traspaso.estatus || 'pendiente';
         const isInstantaneo = traspaso.is_instantaneo || traspaso.isInstantaneo || false;
-        
+
         const estadoBadge = obtenerBadgeEstado(estado);
         const tipoBadge = isInstantaneo 
             ? '<span class="badge badge-warning"><i class="fas fa-bolt"></i> Instantáneo</span>'
             : '<span class="badge badge-secondary">Normal</span>';
-        
+
         const acciones = generarBotonesAccion(id, estado);
-        
-        $tbody.append(`
-            <tr>
-                <td>${id}</td>
-                <td>${fecha}</td>
-                <td>${almacenOrigen}</td>
-                <td>${almacenDestino}</td>
-                <td class="text-center"><span class="badge badge-info">${numArticulos}</span></td>
-                <td>${estadoBadge}</td>
-                <td>${tipoBadge}</td>
-                <td class="text-center">${acciones}</td>
-            </tr>
-        `);
+
+        // Agregar fila a DataTables
+        dataTableTraspasos.row.add([
+            id,
+            folio,
+            fecha,
+            almacenOrigen,
+            almacenDestino,
+            `<span class="badge badge-info">${numArticulos}</span>`,
+            estadoBadge,
+            tipoBadge,
+            acciones
+        ]);
     });
+
+    // Redibujar tabla
+    dataTableTraspasos.draw();
+    console.log(`✓ DataTables Traspasos actualizado con ${traspasos.length} registros`);
 }
 
 /**
@@ -649,8 +761,8 @@ function renderizarDetalleTraspaso(traspaso) {
     
     const id = traspaso.id_traspaso || traspaso.idTraspaso || traspaso.id;
     const fecha = formatearFecha(traspaso.fecha_traspaso || traspaso.fechaTraspaso);
-    const almacenOrigen = traspaso.almacen_origen_info?.nombre || '-';
-    const almacenDestino = traspaso.almacen_destino_info?.nombre || '-';
+    const almacenOrigen = traspaso.almacenOrigenNombre || '-';
+    const almacenDestino = traspaso.almacenDestinoNombre || '-';
     const motivo = traspaso.motivo || '-';
     const observaciones = traspaso.observaciones || '-';
     const estado = traspaso.estado || 'pendiente';
@@ -701,7 +813,7 @@ function renderizarDetalleTraspaso(traspaso) {
     
     if (traspaso.detalles && traspaso.detalles.length > 0) {
         traspaso.detalles.forEach(d => {
-            const nombre = d.articulo?.nombre || '-';
+            const nombre = d.nombreArticulo || '-';
             const cantidad = d.cantidad || 0;
             const unidad = d.unidad_medida || d.unidadMedida || '';
             html += `<tr><td>${nombre}</td><td>${cantidad} ${unidad}</td></tr>`;
@@ -750,6 +862,15 @@ function abrirModalRecibirTraspaso(id) {
     $('#modalDetalleTraspaso').modal('hide');
     $('#idTraspasoRecibir').val(id);
     $('#observacionesRecepcion').val('');
+
+    // Limpiar archivos de recepción
+    archivosAdjuntosRecepcion = [];
+    $('#fileAdjuntosRecepcion').val('');
+    const existingAlert = document.getElementById('fileAdjuntosRecepcion')?.parentElement?.querySelector('.alert-info');
+    if (existingAlert && existingAlert.innerHTML.includes('Archivos seleccionados')) {
+        existingAlert.remove();
+    }
+
     $('#modalRecibirTraspaso').modal('show');
 }
 
@@ -759,20 +880,65 @@ function abrirModalRecibirTraspaso(id) {
 function confirmarRecepcionTraspaso() {
     const id = $('#idTraspasoRecibir').val();
     const observaciones = $('#observacionesRecepcion').val() || '';
-    
+
     console.log(`✅ Recibiendo traspaso ${id}`);
-    
+
     const $btn = $('button[onclick="confirmarRecepcionTraspaso()"]');
     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
-    
-    ajaxService.post(`/Registros/RecibirTraspaso?id_traspaso=${id}&observaciones=${encodeURIComponent(observaciones)}`)
+
+    // Si hay archivos, subirlos primero
+    if (archivosAdjuntosRecepcion.length > 0) {
+        subirArchivosRecepcion()
+            .then(archivosGuardados => {
+                confirmarRecepcionConArchivos(id, observaciones, archivosGuardados, $btn);
+            })
+            .catch(error => {
+                console.error('❌ Error al subir archivos:', error);
+                mostrarNotificacion('Error al subir los archivos de recepción', 'error');
+                $btn.prop('disabled', false).html('<i class="fas fa-check"></i> Confirmar Recepción');
+            });
+    } else {
+        // Sin archivos, confirmar directamente
+        confirmarRecepcionConArchivos(id, observaciones, [], $btn);
+    }
+}
+
+/**
+ * Confirma la recepción con archivos opcionales
+ */
+function confirmarRecepcionConArchivos(id, observaciones, archivosGuardados, $btn) {
+    // Construir objeto de recepción completo
+    const datosRecepcion = {
+        idTraspaso: id,
+        observaciones: observaciones
+    };
+
+    // Agregar archivos si los hay
+    if (archivosGuardados && archivosGuardados.length > 0) {
+        datosRecepcion.archivos = archivosGuardados.map(archivo => ({
+            ...archivo,
+            tipoArchivo: 'Recepcion'
+        }));
+        console.log(`📎 Incluyendo ${archivosGuardados.length} archivo(s) de tipo Recepcion`);
+    }
+
+    console.log('📤 Datos de recepción a enviar:', datosRecepcion);
+
+    // Enviar al servidor como objeto JSON serializado (similar a insertaTraspaso)
+    ajaxService.post('/Registros/RecibirTraspaso', { 
+        datos: JSON.stringify(datosRecepcion) 
+    })
         .then(response => {
             console.log('✓ Respuesta:', response);
-            
+
             if (response.exito || response.Exito) {
                 mostrarNotificacion('Traspaso recibido correctamente', 'success');
                 $('#modalRecibirTraspaso').modal('hide');
                 cargarTraspasos();
+
+                // Limpiar archivos
+                archivosAdjuntosRecepcion = [];
+                $('#fileAdjuntosRecepcion').val('');
             } else {
                 const mensaje = response.mensaje || response.Mensaje || 'Error al recibir el traspaso';
                 mostrarNotificacion(mensaje, 'error');
@@ -822,7 +988,7 @@ function confirmarCancelacionTraspaso() {
     ajaxService.post(`/Registros/CancelarTraspaso?id_traspaso=${id}&motivo_cancelacion=${encodeURIComponent(motivo)}`)
         .then(response => {
             console.log('✓ Respuesta:', response);
-            
+
             if (response.exito || response.Exito) {
                 mostrarNotificacion('Traspaso cancelado correctamente', 'success');
                 $('#modalCancelarTraspaso').modal('hide');
@@ -836,7 +1002,7 @@ function confirmarCancelacionTraspaso() {
             console.error('❌ Error:', error);
             mostrarNotificacion('Error al cancelar el traspaso', 'error');
         })
-        .finally(() => {
+        .always(() => {
             $btn.prop('disabled', false).html('<i class="fas fa-ban"></i> Cancelar Traspaso');
         });
 }
@@ -1010,6 +1176,139 @@ function subirArchivosTraspaso() {
             })
             .fail(function(xhr, status, error) {
                 console.error('❌ Error al subir archivos:', error);
+                reject(error);
+            });
+    });
+}
+
+// ===================================================================
+// GESTIÓN DE ARCHIVOS ADJUNTOS DE RECEPCIÓN
+// ===================================================================
+
+/**
+ * Maneja los archivos adjuntos seleccionados para la recepción
+ */
+function manejarArchivosAdjuntosRecepcion(e) {
+    const files = e.target.files;
+
+    if (!files || files.length === 0) {
+        return;
+    }
+
+    archivosAdjuntosRecepcion = [];
+    const archivosValidos = [];
+    const errores = [];
+
+    // Validar todos los archivos
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const validacion = validarArchivoTraspaso(file);
+
+        if (validacion.valido) {
+            archivosValidos.push({
+                file: file,
+                nombre: file.name,
+                tamaño: (file.size / 1024).toFixed(2) + ' KB',
+                tipo: file.type
+            });
+        } else {
+            errores.push(validacion.error);
+        }
+    }
+
+    // Mostrar errores agrupados
+    if (errores.length > 0) {
+        errores.forEach(error => notificaciones.warning(error, 'Validación'));
+    }
+
+    // Guardar archivos válidos
+    archivosAdjuntosRecepcion = archivosValidos;
+
+    if (archivosAdjuntosRecepcion.length > 0) {
+        mostrarResumenArchivosRecepcion();
+        notificaciones.success(`${archivosAdjuntosRecepcion.length} archivo(s) de recepción seleccionado(s)`, 'Éxito');
+    } else {
+        console.warn('⚠ No hay archivos válidos para procesar');
+        notificaciones.error('No hay archivos válidos para adjuntar', 'Error');
+    }
+}
+
+/**
+ * Muestra un resumen de los archivos adjuntos de recepción
+ */
+function mostrarResumenArchivosRecepcion() {
+    if (archivosAdjuntosRecepcion.length === 0) {
+        return;
+    }
+
+    let resumenHTML = '<div class="alert alert-info mt-3" role="alert">';
+    resumenHTML += '<i class="fas fa-info-circle"></i> <strong>Archivos seleccionados:</strong><br>';
+    resumenHTML += '<ul class="mb-0 mt-2">';
+
+    archivosAdjuntosRecepcion.forEach((archivo, index) => {
+        resumenHTML += `<li>${index + 1}. ${archivo.nombre} (${archivo.tamaño})</li>`;
+    });
+
+    resumenHTML += '</ul></div>';
+
+    // Insertar después del input de archivo
+    const fileInput = document.getElementById('fileAdjuntosRecepcion');
+    const existingAlert = fileInput.parentElement.querySelector('.alert-info');
+
+    if (existingAlert && existingAlert.innerHTML.includes('Archivos seleccionados')) {
+        existingAlert.remove();
+    }
+
+    fileInput.insertAdjacentHTML('afterend', resumenHTML);
+}
+
+/**
+ * Sube los archivos adjuntos de recepción al servidor
+ */
+function subirArchivosRecepcion() {
+    return new Promise((resolve, reject) => {
+        if (archivosAdjuntosRecepcion.length === 0) {
+            resolve([]);
+            return;
+        }
+
+        const formData = new FormData();
+
+        // Agregar cada archivo al FormData
+        archivosAdjuntosRecepcion.forEach((archivoObj) => {
+            formData.append('archivos', archivoObj.file);
+            formData.append('nombres_originales', archivoObj.nombre);
+        });
+
+        notificaciones.info(`Subiendo ${archivosAdjuntosRecepcion.length} archivo(s) de recepción...`, 'Procesando');
+
+        AjaxService.archivos.subir(formData)
+            .done(function(response) {
+                console.log('✓ Archivos de recepción subidos:', response);
+
+                // Procesar respuesta para obtener URLs
+                let archivosGuardados = [];
+
+                try {
+                    if (response.exito && response.archivos && Array.isArray(response.archivos)) {
+                        archivosGuardados = response.archivos;
+                    } else if (Array.isArray(response)) {
+                        archivosGuardados = response;
+                    } else if (response.archivos && Array.isArray(response.archivos)) {
+                        archivosGuardados = response.archivos;
+                    } else if (response.data && Array.isArray(response.data)) {
+                        archivosGuardados = response.data;
+                    }
+
+                    console.log('✓ Archivos de recepción procesados:', archivosGuardados);
+                    resolve(archivosGuardados);
+                } catch (e) {
+                    console.error('❌ Error al procesar archivos de recepción:', e);
+                    reject(e);
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('❌ Error al subir archivos de recepción:', error);
                 reject(error);
             });
     });
