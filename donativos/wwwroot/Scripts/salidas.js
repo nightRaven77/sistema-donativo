@@ -148,6 +148,13 @@ function llenarSelectAlmacenesSalida() {
         $select.append(`<option value="${id}">${nombre}</option>`);
     });
 
+    const centroIDUsuario = $('#centroIDUsuario').val();
+
+    // Seleccionar el almacén por defecto si existe
+    if (centroIDUsuario && centroIDUsuario !== '' && centroIDUsuario !== '0') {
+        $select.val(centroIDUsuario);
+        // console.log(`✓ Almacén seleccionado por defecto: ${centroIDUsuario}`);
+    }
     console.log(`✓ Select de almacenes llenado (Salidas) con ${almacenesSalidas.length} opciones`);
 }
 
@@ -964,7 +971,8 @@ function renderizarDetalleSalida(salida) {
         salida.archivos.forEach((archivo) => {
             const extension = (archivo.nombreArchivo || '').split('.').pop().toLowerCase();
             const iconoArchivo = obtenerIconoArchivo(extension);
-            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo || archivo.url || '')}`;
+            // ⭐ Usar AjaxService.buildUrl() para construir la URL correcta según el ambiente
+            const urlCompleta = AjaxService.buildUrl(`/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo || archivo.url || '')}`);
 
             html += `
                 <div class="col-md-6 col-lg-4 mb-3">

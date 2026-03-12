@@ -5,14 +5,58 @@
  */
 const AjaxService = (function() {
     'use strict';
-    
+
+    /**
+     * Detecta el ambiente y retorna la ruta base apropiada
+     * - Producción: /donaciones/
+     * - Desarrollo: /
+     * @returns {string} Ruta base para las URLs
+     */
+    function _getBasePath() {
+        const hostname = window.location.hostname;
+        const host = window.location.host;
+        // Detectar si es localhost o desarrollo
+        const isDevelopment = 
+                            hostname === '127.0.0.1' || 
+                            hostname.startsWith('192.168.') ||
+                            hostname.startsWith('172.16.');
+
+        //hostname === 'localhost' ||
+        // Retornar ruta base según el ambiente
+        if (host.includes(':'))
+        {
+            return isDevelopment ? '/' : '/'
+        }
+        else { return isDevelopment ? '/' : '/donaciones/'; }
+        
+    }
+
+    // Ruta base para todas las peticiones
+    const BASE_PATH = _getBasePath();
+
+    // Log para debugging (remover en producción si se desea)
+    console.log(`🌐 Ambiente detectado: ${BASE_PATH === '/' ? 'Desarrollo' : 'Producción'}`);
+    console.log(`📍 Ruta base: ${BASE_PATH}`);
+
     // Configuración base para todas las peticiones AJAX
     const BASE_CONFIG = {
         timeout: 10000, // Se puede referenciar desde CONFIG.AJAX.TIMEOUT si existe
         dataType: 'json',
         contentType: 'application/x-www-form-urlencoded; charset=utf-8'
     };
-    
+
+    /**
+     * Construye la URL completa con la ruta base
+     * @private
+     * @param {string} relativeUrl - URL relativa del endpoint
+     * @returns {string} URL completa con ruta base
+     */
+    function _buildUrl(relativeUrl) {
+        // Si la URL ya empieza con /, quitarla para evitar doble barra
+        const cleanUrl = relativeUrl.startsWith('/') ? relativeUrl.substring(1) : relativeUrl;
+        return `${BASE_PATH}${cleanUrl}`;
+    }
+
     /**
      * Ejecuta una petición AJAX genérica con configuración base
      * @private
@@ -20,9 +64,13 @@ const AjaxService = (function() {
      * @returns {jqXHR} Promesa jQuery
      */
     function _ejecutarAjax(config) {
+        // Construir la URL completa con ruta base
+        const fullUrl = _buildUrl(config.url);
+
         return $.ajax({
             ...BASE_CONFIG,
-            ...config
+            ...config,
+            url: fullUrl
         });
     }
     
@@ -36,7 +84,7 @@ const AjaxService = (function() {
         obtenerTodos() {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'ObtenerDonativos'
+                url: '/Registros/ObtenerDonativos'
             });
         },
         
@@ -48,7 +96,7 @@ const AjaxService = (function() {
         obtenerPorId(idDonativo) {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'obtenerDonativo',
+                url: '/Registros/obtenerDonativo',
                 data: { id_donativo: idDonativo }
             });
         },
@@ -61,7 +109,7 @@ const AjaxService = (function() {
         obtenerDetalles(idDonativo) {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'obtenerDonativoDetalle',
+                url: '/Registros/obtenerDonativoDetalle',
                 data: { id_donativo: idDonativo }
             });
         },
@@ -74,7 +122,7 @@ const AjaxService = (function() {
         insertar(datos) {
             return _ejecutarAjax({
                 type: 'POST',
-                url: 'insertaDonativo',
+                url: '/Registros/insertaDonativo',
                 data: { datos: JSON.stringify(datos) }
             });
         },
@@ -88,7 +136,7 @@ const AjaxService = (function() {
         actualizar(idDonativo, datos) {
             return _ejecutarAjax({
                 type: 'POST',
-                url: 'actualizaDonativo',
+                url: '/Registros/actualizaDonativo',
                 data: { 
                     id_donativo: idDonativo,
                     datos: JSON.stringify(datos)
@@ -104,7 +152,7 @@ const AjaxService = (function() {
         eliminar(idDonativo) {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'EliminarDonativo',
+                url: '/Registros/EliminarDonativo',
                 data: { id_donativo: idDonativo }
             });
         }
@@ -121,7 +169,7 @@ const AjaxService = (function() {
         buscar(termino) {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'ObtenerDonadores',
+                url: '/Registros/ObtenerDonadores',
                 data: { search: termino }
             });
         },
@@ -134,7 +182,7 @@ const AjaxService = (function() {
         insertar(datos) {
             return _ejecutarAjax({
                 type: 'POST',
-                url: 'insertaDonador',
+                url: '/Registros/insertaDonador',
                 data: { datos: JSON.stringify(datos) }
             });
         }
@@ -151,7 +199,7 @@ const AjaxService = (function() {
         obtenerPorDonador(idDonador) {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'ObtenerContactos',
+                url: '/Registros/ObtenerContactos',
                 data: { id_donador: idDonador }
             });
         },
@@ -164,7 +212,7 @@ const AjaxService = (function() {
         insertar(datos) {
             return _ejecutarAjax({
                 type: 'POST',
-                url: 'insertaContactoDonador',
+                url: '/Registros/insertaContactoDonador',
                 data: { datos: JSON.stringify(datos) }
             });
         }
@@ -181,7 +229,7 @@ const AjaxService = (function() {
         buscar(termino) {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'ObtenerArticulos',
+                url: '/Registros/ObtenerArticulos',
                 data: { search: termino }
             });
         },
@@ -194,7 +242,7 @@ const AjaxService = (function() {
         insertar(datos) {
             return _ejecutarAjax({
                 type: 'POST',
-                url: 'insertaArticulos',
+                url: '/Registros/insertaArticulos',
                 data: { datos: JSON.stringify(datos) }
             });
         }
@@ -210,7 +258,7 @@ const AjaxService = (function() {
         obtenerTodos() {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'ObtenerAlmacenes'
+                url: '/Registros/ObtenerAlmacenes'
             });
         }
     };
@@ -225,7 +273,7 @@ const AjaxService = (function() {
         obtenerTodas() {
             return _ejecutarAjax({
                 type: 'GET',
-                url: 'ObtenerCategorias'
+                url: '/Registros/ObtenerCategorias'
             });
         }
     };
@@ -260,6 +308,29 @@ const AjaxService = (function() {
         almacenes,
         categorias,
         archivos,
+
+        // ============ UTILIDADES PÚBLICAS ============
+
+        /**
+         * Construye una URL completa con la ruta base según el ambiente
+         * Útil para enlaces directos, descargas, etc.
+         * @public
+         * @param {string} relativeUrl - URL relativa (ej: 'ObtenerArchivo?archivo=...')
+         * @returns {string} URL completa con ruta base
+         */
+        buildUrl(relativeUrl) {
+            return _buildUrl(relativeUrl);
+        },
+
+        /**
+         * Obtiene la ruta base actual según el ambiente
+         * @public
+         * @returns {string} Ruta base ('/' o '/donaciones/')
+         */
+        getBasePath() {
+            return BASE_PATH;
+        },
+
         // Métodos de conveniencia para acceso directo
         get: function(url, data) {
             return _ejecutarAjax({
@@ -283,3 +354,4 @@ const ajaxService = AjaxService;
 
 // Log de inicialización
 console.log('✓ AjaxService cargado correctamente');
+console.log(`📍 Métodos disponibles:`, Object.keys(AjaxService));

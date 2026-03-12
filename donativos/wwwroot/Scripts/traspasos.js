@@ -834,7 +834,8 @@ function renderizarDetalleTraspaso(traspaso) {
         traspaso.archivos.forEach((archivo) => {
             const extension = (archivo.nombreArchivo || '').split('.').pop().toLowerCase();
             const iconoArchivo = obtenerIconoArchivoTraspaso(extension);
-            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo || archivo.url || '')}`;
+            // ⭐ Usar AjaxService.buildUrl() para construir la URL correcta según el ambiente
+            const urlCompleta = AjaxService.buildUrl(`/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo || archivo.url || '')}`);
             const tipoArchivo = archivo.tipoArchivo || 'General';
 
             // Badge según el tipo de archivo

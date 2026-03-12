@@ -2232,12 +2232,15 @@ function mostrarArchivosExistentes() {
         const extension = archivo.nombreArchivo.split('.').pop().toLowerCase();
         const icono = obtenerIconoArchivo(extension);
 
+        // ⭐ Usar AjaxService.buildUrl() para construir la URL correcta según el ambiente
+        const urlArchivo = AjaxService.buildUrl(`/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`);
+
         const archivoHtml = $(`
             <div class="archivo-existente d-flex align-items-center justify-content-between p-2 mb-2 border rounded" data-index="${index}">
                 <div class="d-flex align-items-center flex-grow-1">
                     <i class="${icono} mr-2" style="font-size: 1.5rem;"></i>
                     <div class="flex-grow-1">
-                        <a href="/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}" 
+                        <a href="${urlArchivo}" 
                            target="_blank" 
                            class="text-primary" 
                            title="Ver archivo">
@@ -2464,7 +2467,8 @@ function mostrarModalDetalles(detalles, archivos, idDonativo) {
         archivos.forEach((archivo) => {
             const extension = archivo.nombreArchivo.split('.').pop().toLowerCase();
             const iconoArchivo = obtenerIconoArchivo(extension);
-            const urlCompleta = `/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`;
+            // ⭐ Usar AjaxService.buildUrl() para construir la URL correcta según el ambiente
+            const urlCompleta = AjaxService.buildUrl(`/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`);
 
             html += `
                 <div class="col-md-6 col-lg-4 mb-3">
