@@ -34,6 +34,7 @@
     <!-- Servicio de Notificaciones Unificado -->
     <script src="~/Scripts/notificaciones-service.js"></script>
     <!-- Scripts de módulos -->
+    <script src="~/Scripts/logger.js"></script>
     <script src="~/Scripts/registros.js"></script>
     <script src="~/Scripts/salidas.js"></script>
     <script src="~/Scripts/traspasos.js"></script>
@@ -74,7 +75,7 @@
                 <img src="~/assets/imagenes/logodif.png" alt="DIF Hidalgo" class="w-full">
                 <p class="text-[10px] text-stone-400 uppercase mt-2 italic font-semibold">Hidalgo Solidario</p>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <a href="#" onclick="App.loadView(event, 'inicio'); return false;" class="sidebar-item active-tab flex items-center px-6 py-4 transition-all">
                     <i class="fas fa-home w-6" style="color:var(--dorado)"></i>
@@ -94,7 +95,7 @@
                     <span class="ml-3">Salidas</span>
                 </a>
                 <a href="#" onclick="App.loadView(event, 'traspasos'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                <i class="fa-solid fa-arrows-h w-6"></i>
+                    <i class="fa-solid fa-arrows-h w-6"></i>
                     <span class="ml-3">Traspasos</span>
                 </a>
                 <a href="#" onclick="App.loadView(event, 'reportes'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
@@ -183,7 +184,7 @@
 
             loadView(event, viewName) {
                 event?.preventDefault();
-                
+
                 // Actualizar sidebar
                 document.querySelectorAll('.sidebar-item').forEach(item => {
                     item.classList.remove('active-tab');

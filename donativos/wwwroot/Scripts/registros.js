@@ -82,6 +82,38 @@ function parseApiResponse(response, possibleKeys = ['data', 'items']) {
     }
 }
 
+/**
+ * ⭐ Valida si una respuesta del servidor es válida
+ * @param {*} response - Respuesta del servidor
+ * @returns {boolean} True si la respuesta es válida
+ */
+function validarRespuesta(response) {
+    if (!response) {
+        console.warn('⚠️ Respuesta vacía o null');
+        return false;
+    }
+    return true;
+}
+
+/**
+ * ⭐ Valida si una respuesta contiene datos válidos
+ * @param {*} response - Respuesta del servidor
+ * @param {string} dataKey - Clave donde están los datos
+ * @returns {boolean} True si contiene datos válidos
+ */
+function validarRespuestaConDatos(response, dataKey = 'data') {
+    if (!validarRespuesta(response)) {
+        return false;
+    }
+
+    if (!response[dataKey]) {
+        console.warn(`⚠️ La respuesta no contiene la clave '${dataKey}'`);
+        return false;
+    }
+
+    return true;
+}
+
 // ==================== DATATABLES ====================
 
 let dataTable = null;
@@ -122,11 +154,11 @@ function inicializarDataTables() {
 /**
  * Carga todos los donativos del servidor y actualiza DataTables
  */
-function cargarDonativos() {
+async function cargarDonativos() {
     const tabla = document.getElementById('tablaDonativos');
 
     if (!tabla) {
-        console.error('❌ Tabla #tablaDonativos no encontrada en el DOM');
+        Logger.error('❌ Tabla #tablaDonativos no encontrada en el DOM');
         return;
     }
 
@@ -136,29 +168,44 @@ function cargarDonativos() {
 
     notificaciones.info('Cargando donativos...', 'Procesando');
 
-    AjaxService.donativos.obtenerTodos()
-        .done(function(response) {
-            const donativosArray = parseApiResponse(response, ['data', 'donativos', 'items']);
+    try {
+        const response = await AjaxService.donativos.obtenerTodos();
 
-            if (donativosArray.length > 0) {
-                llenarTablaConDataTables(donativosArray);
-                notificaciones.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
-            } else {
-                if (dataTable) {
-                    dataTable.clear().draw();
-                }
-                notificaciones.info('No hay donativos registrados', 'Información');
+        // ⭐ Validar respuesta antes de procesarla
+        if (!validarRespuesta(response)) {
+            throw new Error('Respuesta inválida del servidor');
+        }
+
+        const donativosArray = parseApiResponse(response, ['data', 'donativos', 'items']);
+
+        if (donativosArray.length > 0) {
+            llenarTablaConDataTables(donativosArray);
+            notificaciones.success(`Se cargaron ${donativosArray.length} donativos`, 'Éxito');
+            Logger.info(`✅ ${donativosArray.length} donativos cargados correctamente`);
+        } else {
+            if (dataTable) {
+                dataTable.clear().draw();
             }
-        })
-        .fail(function(xhr, status, error) {
-            console.error('=== AJAX Error ===');
-            console.error('Error:', error);
-            notificaciones.error('Error al cargar los donativos', 'Error');
-        });
+            notificaciones.info('No hay donativos registrados', 'Información');
+            Logger.info('ℹ️ No hay donativos en el sistema');
+        }
+    } catch (error) {
+        Logger.error('❌ Error al cargar donativos', error);
+        notificaciones.error('Error al cargar los donativos', 'Error');
+    }
 }
 
 /**
- * Llena DataTables con los donativos
+ * Llena DataTables con los donativos recibidos del servidor
+ * @param {Array<Object>} donativos - Array de objetos donativo
+ * @param {number} donativos[].idDonativo - ID único del donativo
+ * @param {string} donativos[].folio - Folio del donativo
+ * @param {string} donativos[].nombre - Nombre del donador
+ * @param {string} donativos[].fechaRecepcion - Fecha de recepción
+ * @param {string} donativos[].tipo - Tipo de donativo (especie/efectivo)
+ * @param {string} donativos[].estatus - Estatus actual
+ * @param {number} donativos[].cantidadArticulos - Cantidad de artículos
+ * @returns {void}
  */
 function llenarTablaConDataTables(donativos) {
     // console.log('Llenando DataTables con', donativos.length, 'registros');
@@ -206,6 +253,15 @@ function llenarTablaConDataTables(donativos) {
     // console.log('✓ DataTables actualizado correctamente with', donativos.length, 'registros');
 }
 
+/**
+ * Limpia completamente el formulario de registro
+ * - Resetea todos los campos
+ * - Limpia artículos agregados
+ * - Limpia archivos adjuntos
+ * - Sale del modo edición si está activo
+ * - Refresca la tabla de donativos
+ * @returns {void}
+ */
 function limpiarFormulario() {
     const form = document.getElementById('formRegistroDonativos');
 
@@ -254,8 +310,10 @@ function limpiarFormulario() {
     $('#listaDonadores').addClass('d-none');
 
     // Limpiar el select de almacenes y volver a cargar
+    // ⭐ Corregido: centroIDUsuario debería obtenerse aquí
+    const centroIDUsuario = $('#centroIDUsuario').val();
     if (centroIDUsuario && centroIDUsuario !== '' && centroIDUsuario !== '0') {
-        $('#selectAlmacenDestino').val(centroIDUsuario.value);
+        $('#selectAlmacenDestino').val(centroIDUsuario);
         console.log(`✓ Almacén seleccionado por defecto: ${centroIDUsuario}`);
     }
 
@@ -333,26 +391,35 @@ document.addEventListener('DOMContentLoaded', function () {
 /**
  * Carga los almacenes disponibles desde el servidor
  */
-function cargarAlmacenes() {
-    AjaxService.almacenes.obtenerTodos()
-        .done(function(response) {
-            const almacenesArray = parseApiResponse(response, ['data', 'almacenes', 'items']);
+async function cargarAlmacenes() {
+    try {
+        const response = await AjaxService.almacenes.obtenerTodos();
 
-            // Guardar en variable global
-            almacenes = almacenesArray;
+        // ⭐ Validar respuesta antes de procesarla
+        if (!validarRespuesta(response)) {
+            throw new Error('Respuesta inválida del servidor');
+        }
 
-            // Llenar el select
-            llenarSelectAlmacenes(almacenesArray);
-        })
-        .fail(function(xhr, status, error) {
-            console.error('Error al cargar almacenes:', error);
-            console.error('Respuesta:', xhr.responseText);
-            notificaciones.error('Error al cargar los almacenes', 'Error');
-        });
+        const almacenesArray = parseApiResponse(response, ['data', 'almacenes', 'items']);
+
+        // Guardar en variable global
+        almacenes = almacenesArray;
+
+        // Llenar el select
+        llenarSelectAlmacenes(almacenesArray);
+    } catch (error) {
+        console.error('❌ Error al cargar almacenes:', error);
+        notificaciones.error('Error al cargar los almacenes', 'Error');
+    }
 }
 
 /**
- * Llena el select de almacenes con los datos obtenidos
+ * Llena el select de almacenes con los datos obtenidos del servidor
+ * Selecciona automáticamente el almacén del usuario si existe
+ * @param {Array<Object>} almacenesArray - Array de almacenes disponibles
+ * @param {number} almacenesArray[].id_almacen - ID del almacén
+ * @param {string} almacenesArray[].nombre - Nombre del almacén
+ * @returns {void}
  */
 function llenarSelectAlmacenes(almacenesArray) {
     const selectAlmacen = $('#selectAlmacenDestino');
@@ -400,24 +467,22 @@ function llenarSelectAlmacenes(almacenesArray) {
 /**
  * Carga las categorías disponibles desde el servidor
  */
-function cargarCategorias() {
-    AjaxService.categorias.obtenerTodas()
-        .done(function(response) {
-            const categoriasArray = parseApiResponse(response, ['data', 'categorias', 'items']);
+async function cargarCategorias() {
+    try {
+        const response = await AjaxService.categorias.obtenerTodas();
+        const categoriasArray = parseApiResponse(response, ['data', 'categorias', 'items']);
 
-            // Guardar en variable global
-            categorias = categoriasArray;
+        // Guardar en variable global
+        categorias = categoriasArray;
 
-            // console.log(`✓ ${categorias.length} categorías cargadas correctamente`);
-        })
-        .fail(function(xhr, status, error) {
-            console.error('Error al cargar categorías:', error);
-            console.error('Respuesta:', xhr.responseText);
-            notificaciones.error('Error al cargar las categorías', 'Error');
+        // console.log(`✓ ${categorias.length} categorías cargadas correctamente`);
+    } catch (error) {
+        console.error('❌ Error al cargar categorías:', error);
+        notificaciones.error('Error al cargar las categorías', 'Error');
 
-            // En caso de error, dejar el array vacío
-            categorias = [];
-        });
+        // En caso de error, dejar el array vacío
+        categorias = [];
+    }
 }
 
 // ==================== FIN CATEGORÍAS ====================
@@ -1844,16 +1909,10 @@ function subirArchivosParaActualizacion(idDonativo, todosLosArticulos) {
         formData.append(`nombres_originales`, archivoObj.nombre);
     });
 
-    $.ajax({
-        type: 'POST',
-        url: 'GuardarArchivos',
-        data: formData,
-        processData: false,
-        contentType: false,
-        beforeSend: function () {
-            notificaciones.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
-        },
-        success: function (response) {
+    notificaciones.info(`Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'Procesando');
+
+    AjaxService.archivos.subir(formData)
+        .done(function(response) {
             console.log('Respuesta de subida de archivos:', response);
 
             // Procesar respuesta para obtener URLs
@@ -1876,13 +1935,12 @@ function subirArchivosParaActualizacion(idDonativo, todosLosArticulos) {
                 console.error('Error al procesar respuesta de archivos:', e);
                 notificaciones.error('Error al procesar los archivos subidos', 'Error');
             }
-        },
-        error: function (xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('Error al subir archivos:', error);
             console.error('Respuesta:', xhr.responseText);
             notificaciones.error('Error al subir los archivos', 'Error');
-        }
-    });
+        });
 }
 
 /**
@@ -2067,27 +2125,26 @@ function obtenerColorEstado(estado) {
  * Editar un donativo
  * Obtiene los datos del donativo y los carga en el formulario
  */
-function editarDonativo(idDonativo) {
+async function editarDonativo(idDonativo) {
     // console.log('Editando donativo ID:', idDonativo);
 
     notificaciones.info('Cargando donativo para edición...', 'Procesando');
 
-    AjaxService.donativos.obtenerPorId(idDonativo)
-        .then(response => {
-            // console.log('Donativo obtenido para edición:', response);
+    try {
+        const response = await AjaxService.donativos.obtenerPorId(idDonativo);
+        // console.log('Donativo obtenido para edición:', response);
 
-            // Cargar los datos en el formulario
-            cargarDonativoEnFormulario(JSON.parse(response));
+        // Cargar los datos en el formulario
+        cargarDonativoEnFormulario(JSON.parse(response));
 
-            // Hacer scroll al formulario
-            document.getElementById('formRegistroDonativos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Hacer scroll al formulario
+        document.getElementById('formRegistroDonativos').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            notificaciones.success('Donativo cargado para editar', 'Éxito');
-        })
-        .catch(error => {
-            console.error('Error al obtener donativo:', error);
-            notificaciones.error('Error al cargar el donativo para edición', 'Error');
-        });
+        notificaciones.success('Donativo cargado para editar', 'Éxito');
+    } catch (error) {
+        console.error('❌ Error al obtener donativo:', error);
+        notificaciones.error('Error al cargar el donativo para edición', 'Error');
+    }
 }
 
 /**
@@ -2158,7 +2215,9 @@ function cargarDonativoEnFormulario(donativo) {
 
     $('#dateRecepcion').val(donativo.fechaRecepcion ? donativo.fechaRecepcion.split('T')[0] : obtenerFechaHoy());
     $('#selectTipoDonativo').val(donativo.tipo.toLowerCase() || 'especie');
-    $('#selectAlmacenDestino').val(donativo.idAlmacen || centroIDUsuario.value);
+    // ⭐ Corregido: centroIDUsuario es un string, no un objeto
+    const centroID = $('#centroIDUsuario').val();
+    $('#selectAlmacenDestino').val(donativo.idAlmacen || centroID);
     $('#textObservacionesDonativo').val(donativo.observaciones || '');
 
     // Si es efectivo, mostrar el campo de importe
@@ -2233,7 +2292,7 @@ function mostrarArchivosExistentes() {
         const icono = obtenerIconoArchivo(extension);
 
         // ⭐ Usar AjaxService.buildUrl() para construir la URL correcta según el ambiente
-        const urlArchivo = AjaxService.buildUrl(`/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`);
+        const urlArchivo = AjaxService.buildUrl(`Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`);
 
         const archivoHtml = $(`
             <div class="archivo-existente d-flex align-items-center justify-content-between p-2 mb-2 border rounded" data-index="${index}">
@@ -2284,8 +2343,8 @@ function eliminarArchivoExistente(index) {
 /**
  * Elimina el donativo dado su ID
  */
-function eliminarDonativo(idDonativo) {
-    Swal.fire({
+async function eliminarDonativo(idDonativo) {
+    const result = await Swal.fire({
         title: '¿Eliminar donativo?',
         text: 'Esta acción no se puede deshacer.',
         icon: 'warning',
@@ -2294,30 +2353,21 @@ function eliminarDonativo(idDonativo) {
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // console.log('Eliminando donativo ID:', idDonativo);
-
-            $.ajax({
-                type: 'GET',
-                url: 'EliminarDonativo',
-                data: { id_donativo: idDonativo },
-                dataType: 'json',
-                beforeSend: function () {
-                    notificaciones.info('Eliminando donativo...', 'Procesando');
-                },
-                success: function (response) {
-                    console.log('Donativo eliminado:', response);
-                    notificaciones.success('Donativo eliminado correctamente', 'Éxito');
-                    cargarDonativos(); // Refrescar tabla
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error al eliminar donativo:', error);
-                    notificaciones.error('Error al eliminar el donativo', 'Error');
-                }
-            });
-        }
     });
+
+    if (result.isConfirmed) {
+        notificaciones.info('Eliminando donativo...', 'Procesando');
+
+        try {
+            const response = await AjaxService.donativos.eliminar(idDonativo);
+            console.log('Donativo eliminado:', response);
+            notificaciones.success('Donativo eliminado correctamente', 'Éxito');
+            await cargarDonativos(); // Refrescar tabla
+        } catch (error) {
+            console.error('❌ Error al eliminar donativo:', error);
+            notificaciones.error('Error al eliminar el donativo', 'Error');
+        }
+    }
 }
 
 /**
@@ -2366,44 +2416,43 @@ function salirModoEdicion() {
  * Muestra los detalles completos de un donativo en un modal
  * Incluye información del donador, artículos y archivos adjuntos
  */
-function verDetalles(idDonativo) {
+async function verDetalles(idDonativo) {
     console.log('Cargando detalles del donativo ID:', idDonativo);
 
     notificaciones.info('Cargando detalles...', 'Procesando');
 
-    AjaxService.donativos.obtenerDetalles(idDonativo)
-        .then(response => {
-            console.log('Detalles recibidos:', response);
+    try {
+        const response = await AjaxService.donativos.obtenerDetalles(idDonativo);
+        console.log('Detalles recibidos:', response);
 
-            let datosCompletos = null;
+        let datosCompletos = null;
 
-            // Parsear respuesta
-            if (typeof response === 'string') {
-                try {
-                    datosCompletos = JSON.parse(response);
-                } catch (e) {
-                    console.error('Error al parsear respuesta:', e);
-                    notificaciones.error('Error al procesar los detalles', 'Error');
-                    return;
-                }
-            } else {
-                datosCompletos = response;
-            }
-
-            // Validar estructura
-            if (!datosCompletos || !datosCompletos.detalles) {
-                console.error('Formato de respuesta inesperado:', datosCompletos);
-                notificaciones.error('Formato de detalles inesperado', 'Error');
+        // Parsear respuesta
+        if (typeof response === 'string') {
+            try {
+                datosCompletos = JSON.parse(response);
+            } catch (e) {
+                console.error('Error al parsear respuesta:', e);
+                notificaciones.error('Error al procesar los detalles', 'Error');
                 return;
             }
+        } else {
+            datosCompletos = response;
+        }
 
-            // Construir HTML del modal con la nueva estructura
-            mostrarModalDetalles(datosCompletos.detalles, datosCompletos.archivos || [], idDonativo);
-        })
-        .catch(error => {
-            console.error('Error al cargar detalles:', error);
-            notificaciones.error('Error al cargar los detalles del donativo', 'Error');
-        });
+        // Validar estructura
+        if (!datosCompletos || !datosCompletos.detalles) {
+            console.error('Formato de respuesta inesperado:', datosCompletos);
+            notificaciones.error('Formato de detalles inesperado', 'Error');
+            return;
+        }
+
+        // Construir HTML del modal con la nueva estructura
+        mostrarModalDetalles(datosCompletos.detalles, datosCompletos.archivos || [], idDonativo);
+    } catch (error) {
+        console.error('❌ Error al cargar detalles:', error);
+        notificaciones.error('Error al cargar los detalles del donativo', 'Error');
+    }
 }
 
 /**
@@ -2468,7 +2517,7 @@ function mostrarModalDetalles(detalles, archivos, idDonativo) {
             const extension = archivo.nombreArchivo.split('.').pop().toLowerCase();
             const iconoArchivo = obtenerIconoArchivo(extension);
             // ⭐ Usar AjaxService.buildUrl() para construir la URL correcta según el ambiente
-            const urlCompleta = AjaxService.buildUrl(`/Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`);
+            const urlCompleta = AjaxService.buildUrl(`Registros/ObtenerArchivo?archivo=${encodeURIComponent(archivo.urlArchivo)}`);
 
             html += `
                 <div class="col-md-6 col-lg-4 mb-3">

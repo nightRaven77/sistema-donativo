@@ -19,13 +19,17 @@ let archivosAdjuntosSalida = [];
 let archivosExistentesSalida = [];
 let dataTableSalidas = null; // DataTable para la tabla de salidas
 
+// ⭐ Cache de selectores jQuery para mejorar rendimiento
+let SELECTORS_SALIDAS = {};
+
 // ===================================================================
 // CONFIGURACIÓN
 // ===================================================================
 const CONFIG_SALIDAS = {
     TIMEOUTS: {
         BUSQUEDA: 500,
-        HIDE_LIST: 200
+        HIDE_LIST: 200,
+        AUTO_HIDE_LIST: 3000  // ⭐ Agregado: tiempo para ocultar listas automáticamente
     },
     TIPOS_SALIDA: {
         DONACION: 'donacion',
@@ -47,6 +51,23 @@ const CONFIG_SALIDAS = {
  */
 function inicializarSalidas() {
     console.log('✓ Inicializando módulo Salidas');
+
+    // ⭐ Cachear selectores jQuery frecuentes
+    SELECTORS_SALIDAS = {
+        selectAlmacenOrigen: $('#selectAlmacenOrigen'),
+        seccionArticulos: $('#seccionArticulos'),
+        alertSeleccionarAlmacen: $('#alertSeleccionarAlmacen'),
+        listaInventario: $('#listaInventario'),
+        textBuscarBeneficiario: $('#textBuscarBeneficiario'),
+        listaBeneficiarios: $('#listaBeneficiarios'),
+        buscarArticuloInventario: $('#buscarArticuloInventario'),
+        tablaArticulosSalida: $('#tablaArticulosSalida'),
+        fechaSalida: $('#fechaSalida'),
+        selectTipoSalida: $('#selectTipoSalida'),
+        textObservacionesSalida: $('#textObservacionesSalida'),
+        fileAdjuntosSalida: $('#fileAdjuntosSalida')
+    };
+
     cargarAlmacenesSalidas();
     cargarSalidas();
     configurarEventosBusqueda();
@@ -58,7 +79,7 @@ function inicializarSalidas() {
  * Configura los eventos de archivos adjuntos
  */
 function configurarEventosArchivos() {
-    $('#fileAdjuntosSalida').on('change', function(e) {
+    SELECTORS_SALIDAS.fileAdjuntosSalida.on('change', function(e) {
         manejarArchivosAdjuntosSalida(e);
     });
 }
@@ -68,7 +89,7 @@ function configurarEventosArchivos() {
  */
 function establecerFechaHoy() {
     const hoy = new Date().toISOString().split('T')[0];
-    $('#fechaSalida').val(hoy);
+    SELECTORS_SALIDAS.fechaSalida.val(hoy);
 }
 
 /**
@@ -76,40 +97,40 @@ function establecerFechaHoy() {
  */
 function configurarEventosBusqueda() {
     // Búsqueda de beneficiarios
-    $('#textBuscarBeneficiario').on('input', function() {
+    SELECTORS_SALIDAS.textBuscarBeneficiario.on('input', function() {
         clearTimeout(timerBusquedaBeneficiario);
         const termino = $(this).val().trim();
-        
+
         if (termino.length >= 2) {
             timerBusquedaBeneficiario = setTimeout(() => {
                 buscarBeneficiarios(termino);
             }, CONFIG_SALIDAS.TIMEOUTS.BUSQUEDA);
         } else {
-            $('#listaBeneficiarios').hide();
+            SELECTORS_SALIDAS.listaBeneficiarios.hide();
         }
     });
 
     // Búsqueda de artículos en inventario
-    $('#buscarArticuloInventario').on('input', function() {
+    SELECTORS_SALIDAS.buscarArticuloInventario.on('input', function() {
         clearTimeout(timerBusquedaArticulo);
         const termino = $(this).val().trim();
-        
+
         if (termino.length >= 2) {
             timerBusquedaArticulo = setTimeout(() => {
                 buscarEnInventario(termino);
             }, CONFIG_SALIDAS.TIMEOUTS.BUSQUEDA);
         } else {
-            $('#listaInventario').hide();
+            SELECTORS_SALIDAS.listaInventario.hide();
         }
     });
 
     // Ocultar listas al hacer clic fuera
     $(document).on('click', function(e) {
         if (!$(e.target).closest('#textBuscarBeneficiario, #listaBeneficiarios').length) {
-            $('#listaBeneficiarios').hide();
+            SELECTORS_SALIDAS.listaBeneficiarios.hide();
         }
         if (!$(e.target).closest('#buscarArticuloInventario, #listaInventario').length) {
-            $('#listaInventario').hide();
+            SELECTORS_SALIDAS.listaInventario.hide();
         }
     });
 }
@@ -122,7 +143,7 @@ function configurarEventosBusqueda() {
  * Carga la lista de almacenes para el módulo de Salidas
  */
 function cargarAlmacenesSalidas() {
-    ajaxService.get('/Registros/ObtenerAlmacenes')
+    AjaxService.almacenes.obtenerTodos()
         .then(response => {
             console.log('✓ Almacenes obtenidos (Salidas):', response);
             const data = parseApiResponse(response);
@@ -174,11 +195,11 @@ function cargarInventarioAlmacen() {
     console.log(`📦 Cargando inventario del almacén: ${idAlmacen}`);
     $('#alertSeleccionarAlmacen').hide();
     $('#seccionArticulos').show();
-    
+
     // Mostrar loading
     $('#listaInventario').html('<div class="list-group-item text-center"><i class="fas fa-spinner fa-spin"></i> Cargando inventario...</div>').show();
-    
-    ajaxService.get(`/Registros/ObtenerInventario?id_almacen=${idAlmacen}`)
+
+    AjaxService.inventario.obtenerPorAlmacen(idAlmacen)
         .then(response => {
             console.log('✓ Inventario obtenido:', response);
             inventarioActual = Array.isArray(response) ? response : [];
@@ -206,11 +227,11 @@ function cargarInventarioAlmacen() {
  */
 function buscarBeneficiarios(termino) {
     console.log(`🔍 Buscando beneficiarios: "${termino}"`);
-    
+
     const $lista = $('#listaBeneficiarios');
     $lista.html('<div class="list-group-item text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>').show();
-    
-    ajaxService.get(`/Registros/ObtenerBeneficiarios?search=${encodeURIComponent(termino)}`)
+
+    AjaxService.beneficiarios.buscar(termino)
         .then(response => {
             console.log('✓ Beneficiarios encontrados:', response);
             const beneficiarios = Array.isArray(response) ? response : [];
@@ -283,12 +304,12 @@ function buscarEnInventario(termino) {
     }
     
     console.log(`🔍 Buscando en inventario: "${termino}"`);
-    
+
     const $lista = $('#listaInventario');
     $lista.html('<div class="list-group-item text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>').show();
-    
+
     // Llamar al endpoint con búsqueda
-    ajaxService.get(`/Registros/ObtenerInventario?id_almacen=${idAlmacen}&buscar=${encodeURIComponent(termino)}`)
+    AjaxService.inventario.obtenerPorAlmacen(idAlmacen, termino)
         .then(response => {
             console.log('✓ Resultados de búsqueda:', response);
             const articulos = Array.isArray(response) ? response : [];
@@ -604,7 +625,7 @@ function guardarSalidaCompleta(tipoSalida, archivosGuardados, $btn) {
     console.log('📤 Datos completos a enviar:', salida);
 
     // Enviar al servidor
-    ajaxService.post('/Registros/insertaSalida', { datos: JSON.stringify(salida) })
+    AjaxService.salidas.insertar(salida)
         .then(response => {
             console.log('✓ Respuesta del servidor:', response);
 
@@ -767,8 +788,8 @@ function inicializarDataTablesSalidas() {
  */
 function cargarSalidas() {
     console.log('📋 Cargando salidas...');
-    
-    ajaxService.get('/Registros/ObtenerSalidas')
+
+    AjaxService.salidas.obtenerTodas()
         .then(response => {
             console.log('✓ Salidas obtenidas:', response);
             const salidas = Array.isArray(response) ? response : [];
@@ -856,11 +877,11 @@ function verDetalleSalida(id) {
     
     const $modal = $('#modalDetalleSalida');
     const $contenido = $('#contenidoDetalleSalida');
-    
+
     $contenido.html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando...</p></div>');
     $modal.modal('show');
-    
-    ajaxService.get(`/Registros/obtenerSalida?id_salida=${id}`)
+
+    AjaxService.salidas.obtenerPorId(id)
         .then(response => {
             console.log('✓ Detalle obtenido:', response);
             const salida = parseApiResponse(response.data || response.Data || response);
@@ -1078,25 +1099,18 @@ function eliminarSalida(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            
-            $.ajax({
-                type: 'GET',
-                url: 'EliminarSalida',
-                data: { id_salida: id },
-                dataType: 'json',
-                beforeSend: function () {
-                    notificaciones.info('Eliminando Salida...', 'Procesando');
-                },
-                success: function (response) {
+            notificaciones.info('Eliminando Salida...', 'Procesando');
+
+            AjaxService.salidas.eliminar(id)
+                .then(response => {
                     console.log('Salida eliminada:', response);
                     notificaciones.success('Salida eliminada correctamente', 'Éxito');
-                    cargarSalidas()
-                },
-                error: function (xhr, status, error) {
+                    cargarSalidas();
+                })
+                .catch(error => {
                     console.error('Error al eliminar salida:', error);
                     notificaciones.error('Error al eliminar la salida', 'Error');
-                }
-            });
+                });
         }
     });
 }

@@ -8,27 +8,55 @@ const AjaxService = (function() {
 
     /**
      * Detecta el ambiente y retorna la ruta base apropiada
-     * - Producción: /donaciones/
-     * - Desarrollo: /
+     * 
+     * Ambientes soportados:
+     * 1. Debug local: localhost:puerto → /
+     * 2. Publicación local: localhost → /
+     * 3. Staging: 172.16.x.x → /
+     * 4. Producción: dominio → /donaciones/
+     * 
      * @returns {string} Ruta base para las URLs
      */
     function _getBasePath() {
         const hostname = window.location.hostname;
-        const host = window.location.host;
-        // Detectar si es localhost o desarrollo
-        const isDevelopment = 
-                            hostname === '127.0.0.1' || 
-                            hostname.startsWith('192.168.') ||
-                            hostname.startsWith('172.16.');
+        const host = window.location.host; // Incluye puerto si existe
+        const hasPort = host.includes(':');
 
-        //hostname === 'localhost' ||
-        // Retornar ruta base según el ambiente
-        if (host.includes(':'))
-        {
-            return isDevelopment ? '/' : '/'
+        // ============================================
+        // AMBIENTES DE DESARROLLO Y STAGING (usa /)
+        // ============================================
+
+        // 1. Debug local: localhost:puerto
+        if (hostname === 'localhost' && hasPort) {
+            return '/donaciones/';
         }
-        else { return isDevelopment ? '/' : '/donaciones/'; }
-        
+
+        // 2. Publicación local: localhost sin puerto
+        if (hostname === 'localhost' && !hasPort) {
+            return '/';
+        }
+
+        // 3. Loopback: 127.0.0.1
+        if (hostname === '127.0.0.1') {
+            return '/donaciones/';
+        }
+
+        // 4. Staging: IP 172.16.x.x (red interna)
+        if (hostname.startsWith('172.16.')) {
+            return '/donaciones/';
+        }
+
+        // 5. Desarrollo: IP 192.168.x.x (red local)
+        if (hostname.startsWith('192.168.')) {
+            return '/donaciones/';
+        }
+
+        // ============================================
+        // PRODUCCIÓN (usa /donaciones/)
+        // ============================================
+
+        // Cualquier otro hostname (dominio) es producción
+        return '/donaciones/';
     }
 
     // Ruta base para todas las peticiones
@@ -279,7 +307,7 @@ const AjaxService = (function() {
     };
     
     // ============ MÓDULO: ARCHIVOS ============
-    
+
     const archivos = {
         /**
          * Sube archivos adjuntos al servidor
@@ -289,7 +317,7 @@ const AjaxService = (function() {
         subir(formData) {
             return $.ajax({
                 type: 'POST',
-                url: 'GuardarArchivos',
+                url: _buildUrl('Registros/GuardarArchivos'),
                 data: formData,
                 processData: false,
                 contentType: false,
@@ -297,7 +325,180 @@ const AjaxService = (function() {
             });
         }
     };
-    
+
+    // ============ MÓDULO: SALIDAS ============
+
+    const salidas = {
+        /**
+         * Obtiene todas las salidas
+         * @returns {Promise} Lista de salidas
+         */
+        obtenerTodas() {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/ObtenerSalidas'
+            });
+        },
+
+        /**
+         * Obtiene una salida específica por ID
+         * @param {number} idSalida - ID de la salida
+         * @returns {Promise} Datos de la salida
+         */
+        obtenerPorId(idSalida) {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/obtenerSalida',
+                data: { id_salida: idSalida }
+            });
+        },
+
+        /**
+         * Inserta una nueva salida
+         * @param {Object} datos - Datos de la salida
+         * @returns {Promise} Respuesta con ID de la salida creada
+         */
+        insertar(datos) {
+            return _ejecutarAjax({
+                type: 'POST',
+                url: '/Registros/insertaSalida',
+                data: { datos: JSON.stringify(datos) }
+            });
+        },
+
+        /**
+         * Elimina una salida
+         * @param {number} idSalida - ID de la salida a eliminar
+         * @returns {Promise} Confirmación de eliminación
+         */
+        eliminar(idSalida) {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/EliminarSalida',
+                data: { id_salida: idSalida }
+            });
+        }
+    };
+
+    // ============ MÓDULO: BENEFICIARIOS ============
+
+    const beneficiarios = {
+        /**
+         * Busca beneficiarios por término de búsqueda
+         * @param {string} termino - Término a buscar
+         * @returns {Promise} Lista de beneficiarios que coinciden
+         */
+        buscar(termino) {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/ObtenerBeneficiarios',
+                data: { search: termino }
+            });
+        },
+
+        /**
+         * Inserta un nuevo beneficiario
+         * @param {Object} datos - Datos del beneficiario
+         * @returns {Promise} Respuesta con ID del beneficiario creado
+         */
+        insertar(datos) {
+            return _ejecutarAjax({
+                type: 'POST',
+                url: '/Registros/insertaBeneficiario',
+                data: { datos: JSON.stringify(datos) }
+            });
+        }
+    };
+
+    // ============ MÓDULO: INVENTARIO ============
+
+    const inventario = {
+        /**
+         * Obtiene el inventario de un almacén específico
+         * @param {number} idAlmacen - ID del almacén
+         * @param {string} buscar - Término de búsqueda opcional
+         * @returns {Promise} Lista de artículos en inventario
+         */
+        obtenerPorAlmacen(idAlmacen, buscar = '') {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/ObtenerInventario',
+                data: { id_almacen: idAlmacen, buscar: buscar }
+            });
+        }
+    };
+
+    // ============ MÓDULO: TRASPASOS ============
+
+    const traspasos = {
+        /**
+         * Obtiene todos los traspasos
+         * @returns {Promise} Lista de traspasos
+         */
+        obtenerTodos() {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/ObtenerTraspasos'
+            });
+        },
+
+        /**
+         * Obtiene un traspaso específico por ID
+         * @param {number} idTraspaso - ID del traspaso
+         * @returns {Promise} Datos del traspaso
+         */
+        obtenerPorId(idTraspaso) {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/obtenerTraspaso',
+                data: { id_traspaso: idTraspaso }
+            });
+        },
+
+        /**
+         * Inserta un nuevo traspaso
+         * @param {Object} datos - Datos del traspaso
+         * @returns {Promise} Respuesta con ID del traspaso creado
+         */
+        insertar(datos) {
+            return _ejecutarAjax({
+                type: 'POST',
+                url: '/Registros/insertaTraspaso',
+                data: { datos: JSON.stringify(datos) }
+            });
+        },
+
+        /**
+         * Recibe un traspaso (cambia estado a aprobado)
+         * @param {Object} datos - Datos de recepción
+         * @returns {Promise} Confirmación de recepción
+         */
+        recibir(datos) {
+            return _ejecutarAjax({
+                type: 'POST',
+                url: '/Registros/RecibirTraspaso',
+                data: { datos: JSON.stringify(datos) }
+            });
+        },
+
+        /**
+         * Cancela un traspaso
+         * @param {number} idTraspaso - ID del traspaso
+         * @param {string} motivo - Motivo de cancelación
+         * @returns {Promise} Confirmación de cancelación
+         */
+        cancelar(idTraspaso, motivo) {
+            return _ejecutarAjax({
+                type: 'POST',
+                url: '/Registros/CancelarTraspaso',
+                data: { 
+                    id_traspaso: idTraspaso,
+                    motivo_cancelacion: motivo
+                }
+            });
+        }
+    };
+
     // ============ API PÚBLICA ============
 
     return {
@@ -308,6 +509,10 @@ const AjaxService = (function() {
         almacenes,
         categorias,
         archivos,
+        salidas,
+        beneficiarios,
+        inventario,
+        traspasos,
 
         // ============ UTILIDADES PÚBLICAS ============
 

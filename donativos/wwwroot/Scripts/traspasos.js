@@ -19,13 +19,17 @@ let archivosExistentesTraspaso = [];
 let archivosAdjuntosRecepcion = []; // Archivos para la recepción
 let dataTableTraspasos = null; // DataTable para la tabla de traspasos
 
+// ⭐ Cache de selectores jQuery para mejorar rendimiento
+let SELECTORS_TRASPASOS = {};
+
 // ===================================================================
 // CONFIGURACIÓN
 // ===================================================================
 const CONFIG_TRASPASOS = {
     TIMEOUTS: {
         BUSQUEDA: 500,
-        HIDE_LIST: 200
+        HIDE_LIST: 200,
+        AUTO_HIDE_LIST: 3000  // ⭐ Agregado: tiempo para ocultar listas automáticamente
     },
     TIPOS: {
         NORMAL: 'normal',
@@ -118,7 +122,7 @@ function configurarEventosBusquedaTraspaso() {
  * Carga almacenes
  */
 function cargarAlmacenesTraspasos() {
-    ajaxService.get('/Registros/ObtenerAlmacenes')
+    AjaxService.almacenes.obtenerTodos()
         .then(response => {
             console.log('✓ Almacenes obtenidos:', response);
             const data = parseApiResponse(response);
@@ -166,10 +170,10 @@ function cargarInventarioAlmacenTraspaso() {
     console.log(`📦 Cargando inventario del almacén: ${idAlmacen}`);
     $('#alertSeleccionarAlmacenTraspaso').hide();
     $('#seccionArticulosTraspaso').show();
-    
+
     $('#listaInventarioTraspaso').html('<div class="list-group-item text-center"><i class="fas fa-spinner fa-spin"></i> Cargando inventario...</div>').show();
-    
-    ajaxService.get(`/Registros/ObtenerInventario?id_almacen=${idAlmacen}`)
+
+    AjaxService.inventario.obtenerPorAlmacen(idAlmacen)
         .then(response => {
             console.log('✓ Inventario obtenido:', response);
             inventarioActualTraspaso = Array.isArray(response) ? response : [];
@@ -204,11 +208,11 @@ function buscarEnInventarioTraspaso(termino) {
     }
     
     console.log(`🔍 Buscando en inventario: "${termino}"`);
-    
+
     const $lista = $('#listaInventarioTraspaso');
     $lista.html('<div class="list-group-item text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>').show();
-    
-    ajaxService.get(`/Registros/ObtenerInventario?id_almacen=${idAlmacen}&buscar=${encodeURIComponent(termino)}`)
+
+    AjaxService.inventario.obtenerPorAlmacen(idAlmacen, termino)
         .then(response => {
             console.log('✓ Resultados de búsqueda:', response);
             const articulos = Array.isArray(response) ? response : [];
@@ -485,7 +489,7 @@ function guardarTraspasoCompleto(almacenOrigen, almacenDestino, archivosGuardado
     console.log('📤 Datos a enviar:', traspaso);
 
     // Enviar al servidor
-    ajaxService.post('/Registros/insertaTraspaso', { datos: JSON.stringify(traspaso) })
+    AjaxService.traspasos.insertar(traspaso)
         .then(response => {
             console.log('✓ Respuesta del servidor:', response);
 
@@ -613,8 +617,8 @@ function inicializarDataTablesTraspasos() {
  */
 function cargarTraspasos() {
     console.log('📋 Cargando traspasos...');
-    
-    ajaxService.get('/Registros/ObtenerTraspasos')
+
+    AjaxService.traspasos.obtenerTodos()
         .then(response => {
             console.log('✓ Traspasos obtenidos:', response);
             const traspasos = Array.isArray(response) ? response : [];
@@ -738,8 +742,8 @@ function verDetalleTraspaso(id) {
     $contenido.html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando...</p></div>');
     $acciones.empty();
     $modal.modal('show');
-    
-    ajaxService.get(`/Registros/obtenerTraspaso?id_traspaso=${id}`)
+
+    AjaxService.traspasos.obtenerPorId(id)
         .then(response => {
             console.log('✓ Detalle obtenido:', response);
             const traspaso = parseApiResponse(response.data || response.Data || response);
@@ -1023,10 +1027,8 @@ function confirmarRecepcionConArchivos(id, observaciones, archivosGuardados, $bt
 
     console.log('📤 Datos de recepción a enviar:', datosRecepcion);
 
-    // Enviar al servidor como objeto JSON serializado (similar a insertaTraspaso)
-    ajaxService.post('/Registros/RecibirTraspaso', { 
-        datos: JSON.stringify(datosRecepcion) 
-    })
+    // Enviar al servidor
+    AjaxService.traspasos.recibir(datosRecepcion)
         .then(response => {
             console.log('✓ Respuesta:', response);
 
@@ -1080,11 +1082,11 @@ function confirmarCancelacionTraspaso() {
     }
     
     console.log(`🚫 Cancelando traspaso ${id}`);
-    
+
     const $btn = $('button[onclick="confirmarCancelacionTraspaso()"]');
     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
-    
-    ajaxService.post(`/Registros/CancelarTraspaso?id_traspaso=${id}&motivo_cancelacion=${encodeURIComponent(motivo)}`)
+
+    AjaxService.traspasos.cancelar(id, motivo)
         .then(response => {
             console.log('✓ Respuesta:', response);
 
