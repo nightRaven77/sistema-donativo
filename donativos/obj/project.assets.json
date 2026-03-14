@@ -38,7 +38,7 @@
           }
         }
       },
-      "BouncyCastle.Cryptography/2.6.1": {
+      "BouncyCastle.Cryptography/2.6.2": {
         "type": "package",
         "compile": {
           "lib/net6.0/BouncyCastle.Cryptography.dll": {
@@ -51,7 +51,7 @@
           }
         }
       },
-      "EPPlus/8.4.1": {
+      "EPPlus/8.5.0": {
         "type": "package",
         "dependencies": {
           "EPPlus.Interfaces": "8.4.0",
@@ -673,18 +673,18 @@
           }
         }
       },
-      "MailKit/4.14.1": {
+      "MailKit/4.15.1": {
         "type": "package",
         "dependencies": {
-          "MimeKit": "4.14.0"
+          "MimeKit": "4.15.1"
         },
         "compile": {
-          "lib/net8.0/MailKit.dll": {
+          "lib/net10.0/MailKit.dll": {
             "related": ".dll.config;.pdb;.xml"
           }
         },
         "runtime": {
-          "lib/net8.0/MailKit.dll": {
+          "lib/net10.0/MailKit.dll": {
             "related": ".dll.config;.pdb;.xml"
           }
         }
@@ -711,19 +711,6 @@
           "lib/netstandard2.0/Microsoft.AspNetCore.Razor.Language.dll": {}
         }
       },
-      "Microsoft.AspNetCore.Session/2.3.9": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.0/_._": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.0/_._": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Bcl.AsyncInterfaces/8.0.0": {
         "type": "package",
         "compile": {
@@ -737,14 +724,14 @@
           }
         }
       },
-      "Microsoft.Build/18.0.2": {
+      "Microsoft.Build/18.4.0": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Build.Framework": "18.0.2",
-          "Microsoft.NET.StringTools": "18.0.2",
-          "System.Configuration.ConfigurationManager": "9.0.0",
-          "System.Reflection.MetadataLoadContext": "9.0.0",
-          "System.Security.Cryptography.ProtectedData": "9.0.6"
+          "Microsoft.Build.Framework": "18.4.0",
+          "Microsoft.NET.StringTools": "18.4.0",
+          "System.Configuration.ConfigurationManager": "10.0.1",
+          "System.Reflection.MetadataLoadContext": "10.0.1",
+          "System.Security.Cryptography.ProtectedData": "10.0.1"
         },
         "compile": {
           "ref/net10.0/Microsoft.Build.dll": {
@@ -757,7 +744,7 @@
           }
         }
       },
-      "Microsoft.Build.Framework/18.0.2": {
+      "Microsoft.Build.Framework/18.4.0": {
         "type": "package",
         "compile": {
           "ref/net10.0/Microsoft.Build.Framework.dll": {
@@ -1674,7 +1661,7 @@
           }
         }
       },
-      "Microsoft.NET.StringTools/18.0.2": {
+      "Microsoft.NET.StringTools/18.4.0": {
         "type": "package",
         "compile": {
           "ref/net10.0/Microsoft.NET.StringTools.dll": {
@@ -1950,19 +1937,19 @@
           }
         }
       },
-      "MimeKit/4.14.0": {
+      "MimeKit/4.15.1": {
         "type": "package",
         "dependencies": {
-          "BouncyCastle.Cryptography": "2.6.1",
-          "System.Security.Cryptography.Pkcs": "8.0.1"
+          "BouncyCastle.Cryptography": "2.6.2",
+          "System.Security.Cryptography.Pkcs": "10.0.0"
         },
         "compile": {
-          "lib/net8.0/MimeKit.dll": {
+          "lib/net10.0/MimeKit.dll": {
             "related": ".dll.config;.pdb;.xml"
           }
         },
         "runtime": {
-          "lib/net8.0/MimeKit.dll": {
+          "lib/net10.0/MimeKit.dll": {
             "related": ".dll.config;.pdb;.xml"
           }
         }
@@ -2161,7 +2148,7 @@
           "Microsoft.AspNetCore.App"
         ]
       },
-      "RestSharp/113.1.0": {
+      "RestSharp/114.0.0": {
         "type": "package",
         "compile": {
           "lib/net10.0/RestSharp.dll": {
@@ -2364,18 +2351,18 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
-      "System.Configuration.ConfigurationManager/9.0.11": {
+      "System.Configuration.ConfigurationManager/10.0.1": {
         "type": "package",
         "dependencies": {
-          "System.Security.Cryptography.ProtectedData": "9.0.11"
+          "System.Security.Cryptography.ProtectedData": "10.0.1"
         },
         "compile": {
-          "lib/net9.0/System.Configuration.ConfigurationManager.dll": {
+          "lib/net10.0/System.Configuration.ConfigurationManager.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net9.0/System.Configuration.ConfigurationManager.dll": {
+          "lib/net10.0/System.Configuration.ConfigurationManager.dll": {
             "related": ".xml"
           }
         },
@@ -2392,7 +2379,7 @@
           "lib/netstandard2.0/System.Data.DataSetExtensions.dll": {}
         }
       },
-      "System.Data.SqlClient/4.9.0": {
+      "System.Data.SqlClient/4.9.1": {
         "type": "package",
         "dependencies": {
           "runtime.native.System.Data.SqlClient.sni": "4.4.0"
@@ -2454,15 +2441,15 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "System.Reflection.MetadataLoadContext/9.0.0": {
+      "System.Reflection.MetadataLoadContext/10.0.1": {
         "type": "package",
         "compile": {
-          "lib/net9.0/System.Reflection.MetadataLoadContext.dll": {
+          "lib/net10.0/System.Reflection.MetadataLoadContext.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net9.0/System.Reflection.MetadataLoadContext.dll": {
+          "lib/net10.0/System.Reflection.MetadataLoadContext.dll": {
             "related": ".xml"
           }
         },
@@ -2492,15 +2479,15 @@
           }
         }
       },
-      "System.Security.Cryptography.ProtectedData/9.0.11": {
+      "System.Security.Cryptography.ProtectedData/10.0.1": {
         "type": "package",
         "compile": {
-          "lib/net9.0/System.Security.Cryptography.ProtectedData.dll": {
+          "lib/net10.0/System.Security.Cryptography.ProtectedData.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net9.0/System.Security.Cryptography.ProtectedData.dll": {
+          "lib/net10.0/System.Security.Cryptography.ProtectedData.dll": {
             "related": ".xml"
           }
         },
@@ -2551,16 +2538,16 @@
         "lib/netstandard2.0/Azure.Identity.xml"
       ]
     },
-    "BouncyCastle.Cryptography/2.6.1": {
-      "sha512": "vZsG2YILhthgRqO+ZVgRff4ZFKKTl0v7kqaVBLCtRvpREhfBP33pcWrdA3PRYgWuFL1RxiUFvjMUHTdBZlJcoA==",
+    "BouncyCastle.Cryptography/2.6.2": {
+      "sha512": "7oWOcvnntmMKNzDLsdxAYqApt+AjpRpP2CShjMfIa3umZ42UQMvH0tl1qAliYPNYO6vTdcGMqnRrCPmsfzTI1w==",
       "type": "package",
-      "path": "bouncycastle.cryptography/2.6.1",
+      "path": "bouncycastle.cryptography/2.6.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE.md",
         "README.md",
-        "bouncycastle.cryptography.2.6.1.nupkg.sha512",
+        "bouncycastle.cryptography.2.6.2.nupkg.sha512",
         "bouncycastle.cryptography.nuspec",
         "lib/net461/BouncyCastle.Cryptography.dll",
         "lib/net461/BouncyCastle.Cryptography.xml",
@@ -2571,15 +2558,15 @@
         "packageIcon.png"
       ]
     },
-    "EPPlus/8.4.1": {
-      "sha512": "6peduJ6RTriSg73/yaCqkzVbJ+3udvb1Dc5OkiBK2hjnYjGcRXFB5b1WTRfsaJfVWMAuR2qqOnU4Ry+mCakjKw==",
+    "EPPlus/8.5.0": {
+      "sha512": "9VCtU/KD79APsDbqy7OnGCmW6hAdYuQRZGdxNRf+P/fLdygUGVVzGWedaaAuMTXxAfFEtGZjpKL3lyBJICoO7Q==",
       "type": "package",
-      "path": "epplus/8.4.1",
+      "path": "epplus/8.5.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "EPPlusLogo.png",
-        "epplus.8.4.1.nupkg.sha512",
+        "epplus.8.5.0.nupkg.sha512",
         "epplus.nuspec",
         "lib/net10.0/EPPlus.dll",
         "lib/net10.0/EPPlus.xml",
@@ -3367,10 +3354,10 @@
         "logo.png"
       ]
     },
-    "MailKit/4.14.1": {
-      "sha512": "Rawu+h3lSSjKra0AxR+IUB99VQ7jWI+MvxThekqLhf+ic7VQ7a69lmPFW+LXuRYHla4ADcn3x16Gsvju3LTq9w==",
+    "MailKit/4.15.1": {
+      "sha512": "4mLbqTbH3ctd0NlukHjVQbU3ZnNDuCtB6ttNZDLPZLWMA2Dr31rh/eCSTqOwDojUX8zfDOVaxstMgJTE9PwZNA==",
       "type": "package",
-      "path": "mailkit/4.14.1",
+      "path": "mailkit/4.15.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3379,6 +3366,10 @@
         "docs/GMailOAuth2.md",
         "docs/README.md",
         "icons/mailkit-50.png",
+        "lib/net10.0/MailKit.dll",
+        "lib/net10.0/MailKit.dll.config",
+        "lib/net10.0/MailKit.pdb",
+        "lib/net10.0/MailKit.xml",
         "lib/net462/MailKit.dll",
         "lib/net462/MailKit.dll.config",
         "lib/net462/MailKit.pdb",
@@ -3403,7 +3394,7 @@
         "lib/netstandard2.1/MailKit.dll.config",
         "lib/netstandard2.1/MailKit.pdb",
         "lib/netstandard2.1/MailKit.xml",
-        "mailkit.4.14.1.nupkg.sha512",
+        "mailkit.4.15.1.nupkg.sha512",
         "mailkit.nuspec"
       ]
     },
@@ -3435,19 +3426,6 @@
         "microsoft.aspnetcore.razor.language.nuspec"
       ]
     },
-    "Microsoft.AspNetCore.Session/2.3.9": {
-      "sha512": "tKQRwEiwKO55k6aTsJ63fFbAB7yk6sgukt67NMO+M0rZmdT3ACDOFRXYEZxZFYrbsJGVeGRWXzmXaQZ85uHTPA==",
-      "type": "package",
-      "path": "microsoft.aspnetcore.session/2.3.9",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "lib/netstandard2.0/Microsoft.AspNetCore.Session.dll",
-        "lib/netstandard2.0/Microsoft.AspNetCore.Session.xml",
-        "microsoft.aspnetcore.session.2.3.9.nupkg.sha512",
-        "microsoft.aspnetcore.session.nuspec"
-      ]
-    },
     "Microsoft.Bcl.AsyncInterfaces/8.0.0": {
       "sha512": "3WA9q9yVqJp222P3x1wYIGDAkpjAku0TMUaaQV22g6L67AI0LdOIrVS7Ht2vJfLHGSPVuqN94vIr15qn+HEkHw==",
       "type": "package",
@@ -3472,10 +3450,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Build/18.0.2": {
-      "sha512": "MlcYsFVJbA7S1ByOf9DbuPMQ08nlF88VkqkIjmBkIiasA/M0Zo87H6Vk44e/SuLffomGGYSr2Hh5El6UEDDgKw==",
+    "Microsoft.Build/18.4.0": {
+      "sha512": "D2YsSGRVxXqLGY5VN+nK7tT1bLcW8Q22F19Fp4dt0E67Ij4kYcR1VzFGA0QRI2WlRW4mUEXYS42BvVXmRlxajw==",
       "type": "package",
-      "path": "microsoft.build/18.0.2",
+      "path": "microsoft.build/18.4.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3487,7 +3465,7 @@
         "lib/net472/Microsoft.Build.dll",
         "lib/net472/Microsoft.Build.pdb",
         "lib/net472/Microsoft.Build.xml",
-        "microsoft.build.18.0.2.nupkg.sha512",
+        "microsoft.build.18.4.0.nupkg.sha512",
         "microsoft.build.nuspec",
         "notices/THIRDPARTYNOTICES.txt",
         "ref/net10.0/Microsoft.Build.dll",
@@ -3496,10 +3474,10 @@
         "ref/net472/Microsoft.Build.xml"
       ]
     },
-    "Microsoft.Build.Framework/18.0.2": {
-      "sha512": "sOSb+0J4G/jCBW/YqmRuL0eOMXgfw1KQLdC9TkbvfA5xs7uNm+PBQXJCOzSJGXtZcZrtXozcwxPmUiRUbmd7FA==",
+    "Microsoft.Build.Framework/18.4.0": {
+      "sha512": "oq6UxPfzz5S5hCC9hTRBt1r99BwEzCP/h/DadMl/m6RSGTUUXjoblsTTrokYks0SzZ2Cvx0fk4TvuEpxuXxPbw==",
       "type": "package",
-      "path": "microsoft.build.framework/18.0.2",
+      "path": "microsoft.build.framework/18.4.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3511,7 +3489,7 @@
         "lib/net472/Microsoft.Build.Framework.dll",
         "lib/net472/Microsoft.Build.Framework.pdb",
         "lib/net472/Microsoft.Build.Framework.xml",
-        "microsoft.build.framework.18.0.2.nupkg.sha512",
+        "microsoft.build.framework.18.4.0.nupkg.sha512",
         "microsoft.build.framework.nuspec",
         "notices/THIRDPARTYNOTICES.txt",
         "ref/net10.0/Microsoft.Build.Framework.dll",
@@ -5209,10 +5187,10 @@
         "microsoft.io.recyclablememorystream.nuspec"
       ]
     },
-    "Microsoft.NET.StringTools/18.0.2": {
-      "sha512": "cTZw3GHkAlqZACYGeQT3niS3UfVQ8CH0O5+zUdhxstrg1Z8Q2ViXYFKjSxHmEXTX85mrOT/QnHZOeQhhSsIrkQ==",
+    "Microsoft.NET.StringTools/18.4.0": {
+      "sha512": "iQWOKi3L5QStmWqDjDubcr1KlTDy88qBTe88I0etlUUo1l0zSNebGJXl1Xetyl+ACA+ujP3YUtxo3Nz54JPriw==",
       "type": "package",
-      "path": "microsoft.net.stringtools/18.0.2",
+      "path": "microsoft.net.stringtools/18.4.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -5227,7 +5205,7 @@
         "lib/netstandard2.0/Microsoft.NET.StringTools.dll",
         "lib/netstandard2.0/Microsoft.NET.StringTools.pdb",
         "lib/netstandard2.0/Microsoft.NET.StringTools.xml",
-        "microsoft.net.stringtools.18.0.2.nupkg.sha512",
+        "microsoft.net.stringtools.18.4.0.nupkg.sha512",
         "microsoft.net.stringtools.nuspec",
         "notices/THIRDPARTYNOTICES.txt",
         "ref/net10.0/Microsoft.NET.StringTools.dll",
@@ -5778,16 +5756,20 @@
         "microsoft.visualstudio.web.codegenerators.mvc.nuspec"
       ]
     },
-    "MimeKit/4.14.0": {
-      "sha512": "g0LtsMC8DCTkc030C3UgVqbltOJmV5cz4AX8ASowz2ZA+lxopXSYtC1XXYmenxy606aWFLwi5Xy4cC/zyYjbjQ==",
+    "MimeKit/4.15.1": {
+      "sha512": "cxCcQhD0zhboFoG136jJuJtQjNRDJ+BxBm3f2vWn+53bff/CRo+K1mAkWjsW4Wuyy5O22F40MdMG2nRzQu1cJw==",
       "type": "package",
-      "path": "mimekit/4.14.0",
+      "path": "mimekit/4.15.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "docs/FAQ.md",
         "docs/README.md",
         "icons/mimekit-50.png",
+        "lib/net10.0/MimeKit.dll",
+        "lib/net10.0/MimeKit.dll.config",
+        "lib/net10.0/MimeKit.pdb",
+        "lib/net10.0/MimeKit.xml",
         "lib/net462/MimeKit.dll",
         "lib/net462/MimeKit.pdb",
         "lib/net462/MimeKit.xml",
@@ -5809,7 +5791,7 @@
         "lib/netstandard2.1/MimeKit.dll.config",
         "lib/netstandard2.1/MimeKit.pdb",
         "lib/netstandard2.1/MimeKit.xml",
-        "mimekit.4.14.0.nupkg.sha512",
+        "mimekit.4.15.1.nupkg.sha512",
         "mimekit.nuspec"
       ]
     },
@@ -6041,10 +6023,10 @@
         "razorlight.nuspec"
       ]
     },
-    "RestSharp/113.1.0": {
-      "sha512": "poNb3XPzF0Rxp+XW9e7U+TZOIjABkGEYd0cGuNIstcRZTU8ES6+7tpbZ55+0XpxwnxxU8nSAZ89p6WUKI+Cg+A==",
+    "RestSharp/114.0.0": {
+      "sha512": "8pDO4q+K8nIqXbvGCb9ciKcngj36pCXGRDzOYPEPoS2IvBIL+mejmUMAtSNALt/NkDc9LQmHvM95kdniLSbGtg==",
       "type": "package",
-      "path": "restsharp/113.1.0",
+      "path": "restsharp/114.0.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -6061,7 +6043,7 @@
         "lib/net9.0/RestSharp.xml",
         "lib/netstandard2.0/RestSharp.dll",
         "lib/netstandard2.0/RestSharp.xml",
-        "restsharp.113.1.0.nupkg.sha512",
+        "restsharp.114.0.0.nupkg.sha512",
         "restsharp.nuspec",
         "restsharp.png"
       ]
@@ -6426,21 +6408,22 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "System.Configuration.ConfigurationManager/9.0.11": {
-      "sha512": "vPinosRgEk1CGjohbv0pDuz6gPprkWo5xvBTjOJjks5JOgOEWvPndq5NngGxiTcBcy1+k9GwzZ1c3Bp2fU5ezw==",
+    "System.Configuration.ConfigurationManager/10.0.1": {
+      "sha512": "HfOAIlSA8OuaxBZD6xjsUWhtB0KdKSWEfRId8gSGveLUjuP6G8IxfiFgJNxaiRIEC1kx4pSvz3Em5xW/J6LLxA==",
       "type": "package",
-      "path": "system.configuration.configurationmanager/9.0.11",
+      "path": "system.configuration.configurationmanager/10.0.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
-        "LICENSE.TXT",
         "PACKAGE.md",
         "THIRD-PARTY-NOTICES.TXT",
         "buildTransitive/net461/System.Configuration.ConfigurationManager.targets",
         "buildTransitive/net462/_._",
         "buildTransitive/net8.0/_._",
         "buildTransitive/netcoreapp2.0/System.Configuration.ConfigurationManager.targets",
+        "lib/net10.0/System.Configuration.ConfigurationManager.dll",
+        "lib/net10.0/System.Configuration.ConfigurationManager.xml",
         "lib/net462/System.Configuration.ConfigurationManager.dll",
         "lib/net462/System.Configuration.ConfigurationManager.xml",
         "lib/net8.0/System.Configuration.ConfigurationManager.dll",
@@ -6449,7 +6432,7 @@
         "lib/net9.0/System.Configuration.ConfigurationManager.xml",
         "lib/netstandard2.0/System.Configuration.ConfigurationManager.dll",
         "lib/netstandard2.0/System.Configuration.ConfigurationManager.xml",
-        "system.configuration.configurationmanager.9.0.11.nupkg.sha512",
+        "system.configuration.configurationmanager.10.0.1.nupkg.sha512",
         "system.configuration.configurationmanager.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -6473,10 +6456,10 @@
         "version.txt"
       ]
     },
-    "System.Data.SqlClient/4.9.0": {
-      "sha512": "j4KJO+vC62NyUtNHz854njEqXbT8OmAa5jb1nrGfYWBOcggyYUQE0w/snXeaCjdvkSKWuUD+hfvlbN8pTrJTXg==",
+    "System.Data.SqlClient/4.9.1": {
+      "sha512": "A7RK9I4UaVHJ407GTfy37S4ABHt1+lZ+/uoA54zTv0XaaWgHO5BtXSMzMVqB6socIHEeeK5K1YRgaxCEfD79wQ==",
       "type": "package",
-      "path": "system.data.sqlclient/4.9.0",
+      "path": "system.data.sqlclient/4.9.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -6502,7 +6485,7 @@
         "runtimes/win/lib/net6.0/System.Data.SqlClient.xml",
         "runtimes/win/lib/net8.0/System.Data.SqlClient.dll",
         "runtimes/win/lib/net8.0/System.Data.SqlClient.xml",
-        "system.data.sqlclient.4.9.0.nupkg.sha512",
+        "system.data.sqlclient.4.9.1.nupkg.sha512",
         "system.data.sqlclient.nuspec"
       ]
     },
@@ -6559,21 +6542,22 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "System.Reflection.MetadataLoadContext/9.0.0": {
-      "sha512": "nGdCUVhEQ9/CWYqgaibYEDwIJjokgIinQhCnpmtZfSXdMS6ysLZ8p9xvcJ8VPx6Xpv5OsLIUrho4B9FN+VV/tw==",
+    "System.Reflection.MetadataLoadContext/10.0.1": {
+      "sha512": "oR2JAGKrPXc6TjR5u7A1iovxg0U80l1xmxztI8BdqHuJtyFnsg+ddOFu3B4Cx5c39XyVZpq4109A+eCkgp4q/Q==",
       "type": "package",
-      "path": "system.reflection.metadataloadcontext/9.0.0",
+      "path": "system.reflection.metadataloadcontext/10.0.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
-        "LICENSE.TXT",
         "PACKAGE.md",
         "THIRD-PARTY-NOTICES.TXT",
         "buildTransitive/net461/System.Reflection.MetadataLoadContext.targets",
         "buildTransitive/net462/_._",
         "buildTransitive/net8.0/_._",
         "buildTransitive/netcoreapp2.0/System.Reflection.MetadataLoadContext.targets",
+        "lib/net10.0/System.Reflection.MetadataLoadContext.dll",
+        "lib/net10.0/System.Reflection.MetadataLoadContext.xml",
         "lib/net462/System.Reflection.MetadataLoadContext.dll",
         "lib/net462/System.Reflection.MetadataLoadContext.xml",
         "lib/net8.0/System.Reflection.MetadataLoadContext.dll",
@@ -6582,7 +6566,7 @@
         "lib/net9.0/System.Reflection.MetadataLoadContext.xml",
         "lib/netstandard2.0/System.Reflection.MetadataLoadContext.dll",
         "lib/netstandard2.0/System.Reflection.MetadataLoadContext.xml",
-        "system.reflection.metadataloadcontext.9.0.0.nupkg.sha512",
+        "system.reflection.metadataloadcontext.10.0.1.nupkg.sha512",
         "system.reflection.metadataloadcontext.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -6623,15 +6607,14 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "System.Security.Cryptography.ProtectedData/9.0.11": {
-      "sha512": "s8yUYuYYu+PAwvBdhLG1KyrGrk9gkYeuPxfAsXsTqqWyepwSyEw8hAaflW4nO98NG52YpYI1am2+9o+79h2RtQ==",
+    "System.Security.Cryptography.ProtectedData/10.0.1": {
+      "sha512": "9SqHNq+lAjZeyPcm69FTQEjr+wsRYvkS3aW8yxoEndVYwDRkCrsP/44QPqpWHwzevoX26rkOoQ6kr7GZWngw2A==",
       "type": "package",
-      "path": "system.security.cryptography.protecteddata/9.0.11",
+      "path": "system.security.cryptography.protecteddata/10.0.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
-        "LICENSE.TXT",
         "PACKAGE.md",
         "THIRD-PARTY-NOTICES.TXT",
         "buildTransitive/net461/System.Security.Cryptography.ProtectedData.targets",
@@ -6640,6 +6623,8 @@
         "buildTransitive/netcoreapp2.0/System.Security.Cryptography.ProtectedData.targets",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
+        "lib/net10.0/System.Security.Cryptography.ProtectedData.dll",
+        "lib/net10.0/System.Security.Cryptography.ProtectedData.xml",
         "lib/net462/System.Security.Cryptography.ProtectedData.dll",
         "lib/net462/System.Security.Cryptography.ProtectedData.xml",
         "lib/net8.0/System.Security.Cryptography.ProtectedData.dll",
@@ -6652,7 +6637,7 @@
         "lib/xamarinmac20/_._",
         "lib/xamarintvos10/_._",
         "lib/xamarinwatchos10/_._",
-        "system.security.cryptography.protecteddata.9.0.11.nupkg.sha512",
+        "system.security.cryptography.protecteddata.10.0.1.nupkg.sha512",
         "system.security.cryptography.protecteddata.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -6660,16 +6645,15 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "EPPlus >= 8.4.1",
-      "MailKit >= 4.14.1",
-      "Microsoft.AspNetCore.Session >= 2.3.9",
-      "Microsoft.Build >= 18.0.2",
+      "EPPlus >= 8.5.0",
+      "MailKit >= 4.15.1",
+      "Microsoft.Build >= 18.4.0",
       "Microsoft.Data.SqlClient >= 6.1.4",
       "Microsoft.VisualStudio.Web.CodeGeneration.Design >= 10.0.2",
       "Newtonsoft.Json >= 13.0.4",
       "RazorLight >= 2.3.1",
-      "RestSharp >= 113.1.0",
-      "System.Data.SqlClient >= 4.9.0"
+      "RestSharp >= 114.0.0",
+      "System.Data.SqlClient >= 4.9.1"
     ]
   },
   "packageFolders": {
@@ -6717,7 +6701,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
@@ -6725,19 +6709,15 @@
         "dependencies": {
           "EPPlus": {
             "target": "Package",
-            "version": "[8.4.1, )"
+            "version": "[8.5.0, )"
           },
           "MailKit": {
             "target": "Package",
-            "version": "[4.14.1, )"
-          },
-          "Microsoft.AspNetCore.Session": {
-            "target": "Package",
-            "version": "[2.3.9, )"
+            "version": "[4.15.1, )"
           },
           "Microsoft.Build": {
             "target": "Package",
-            "version": "[18.0.2, )"
+            "version": "[18.4.0, )"
           },
           "Microsoft.Data.SqlClient": {
             "target": "Package",
@@ -6757,11 +6737,11 @@
           },
           "RestSharp": {
             "target": "Package",
-            "version": "[113.1.0, )"
+            "version": "[114.0.0, )"
           },
           "System.Data.SqlClient": {
             "target": "Package",
-            "version": "[4.9.0, )"
+            "version": "[4.9.1, )"
           }
         },
         "imports": [
@@ -6783,7 +6763,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
@@ -7200,17 +7180,5 @@
         }
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1510",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "PackageReference Microsoft.AspNetCore.Session will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "libraryId": "Microsoft.AspNetCore.Session",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  }
 }

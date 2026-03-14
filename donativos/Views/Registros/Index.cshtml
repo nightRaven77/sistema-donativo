@@ -199,6 +199,18 @@
                 const loader = document.getElementById('loadingSpinner');
                 const spinnerText = document.getElementById('spinnerText');
 
+                // ⭐ LIMPIAR DATATABLES ANTES DE CAMBIAR DE VISTA
+                if (typeof dataTableSalidas !== 'undefined' && dataTableSalidas !== null) {
+                    console.log('🧹 Destruyendo DataTable Salidas');
+                    dataTableSalidas.destroy();
+                    dataTableSalidas = null;
+                }
+                if (typeof dataTableTraspasos !== 'undefined' && dataTableTraspasos !== null) {
+                    console.log('🧹 Destruyendo DataTable Traspasos');
+                    dataTableTraspasos.destroy();
+                    dataTableTraspasos = null;
+                }
+
                 // Actualizar texto del spinner
                 spinnerText.textContent = this.viewTitles[viewName] || 'Por favor espera...';
 
@@ -231,13 +243,19 @@
                             // Inicializar módulo de salidas
                             if (typeof inicializarSalidas === 'function') {
                                 console.log('🚀 Inicializando módulo Salidas');
-                                setTimeout(() => inicializarSalidas(), 100);
+                                // ⭐ Esperar a que el DOM esté completamente renderizado
+                                setTimeout(() => {
+                                    inicializarSalidas();
+                                }, 300);
                             }
                         } else if (viewName === 'traspasos') {
                             // Inicializar módulo de traspasos
                             if (typeof inicializarTraspasos === 'function') {
                                 console.log('🚀 Inicializando módulo Traspasos');
-                                setTimeout(() => inicializarTraspasos(), 100);
+                                // ⭐ Esperar a que el DOM esté completamente renderizado
+                                setTimeout(() => {
+                                    inicializarTraspasos();
+                                }, 300);
                             }
                         }
                     },

@@ -59,6 +59,15 @@ const CONFIG_TRASPASOS = {
  */
 function inicializarTraspasos() {
     console.log('✓ Inicializando módulo Traspasos');
+
+    // ⭐ Verificar que la tabla existe en el DOM antes de continuar
+    if ($('#tablaTraspasos').length === 0) {
+        console.error('❌ Error: La tabla #tablaTraspasos no existe en el DOM');
+        console.log('⏳ Reintentando en 200ms...');
+        setTimeout(() => inicializarTraspasos(), 200);
+        return;
+    }
+
     cargarAlmacenesTraspasos();
     cargarTraspasos();
     configurarEventosBusquedaTraspaso();
@@ -527,9 +536,38 @@ function guardarTraspasoCompleto(almacenOrigen, almacenDestino, archivosGuardado
  * Inicializa DataTables para traspasos
  */
 function inicializarDataTablesTraspasos() {
-    if (dataTableTraspasos) {
-        dataTableTraspasos.destroy();
+    // ⭐ Verificar que el elemento existe antes de inicializar
+    if ($('#tablaTraspasos').length === 0) {
+        console.error('❌ No se puede inicializar DataTables: #tablaTraspasos no existe en el DOM');
+        return;
     }
+
+    // ⭐ Destruir instancia anterior si existe
+    if (dataTableTraspasos) {
+        console.log('🧹 Destruyendo instancia anterior de DataTable Traspasos');
+        dataTableTraspasos.destroy();
+        dataTableTraspasos = null;
+        // Limpiar el HTML de la tabla
+        $('#tablaTraspasos').empty();
+        $('#tablaTraspasos').html(`
+            <thead class="table-light">
+                <tr style="background-color: var(--guinda); color: white;">
+                    <th>ID</th>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Almacén Origen</th>
+                    <th>Almacén Destino</th>
+                    <th>Artículos</th>
+                    <th>Estado</th>
+                    <th>Tipo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `);
+    }
+
+    console.log('🔄 Inicializando DataTables Traspasos...');
 
     dataTableTraspasos = $('#tablaTraspasos').DataTable({
         language: {
@@ -683,6 +721,14 @@ function renderizarTablaTraspasos(traspasos) {
     // Redibujar tabla
     dataTableTraspasos.draw();
     console.log(`✓ DataTables Traspasos actualizado con ${traspasos.length} registros`);
+
+    // ⭐ Forzar actualización visual después de un breve delay
+    setTimeout(() => {
+        if (dataTableTraspasos) {
+            dataTableTraspasos.columns.adjust().responsive.recalc();
+            console.log('✓ Columnas ajustadas y responsive recalculado');
+        }
+    }, 100);
 }
 
 /**

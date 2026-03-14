@@ -52,6 +52,14 @@ const CONFIG_SALIDAS = {
 function inicializarSalidas() {
     console.log('✓ Inicializando módulo Salidas');
 
+    // ⭐ Verificar que la tabla existe en el DOM antes de continuar
+    if ($('#tablaSalidas').length === 0) {
+        console.error('❌ Error: La tabla #tablaSalidas no existe en el DOM');
+        console.log('⏳ Reintentando en 200ms...');
+        setTimeout(() => inicializarSalidas(), 200);
+        return;
+    }
+
     // ⭐ Cachear selectores jQuery frecuentes
     SELECTORS_SALIDAS = {
         selectAlmacenOrigen: $('#selectAlmacenOrigen'),
@@ -690,13 +698,9 @@ function guardarNuevoBeneficiario() {
     const $btn = $('button[onclick="guardarNuevoBeneficiario()"]');
     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
 
-    // Usar $.ajax directamente con timeout mayor
-    $.ajax({
-        url: '/Registros/insertaBeneficiario',
-        type: 'POST',
-        data: { datos: JSON.stringify(beneficiario) },
-        timeout: 60000, // 60 segundos
-        success: function(response) {
+    // ✅ Usar AjaxService para detección automática de ambiente
+    AjaxService.beneficiarios.insertar(beneficiario)
+        .done(function(response) {
             console.log('✓ Beneficiario guardado - Respuesta completa:', response);
 
             const data = parseApiResponse(response);
@@ -716,8 +720,8 @@ function guardarNuevoBeneficiario() {
             } else {
                 mostrarNotificacion('Beneficiario guardado pero no se pudo obtener el ID', 'warning');
             }
-        },
-        error: function(xhr, status, error) {
+        })
+        .fail(function(xhr, status, error) {
             console.error('❌ Error al guardar beneficiario:');
             console.error('   Status:', status);
             console.error('   Error:', error);
@@ -734,11 +738,10 @@ function guardarNuevoBeneficiario() {
             } else {
                 mostrarNotificacion('Error al guardar el beneficiario', 'error');
             }
-        },
-        complete: function() {
+        })
+        .always(function() {
             $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
-        }
-    });
+        });
 }
 
 // ===================================================================
@@ -749,9 +752,37 @@ function guardarNuevoBeneficiario() {
  * Inicializa DataTables para salidas
  */
 function inicializarDataTablesSalidas() {
-    if (dataTableSalidas) {
-        dataTableSalidas.destroy();
+    // ⭐ Verificar que el elemento existe antes de inicializar
+    if ($('#tablaSalidas').length === 0) {
+        console.error('❌ No se puede inicializar DataTables: #tablaSalidas no existe en el DOM');
+        return;
     }
+
+    // ⭐ Destruir instancia anterior si existe
+    if (dataTableSalidas) {
+        console.log('🧹 Destruyendo instancia anterior de DataTable Salidas');
+        dataTableSalidas.destroy();
+        dataTableSalidas = null;
+        // Limpiar el HTML de la tabla
+        $('#tablaSalidas').empty();
+        $('#tablaSalidas').html(`
+            <thead class="table-light">
+                <tr style="background-color: var(--guinda); color: white;">
+                    <th>ID</th>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Beneficiario</th>
+                    <th>Almacén Origen</th>
+                    <th>Artículos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `);
+    }
+
+    console.log('🔄 Inicializando DataTables Salidas...');
 
     dataTableSalidas = $('#tablaSalidas').DataTable({
         language: {
@@ -867,6 +898,14 @@ function renderizarTablaSalidas(salidas) {
     // Redibujar tabla
     dataTableSalidas.draw();
     console.log(`✓ DataTables Salidas actualizado con ${salidas.length} registros`);
+
+    // ⭐ Forzar actualización visual después de un breve delay
+    setTimeout(() => {
+        if (dataTableSalidas) {
+            dataTableSalidas.columns.adjust().responsive.recalc();
+            console.log('✓ Columnas ajustadas y responsive recalculado');
+        }
+    }, 100);
 }
 
 /**
