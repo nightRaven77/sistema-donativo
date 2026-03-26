@@ -706,9 +706,84 @@ function guardarNuevoBeneficiario() {
             const data = parseApiResponse(response);
             console.log('✓ Data parseada:', data);
 
-            // Parsear el string JSON interno de data.data
+            // ⚠️ VERIFICAR SI ES UN ERROR ENVUELTO (HTTP 200 con exito: false)
+            if (data.exito === false) {
+                console.warn('⚠️ Respuesta indica error (exito: false)');
+
+                // Intentar parsear el error como JSON (puede ser un 409)
+                try {
+                    const errorData = JSON.parse(data.error);
+                    console.log('📦 Error parseado:', errorData);
+
+                    // Si tiene existingResource, es un conflicto 409
+                    if (errorData.existingResource || errorData.existingResources) {
+                        // Crear un objeto XHR simulado para el error handler
+                        const fakeXhr = {
+                            status: 409,
+                            responseText: data.error
+                        };
+
+                        // Llamar al manejador de errores
+                        const manejado = manejarErrorAjax(fakeXhr, 'error', 'Conflict', {
+                            recurso: 'Beneficiario',
+                            onConflictConfirm: (existingResource, conflictData) => {
+                                if (!existingResource) {
+                                    console.error('❌ existingResource es null');
+                                    mostrarNotificacion('Error al obtener datos del beneficiario existente', 'error');
+                                    return;
+                                }
+
+                                const id = existingResource.id_beneficiario || 
+                                           existingResource.idBeneficiario || 
+                                           existingResource.id ||
+                                           extraerIdRecurso(existingResource, 'beneficiario');
+
+                                if (!id) {
+                                    console.error('❌ No se pudo extraer el ID del beneficiario existente');
+                                    console.error('existingResource:', existingResource);
+                                    mostrarNotificacion('Error al obtener ID del beneficiario existente', 'error');
+                                    return;
+                                }
+
+                                const nombre = $('#nombreBeneficiario').val().trim();
+                                console.log(`✅ Usando beneficiario existente: ${nombre} (ID: ${id})`);
+
+                                seleccionarBeneficiario(id, nombre);
+                                $('#modalNuevoBeneficiario').modal('hide');
+                                mostrarNotificacion('Beneficiario existente seleccionado correctamente', 'success');
+                            },
+                            onConflictCancel: () => {
+                                console.log('❌ Usuario canceló usar beneficiario existente');
+                            }
+                        });
+
+                        if (!manejado) {
+                            mostrarNotificacion('Error al guardar el beneficiario', 'error');
+                        }
+
+                        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
+                        return; // Salir de la función
+                    }
+                } catch (e) {
+                    console.error('No se pudo parsear el error:', e);
+                }
+
+                // Si llegamos aquí, es un error genérico
+                mostrarNotificacion(data.mensaje || 'Error al guardar el beneficiario', 'error');
+                $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
+                return;
+            }
+
+            // ✅ Respuesta exitosa, continuar con el flujo normal
             const beneficiarioData = parseApiResponse(data.data);
             console.log('✓ Beneficiario data parseada:', beneficiarioData);
+
+            if (!beneficiarioData) {
+                console.error('❌ beneficiarioData es null');
+                mostrarNotificacion('Error al procesar la respuesta del servidor', 'error');
+                $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
+                return;
+            }
 
             const id = beneficiarioData.id_beneficiario || beneficiarioData.idBeneficiario || beneficiarioData.id;
             console.log('✓ ID extraído:', id);
@@ -720,6 +795,8 @@ function guardarNuevoBeneficiario() {
             } else {
                 mostrarNotificacion('Beneficiario guardado pero no se pudo obtener el ID', 'warning');
             }
+
+            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
         })
         .fail(function(xhr, status, error) {
             console.error('❌ Error al guardar beneficiario:');
@@ -729,17 +806,58 @@ function guardarNuevoBeneficiario() {
             console.error('   Response Text:', xhr.responseText);
             console.error('   Status Code:', xhr.status);
 
-            if (status === 'timeout') {
-                mostrarNotificacion('La petición tardó demasiado tiempo. Verifica tu conexión.', 'error');
-            } else if (xhr.status === 404) {
-                mostrarNotificacion('El endpoint no fue encontrado. Verifica la ruta.', 'error');
-            } else if (xhr.status === 500) {
-                mostrarNotificacion('Error en el servidor. Revisa los logs.', 'error');
-            } else {
-                mostrarNotificacion('Error al guardar el beneficiario', 'error');
+            // ⭐ NUEVO: Usar manejador centralizado de errores
+            const manejado = manejarErrorAjax(xhr, status, error, {
+                recurso: 'Beneficiario',
+                onConflictConfirm: (existingResource, conflictData) => {
+                    // Verificar que existingResource no sea null
+                    if (!existingResource) {
+                        console.error('❌ existingResource es null');
+                        mostrarNotificacion('Error al obtener datos del beneficiario existente', 'error');
+                        return;
+                    }
+
+                    // Extraer ID del beneficiario existente de forma segura
+                    const id = existingResource.id_beneficiario || 
+                               existingResource.idBeneficiario || 
+                               existingResource.id ||
+                               extraerIdRecurso(existingResource, 'beneficiario');
+
+                    if (!id) {
+                        console.error('❌ No se pudo extraer el ID del beneficiario existente');
+                        console.error('existingResource:', existingResource);
+                        mostrarNotificacion('Error al obtener ID del beneficiario existente', 'error');
+                        return;
+                    }
+
+                    const nombre = $('#nombreBeneficiario').val().trim();
+
+                    console.log(`✅ Usando beneficiario existente: ${nombre} (ID: ${id})`);
+
+                    // Seleccionar el beneficiario existente
+                    seleccionarBeneficiario(id, nombre);
+                    $('#modalNuevoBeneficiario').modal('hide');
+                    mostrarNotificacion('Beneficiario existente seleccionado correctamente', 'success');
+                },
+                onConflictCancel: () => {
+                    console.log('❌ Usuario canceló usar beneficiario existente');
+                    // El modal de beneficiario permanece abierto para corrección
+                }
+            });
+
+            // Si no fue manejado como conflicto 409, mostrar errores genéricos manualmente
+            if (!manejado) {
+                if (status === 'timeout') {
+                    mostrarNotificacion('La petición tardó demasiado tiempo. Verifica tu conexión.', 'error');
+                } else if (xhr.status === 404) {
+                    mostrarNotificacion('El endpoint no fue encontrado. Verifica la ruta.', 'error');
+                } else if (xhr.status === 500) {
+                    mostrarNotificacion('Error en el servidor. Revisa los logs.', 'error');
+                } else {
+                    mostrarNotificacion('Error al guardar el beneficiario', 'error');
+                }
             }
-        })
-        .always(function() {
+
             $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
         });
 }

@@ -27,12 +27,12 @@ const AjaxService = (function() {
         // ============================================
 
         // 1. Debug local: localhost:puerto
-        if (hostname === 'localhost' && hasPort) {
+        if (hostname === 'localhost') {
             return '/donaciones/';
         }
 
         // 2. Publicación local: localhost sin puerto
-        if (hostname === 'localhost' && !hasPort) {
+        if (hostname === 'localhost:44355' ) {
             return '/';
         }
 

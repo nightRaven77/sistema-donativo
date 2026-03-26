@@ -16,9 +16,9 @@
     <title>DIF Hidalgo</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet" asp-append-version="true">
     <!-- Tailwind CSS -->
-    <link href="~/css/tailwind.min.css" rel="stylesheet">
+    <link href="~/css/tailwind.min.css" rel="stylesheet" asp-append-version="true">
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- jQuery 3.4.0 (una sola versión) -->
@@ -29,16 +29,20 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- ⭐ Scripts locales con cache busting automático (asp-append-version="true") -->
     <!-- Servicio AJAX centralizado -->
-    <script src="~/Scripts/ajax-service.js"></script>
+    <script src="~/Scripts/ajax-service.js" asp-append-version="true"></script>
     <!-- Servicio de Notificaciones Unificado -->
-    <script src="~/Scripts/notificaciones-service.js"></script>
+    <script src="~/Scripts/notificaciones-service.js" asp-append-version="true"></script>
+    <!-- ⭐ Manejador centralizado de errores AJAX (debe cargarse antes de los módulos) -->
+    <script src="~/Scripts/error-handler.js" asp-append-version="true"></script>
     <!-- Scripts de módulos -->
-    <script src="~/Scripts/logger.js"></script>
-    <script src="~/Scripts/registros.js"></script>
-    <script src="~/Scripts/salidas.js"></script>
-    <script src="~/Scripts/traspasos.js"></script>
-    <link href="~/Scripts/styles.css" rel="stylesheet" />
+    <script src="~/Scripts/logger.js" asp-append-version="true"></script>
+    <script src="~/Scripts/registros.js" asp-append-version="true"></script>
+    <script src="~/Scripts/salidas.js" asp-append-version="true"></script>
+    <script src="~/Scripts/traspasos.js" asp-append-version="true"></script>
+    <link href="~/Scripts/styles.css" rel="stylesheet" asp-append-version="true" />
     <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
 
     <!-- Scripts necesarios -->

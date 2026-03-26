@@ -1482,7 +1482,40 @@ function guardarDonador(donador, contacto, articulosNuevos, articulosExistentes)
         .fail(function(xhr, status, error) {
             console.error('Error al guardar donador:', error);
             console.error('Respuesta del servidor:', xhr.responseText);
-            notificaciones.error('Error al guardar el donador. Intenta de nuevo.', 'Error');
+
+            // ⭐ NUEVO: Usar manejador centralizado de errores
+            const manejado = manejarErrorAjax(xhr, status, error, {
+                recurso: 'Donador',
+                onConflictConfirm: (existingResource) => {
+                    // Extraer ID del donador existente
+                    const id = existingResource.id_donador || existingResource.idDonador || existingResource.id;
+
+                    console.log(`✅ Usando donador existente (ID: ${id})`);
+
+                    // Guardar el ID del donador existente
+                    SELECTORS.idDonador.val(id);
+
+                    // Notificar al usuario
+                    notificaciones.info('Usando donador existente en el registro', 'Información');
+
+                    // Proceder con contacto o artículos
+                    if (contacto) {
+                        contacto.id_donador = id;
+                        guardarContacto(contacto, articulosNuevos, articulosExistentes, id);
+                    } else {
+                        insertarArticulosNuevos(articulosNuevos, articulosExistentes, id);
+                    }
+                },
+                onConflictCancel: () => {
+                    console.log('❌ Usuario canceló usar donador existente - abortando registro');
+                    notificaciones.warning('Registro cancelado. Corrige los datos del donador.', 'Cancelado');
+                }
+            });
+
+            // Si no fue manejado como conflicto, mostrar error genérico
+            if (!manejado) {
+                notificaciones.error('Error al guardar el donador. Intenta de nuevo.', 'Error');
+            }
         });
 }
 
@@ -1500,9 +1533,27 @@ function guardarContacto(contacto, articulosNuevos, articulosExistentes, donador
         })
         .fail(function(xhr, status, error) {
             console.error('Error al guardar contacto:', error);
-            notificaciones.warning('Error al guardar contacto, continuando con artículos...', 'Advertencia');
-            // Continuar con artículos aunque falle el contacto
-            insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
+
+            // ⭐ NUEVO: Usar manejador centralizado de errores
+            const manejado = manejarErrorAjax(xhr, status, error, {
+                recurso: 'Contacto',
+                onConflictConfirm: (existingResource) => {
+                    console.log('✅ Contacto duplicado detectado, continuando con artículos...');
+                    notificaciones.info('Usando contacto existente, continuando con el registro', 'Información');
+                    insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
+                },
+                onConflictCancel: () => {
+                    console.log('⚠️ Usuario canceló usar contacto existente, continuando sin contacto');
+                    notificaciones.warning('Continuando sin contacto asociado', 'Advertencia');
+                    insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
+                }
+            });
+
+            // Si no fue manejado como conflicto, continuar de todos modos (contacto es opcional)
+            if (!manejado) {
+                notificaciones.warning('Error al guardar contacto, continuando con artículos...', 'Advertencia');
+                insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId);
+            }
         });
 }
 
@@ -1573,7 +1624,50 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
         })
         .catch(error => {
             console.error('Error al guardar artículos:', error);
-            notificaciones.error('Error al guardar los artículos. Intenta de nuevo.', 'Error');
+
+            // ⭐ NUEVO: Usar manejador centralizado de errores
+            // Nota: .catch() recibe un objeto error diferente, necesitamos adaptarlo
+            let xhr = error;
+            let status = 'error';
+
+            // Intentar extraer xhr si viene de jQuery AJAX
+            if (error && error.status) {
+                xhr = error;
+                status = error.statusText || 'error';
+            }
+
+            const manejado = manejarErrorAjax(xhr, status, error.message || error, {
+                recurso: 'Artículo(s)',
+                onConflictConfirm: (existingResource, conflictData) => {
+                    console.log('✅ Artículo(s) duplicado(s) detectado(s), usando existentes');
+
+                    // La API puede retornar un array de recursos existentes en caso de múltiples artículos
+                    const recursosExistentes = conflictData.existingResources || [existingResource];
+
+                    // Mapear a formato esperado por el sistema
+                    const articulosConId = recursosExistentes.map((recurso, index) => {
+                        const articuloOriginal = articulosNuevos[index] || articulosNuevos[0];
+                        return {
+                            ...articuloOriginal,
+                            idArticulo: recurso.id_articulo || recurso.idArticulo || recurso.id
+                        };
+                    });
+
+                    notificaciones.info('Usando artículo(s) existente(s), continuando con el registro', 'Información');
+
+                    // Continuar con el donativo usando artículos existentes
+                    construirYGuardarDonativo(articulosConId, articulosExistentes, donadorId);
+                },
+                onConflictCancel: () => {
+                    console.log('❌ Usuario canceló usar artículos existentes - abortando registro');
+                    notificaciones.error('Registro cancelado. Corrige los artículos duplicados.', 'Cancelado');
+                }
+            });
+
+            // Si no fue manejado como conflicto, mostrar error genérico
+            if (!manejado) {
+                notificaciones.error('Error al guardar los artículos. Intenta de nuevo.', 'Error');
+            }
         });
 }
 
