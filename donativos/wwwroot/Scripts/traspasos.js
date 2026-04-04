@@ -136,7 +136,7 @@ function cargarAlmacenesTraspasos() {
             console.log('✓ Almacenes obtenidos:', response);
             const data = parseApiResponse(response);
             almacenesTraspasos = Array.isArray(data) ? data : [];
-            llenarSelectsAlmacenes();
+            llenarSelectsAlmacenesTraspasos();
         })
         .catch(error => {
             console.error('❌ Error al cargar almacenes:', error);
@@ -147,7 +147,7 @@ function cargarAlmacenesTraspasos() {
 /**
  * Llena los selects de almacenes
  */
-function llenarSelectsAlmacenes() {
+function llenarSelectsAlmacenesTraspasos() {
     const $selectOrigen = $('#selectAlmacenOrigenTraspaso');
     const $selectDestino = $('#selectAlmacenDestinoTraspaso');
     

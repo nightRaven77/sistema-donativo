@@ -1008,6 +1008,21 @@ namespace donativos.Controllers
         }
 
         /// <summary>
+        /// Obtiene todos los beneficiarios sin filtro de búsqueda (para dropdowns, etc)
+        /// </summary>
+        /// <returns></returns>
+        public async Task<JsonResult> ObtenerTodosBeneficiarios()
+            {
+            var token = HttpContext.Session.GetString("token");
+            var response = await ExecuteApiAsync(token, "catalogos/beneficiario", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener beneficiarios" });
+            }
+            return Json(response.Content);
+        }
+
+        /// <summary>
         /// Inserta un nuevo beneficiario
         /// </summary>
         public async Task<JsonResult> insertaBeneficiario(string datos)
@@ -1100,7 +1115,7 @@ namespace donativos.Controllers
         /// <param name="datos">A JSON-formatted string containing the donor contact information to be inserted. Must not be null or empty.</param>
         /// <returns>A JSON result containing the API response content if the operation succeeds; otherwise, a JSON result
         /// indicating a bad request if an internal server error occurs.</returns>
-        public async Task<JsonResult> insertaContactoDonaodor(string datos)
+        public async Task<JsonResult> insertaContactoDonador(string datos)
         {
             var body = new { datos = datos };
             var token = HttpContext.Session.GetString("token");
@@ -1314,6 +1329,24 @@ namespace donativos.Controllers
                 return Json(new List<DonadorDTO>());
             }
         }
+
+
+        /// <summary>
+        /// Retrives a list of all donors from the API without any filtering. This method is used to populate dropdowns or lists where all donors are needed.
+        /// </summary>
+        /// <returns>A JSON result containing a</returns>
+        public async Task<JsonResult> ObtenerTodosDonadores()
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = await ExecuteApiAsync(token, "catalogos/donador", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener donadores" });
+            }
+            return Json(response.Content);
+        }
+
+
 
         /// <summary>
         /// Retrieves the list of contacts associated with the specified donor.
@@ -1776,7 +1809,7 @@ namespace donativos.Controllers
             {
                 Console.WriteLine($"Cancelando traspaso ID: {id_traspaso}");
 
-                var datos = new { motivo_cancelacion = motivo_cancelacion ?? "Sin motivo especificado" };
+                var datos = new { motivoCancelacion = motivo_cancelacion ?? "Sin motivo especificado" };
                 var response = await ExecuteApiAsync(token, $"traspaso/{id_traspaso}/cancelar", "POST", datos);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)

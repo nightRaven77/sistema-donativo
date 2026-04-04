@@ -22,18 +22,19 @@ const AjaxService = (function() {
         const host = window.location.host; // Incluye puerto si existe
         const hasPort = host.includes(':');
 
+        console.log(`🔍 Detectando ambiente... Hostname: ${hostname}, Host: ${host}, Tiene puerto: ${hasPort}`);
         // ============================================
         // AMBIENTES DE DESARROLLO Y STAGING (usa /)
         // ============================================
 
         // 1. Debug local: localhost:puerto
-        if (hostname === 'localhost') {
-            return '/donaciones/';
+        if (hostname === 'localhost' && hasPort) {
+            return '/';
         }
 
         // 2. Publicación local: localhost sin puerto
-        if (hostname === 'localhost:44355' ) {
-            return '/';
+        if (hostname === 'localhost' && !hasPort ) {
+            return '/donaciones/';
         }
 
         // 3. Loopback: 127.0.0.1
@@ -201,7 +202,18 @@ const AjaxService = (function() {
                 data: { search: termino }
             });
         },
-        
+
+        /**
+         * Trae todos los donadores
+         * @returns {Promise} Lista de donadores completa
+         */
+        obtenerTodos() {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/ObtenerTodosDonadores'
+            });
+        },
+
         /**
          * Inserta un nuevo donador
          * @param {Object} datos - Datos del donador
@@ -397,6 +409,17 @@ const AjaxService = (function() {
         },
 
         /**
+         * Obtiene todos los beneficiarios
+         * @returns {Promise} Lista de beneficiarios completa
+         */
+        obtenerTodos() {
+            return _ejecutarAjax({
+                type: 'GET',
+                url: '/Registros/ObtenerTodosBeneficiarios'
+            });
+        },
+
+        /**
          * Inserta un nuevo beneficiario
          * @param {Object} datos - Datos del beneficiario
          * @returns {Promise} Respuesta con ID del beneficiario creado
@@ -499,6 +522,95 @@ const AjaxService = (function() {
         }
     };
 
+    // ============ MÓDULO: REPORTES ============
+
+    const reportes = {
+        /**
+         * Genera el reporte de entradas en formato Excel
+         * @param {Object} parametros - Parámetros del reporte: { fechaInicio, fechaFin, idAlmacen?, idCategoria? }
+         * @returns {Promise} Promesa con blob del archivo Excel
+         */
+        generarEntradas(parametros) {
+            return $.ajax({
+                type: 'POST',
+                url: _buildUrl('Reportes/GenerarReporteEntradas'),
+                data: { datos: JSON.stringify(parametros) },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                timeout: 30000
+            });
+        },
+
+        /**
+         * Genera el reporte de salidas en formato Excel
+         * @param {Object} parametros - Parámetros del reporte: { fechaInicio, fechaFin, idAlmacen?, tipoSalida? }
+         * @returns {Promise} Promesa con blob del archivo Excel
+         */
+        generarSalidas(parametros) {
+            return $.ajax({
+                type: 'POST',
+                url: _buildUrl('Reportes/GenerarReporteSalidas'),
+                data: { datos: JSON.stringify(parametros) },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                timeout: 30000
+            });
+        },
+
+        /**
+         * Genera el reporte de traspasos en formato Excel
+         * @param {Object} parametros - Parámetros del reporte: { fechaInicio, fechaFin, idAlmacenOrigen?, idAlmacenDestino?, estatus? }
+         * @returns {Promise} Promesa con blob del archivo Excel
+         */
+        generarTraspasos(parametros) {
+            return $.ajax({
+                type: 'POST',
+                url: _buildUrl('Reportes/GenerarReporteTraspasos'),
+                data: { datos: JSON.stringify(parametros) },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                timeout: 30000
+            });
+        },
+
+        /**
+         * Genera el reporte de existencias en formato Excel
+         * @param {Object} parametros - Parámetros del reporte: { idAlmacen?, idCategoria?, stockMinimo? }
+         * @returns {Promise} Promesa con blob del archivo Excel
+         */
+        generarExistencias(parametros) {
+            return $.ajax({
+                type: 'POST',
+                url: _buildUrl('Reportes/GenerarReporteExistencias'),
+                data: { datos: JSON.stringify(parametros) },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                timeout: 30000
+            });
+        },
+
+        /**
+         * Genera el reporte Kardex de inventario en formato Excel
+         * @param {Object} parametros - Parámetros del reporte: { fechaInicio, fechaFin, idArticulo, idAlmacen? }
+         * @returns {Promise} Promesa con blob del archivo Excel
+         */
+        generarKardex(parametros) {
+            return $.ajax({
+                type: 'POST',
+                url: _buildUrl('Reportes/GenerarReporteKardex'),
+                data: { datos: JSON.stringify(parametros) },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                timeout: 30000
+            });
+        }
+    };
+
     // ============ API PÚBLICA ============
 
     return {
@@ -513,6 +625,7 @@ const AjaxService = (function() {
         beneficiarios,
         inventario,
         traspasos,
+        reportes,
 
         // ============ UTILIDADES PÚBLICAS ============
 

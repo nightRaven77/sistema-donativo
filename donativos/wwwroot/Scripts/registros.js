@@ -1570,60 +1570,133 @@ function insertarArticulosNuevos(articulosNuevos, articulosExistentes, donadorId
     // Filtrar solo los campos necesarios para insertar artículos (camelCase)
     const articulosParaInsertar = articulosNuevos.map(articulo => ({
         nombre: articulo.nombre,
-        idCategoria: articulo.idCategoria
+        id_Categoria: articulo.idCategoria
     }));
 
     notificaciones.info('Guardando artículos...', 'Procesando');
 
     AjaxService.articulos.insertar(articulosParaInsertar)
         .then(response => {
+            console.log('📦 Respuesta completa de inserción de artículos:', response);
+            console.log('📦 Tipo de respuesta:', typeof response);
+            console.log('📦 Artículos enviados:', articulosParaInsertar);
+
             // Extraer los IDs de los artículos insertados
             let articulosInsertadosConId = [];
 
             try {
-                if (response && response.respuesta) {
-                    const articuloInsertado = JSON.parse(response.respuesta);
-                    if (articuloInsertado && articuloInsertado.idArticulo) {
+                // Intentar parsear si es string
+                let responseData = response;
+                if (typeof response === 'string') {
+                    console.log('📦 Respuesta es string, parseando...');
+                    responseData = JSON.parse(response);
+                }
+
+                console.log('📦 Response data parseado:', responseData);
+
+                // Caso 1: Respuesta directa con exito y data
+                if (responseData && responseData.exito && responseData.data) {
+                    console.log('📦 Caso 1: Respuesta con exito y data');
+                    const articuloData = responseData.data;
+
+                    if (articuloData.idArticulo || articuloData.id_articulo) {
+                        const articuloOriginal = articulosNuevos[0]; // Asumiendo un solo artículo
+                        articulosInsertadosConId.push({
+                            ...articuloOriginal,
+                            idArticulo: articuloData.idArticulo || articuloData.id_articulo
+                        });
+                        console.log('✅ Artículo con ID extraído:', articulosInsertadosConId[0]);
+                    }
+                }
+                // Caso 2: respuesta como string JSON dentro de response.respuesta
+                else if (responseData && responseData.respuesta) {
+                    console.log('📦 Caso 2: Response.respuesta encontrado');
+                    const articuloInsertado = JSON.parse(responseData.respuesta);
+                    console.log('📦 Artículo insertado parseado:', articuloInsertado);
+
+                    if (articuloInsertado && (articuloInsertado.idArticulo || articuloInsertado.id_articulo)) {
                         const articuloOriginal = articulosNuevos.find(a =>
                             a.nombre === articuloInsertado.nombre &&
-                            a.idCategoria === articuloInsertado.idCategoria
+                            a.idCategoria === (articuloInsertado.idCategoria || articuloInsertado.id_categoria)
                         );
                         if (articuloOriginal) {
                             articulosInsertadosConId.push({
                                 ...articuloOriginal,
-                                idArticulo: articuloInsertado.idArticulo
+                                idArticulo: articuloInsertado.idArticulo || articuloInsertado.id_articulo
                             });
+                            console.log('✅ Artículo emparejado con ID:', articulosInsertadosConId[0]);
                         }
                     }
-                } else if (response && response.resultados && Array.isArray(response.resultados)) {
-                    articulosInsertadosConId = response.resultados
+                } 
+                // Caso 3: Array de resultados
+                else if (responseData && responseData.resultados && Array.isArray(responseData.resultados)) {
+                    console.log('📦 Caso 3: Array de resultados encontrado');
+                    articulosInsertadosConId = responseData.resultados
                         .map((resultado, index) => {
+                            console.log(`📦 Procesando resultado ${index}:`, resultado);
                             let idArticulo = null;
+
                             if (resultado.idArticulo) {
                                 idArticulo = resultado.idArticulo;
+                            } else if (resultado.id_articulo) {
+                                idArticulo = resultado.id_articulo;
                             } else if (resultado.id) {
                                 idArticulo = resultado.id;
                             } else if (resultado.respuesta) {
                                 const parsed = JSON.parse(resultado.respuesta);
-                                idArticulo = parsed.idArticulo;
+                                idArticulo = parsed.idArticulo || parsed.id_articulo;
                             }
+
+                            console.log(`📦 ID extraído para índice ${index}:`, idArticulo);
+
                             return {
                                 ...articulosNuevos[index],
                                 idArticulo: idArticulo
                             };
                         })
                         .filter(articulo => articulo.idArticulo !== null && articulo.idArticulo !== undefined);
+
+                    console.log('✅ Artículos con IDs:', articulosInsertadosConId);
                 }
+                // Caso 4: Respuesta directa es un objeto con idArticulo
+                else if (responseData && (responseData.idArticulo || responseData.id_articulo)) {
+                    console.log('📦 Caso 4: Objeto directo con idArticulo');
+                    const articuloOriginal = articulosNuevos[0];
+                    articulosInsertadosConId.push({
+                        ...articuloOriginal,
+                        idArticulo: responseData.idArticulo || responseData.id_articulo
+                    });
+                    console.log('✅ Artículo con ID extraído:', articulosInsertadosConId[0]);
+                }
+
+                // Validación final: si no se extrajeron IDs, usar artículos originales
+                if (articulosInsertadosConId.length === 0) {
+                    console.warn('⚠️ No se pudieron extraer IDs de los artículos insertados');
+                    console.warn('⚠️ Usando artículos originales para continuar');
+                    // Usar los artículos originales sin ID - el backend debería aceptarlos
+                    articulosInsertadosConId = articulosNuevos;
+                }
+
             } catch (e) {
-                console.error('Error al procesar artículos insertados:', e);
+                console.error('❌ Error al procesar artículos insertados:', e);
+                console.error('❌ Stack trace:', e.stack);
+                console.error('❌ Response que causó el error:', response);
+
+                // En caso de error, usar los artículos originales
                 articulosInsertadosConId = articulosNuevos;
+                console.warn('⚠️ Usando artículos originales debido al error de parsing');
             }
+
+            console.log('📦 Artículos finales a procesar:', articulosInsertadosConId);
+            console.log('📦 Cantidad de artículos:', articulosInsertadosConId.length);
 
             // Proceder con el donativo
             construirYGuardarDonativo(articulosInsertadosConId, articulosExistentes, donadorId);
         })
         .catch(error => {
-            console.error('Error al guardar artículos:', error);
+            console.error('❌ Error en .catch() al guardar artículos:', error);
+            console.error('❌ Tipo de error:', typeof error);
+            console.error('❌ Error completo:', error);
 
             // ⭐ NUEVO: Usar manejador centralizado de errores
             // Nota: .catch() recibe un objeto error diferente, necesitamos adaptarlo
@@ -1777,7 +1850,7 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
         donativoCompleto.archivos = archivosGuardados;
     }
 
-    // console.log('Donativo completo a enviar:', donativoCompleto);
+     console.log('Donativo completo a enviar:', donativoCompleto);
 
     notificaciones.info('Guardando donativo...', 'Procesando');
 
@@ -1799,7 +1872,6 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
                     }
                 });
 
-                notificaciones.success('Donativo registrado correctamente', 'Éxito');
             } else {
                 notificaciones.error(response.mensaje || 'Error al registrar', 'Error');
             }
