@@ -9,6 +9,37 @@ let centroIDUsuario = null;
 let estadisticasCargadas = false; // ⭐ Bandera para controlar carga de estadísticas
 
 // ============================================================
+// CONSTRUCCIÓN DE URL CON RUTA BASE (4 NIVELES)
+// ============================================================
+/**
+ * Detecta el ambiente y construye la URL con la ruta base correcta
+ * Soporta 4 niveles de servidor: /donaciones/
+ * @param {string} relativeUrl - URL relativa del endpoint
+ * @returns {string} URL completa con ruta base
+ */
+function getConsultaUrl(relativeUrl) {
+    const hostname = window.location.hostname;
+    const host = window.location.host;
+    const hasPort = host.includes(':');
+
+    // Determinar ruta base según ambiente
+    let basePath = '/';
+
+    // Debug local: localhost:puerto → /
+    if (hostname === 'localhost' && hasPort) {
+        basePath = '/';
+    }
+    // Publicación local/staging/producción: localhost, 127.0.0.1, IPs, dominios → /donaciones/
+    else {
+        basePath = '/donaciones/';
+    }
+
+    // Limpiar URL relativa y construir URL completa
+    const cleanUrl = relativeUrl.startsWith('/') ? relativeUrl.substring(1) : relativeUrl;
+    return `${basePath}${cleanUrl}`;
+}
+
+// ============================================================
 // FUNCIÓN DE INICIALIZACIÓN (LLAMADA DESDE INDEX.CSHTML)
 // ============================================================
 function inicializarConsulta() {
@@ -178,7 +209,7 @@ function inicializarTablaInventario() {
 async function cargarCatalogos() {
     try {
         // Cargar artículos para filtro
-        const respArticulos = await fetch('/Consulta/ObtenerArticulos');
+        const respArticulos = await fetch(getConsultaUrl('/Consulta/ObtenerArticulos'));
         const dataArticulos = await respArticulos.json();
         
         if (dataArticulos.exito) {
@@ -191,7 +222,7 @@ async function cargarCatalogos() {
         }
 
         // Cargar categorías para filtro de inventario
-        const respCategorias = await fetch('/Consulta/ObtenerCategorias');
+        const respCategorias = await fetch(getConsultaUrl('/Consulta/ObtenerCategorias'));
         const dataCategorias = await respCategorias.json();
         
         if (dataCategorias.exito) {
@@ -236,7 +267,7 @@ async function buscarMovimientos(pagina = 1) {
             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
             .join('&');
 
-        const url = `/Consulta/ObtenerMovimientos?${queryString}`;
+        const url = getConsultaUrl(`/Consulta/ObtenerMovimientos?${queryString}`);
         console.log('🔍 Consultando:', url);
 
         const response = await fetch(url);
@@ -398,7 +429,7 @@ async function verDetalleMovimiento(tipo, id) {
             </div>
         `);
 
-        const url = `/Consulta/ObtenerDetalleMovimiento?tipo=${tipo}&id=${id}`;
+        const url = getConsultaUrl(`/Consulta/ObtenerDetalleMovimiento?tipo=${tipo}&id=${id}`);
         const response = await fetch(url);
         const data = await response.json();
 
@@ -616,7 +647,7 @@ function renderizarDetalleMovimiento(detalle) {
             const archivoParam = encodeURIComponent(url);
             const urlCompleta = url.startsWith('http') 
                 ? url 
-                : `/Registros/ObtenerArchivo?archivo=${archivoParam}`;
+                : getConsultaUrl(`/Registros/ObtenerArchivo?archivo=${archivoParam}`);
 
             html += `
                 <div class="col-md-6 col-lg-4 mb-3">
@@ -700,11 +731,12 @@ async function cargarInventario() {
         const soloConStock = $('#selectSoloConStock').val() === 'true';
 
         // Construir URL
-        let url = `/Consulta/ObtenerInventario?idAlmacen=${centroIDUsuario}&soloConStock=${soloConStock}`;
-        
-        if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
-        if (idCategoria) url += `&idCategoria=${idCategoria}`;
+        let urlRelativa = `/Consulta/ObtenerInventario?idAlmacen=${centroIDUsuario}&soloConStock=${soloConStock}`;
 
+        if (busqueda) urlRelativa += `&busqueda=${encodeURIComponent(busqueda)}`;
+        if (idCategoria) urlRelativa += `&idCategoria=${idCategoria}`;
+
+        const url = getConsultaUrl(urlRelativa);
         console.log('📦 Cargando inventario:', url);
 
         const response = await fetch(url);
@@ -825,7 +857,8 @@ async function cargarEstadisticasAlmacen() {
     try {
         console.log('📡 Llamando al endpoint de estadísticas...');
 
-        const response = await fetch(`/Consulta/ObtenerEstadisticas?idAlmacen=${centroIDUsuario}`);
+        const url = getConsultaUrl(`/Consulta/ObtenerEstadisticas?idAlmacen=${centroIDUsuario}`);
+        const response = await fetch(url);
         const result = await response.json();
 
         console.log('📦 Respuesta del endpoint:', result);
@@ -960,7 +993,7 @@ async function exportarExcel() {
         // ⭐ Usar fetch para verificar si hay datos antes de descargar
         console.log('📡 Verificando datos para exportar...');
 
-        const url = `/Consulta/ExportarMovimientos?${queryString}`;
+        const url = getConsultaUrl(`/Consulta/ExportarMovimientos?${queryString}`);
 
         // ⭐ Crear un iframe oculto para la descarga (no recarga la página)
         const iframe = document.createElement('iframe');
