@@ -1,5 +1,496 @@
-<div class="bg-white rounded-lg shadow-md p-8">
-    <h2 class="text-2xl font-black text-[#2d2d2d] mb-6 border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Consulta de Registros</h2>
-    
-    <p class="text-stone-600">Contenido de consulta en construcción...</p>
+<!-- Estilos personalizados para DataTables y consulta -->
+<style>
+    .consulta-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+
+    .filtros-card {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--dorado);
+    }
+
+    .inventario-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .badge-entrada {
+        background-color: #28a745;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-salida {
+        background-color: #dc3545;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-traspaso {
+        background-color: #17a2b8;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-completado {
+        background-color: #28a745;
+    }
+
+    .badge-pendiente {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-cancelado {
+        background-color: #6c757d;
+    }
+
+    .stock-alert {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .stock-ok {
+        color: #28a745;
+    }
+
+    .stock-warning {
+        color: #ffc107;
+    }
+
+    /* Estilos para DataTables */
+    #tablaMovimientos {
+        font-size: 0.875rem;
+    }
+
+    #tablaMovimientos thead th {
+        background-color: var(--guinda);
+        color: white;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.75rem;
+        white-space: nowrap;
+    }
+
+    #tablaMovimientos tbody td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+
+    #tablaInventario {
+        font-size: 0.875rem;
+    }
+
+    #tablaInventario thead th {
+        background-color: var(--dorado);
+        color: white;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.75rem;
+    }
+
+    #tablaInventario tbody td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+
+    .btn-ver-detalle {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 6px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--guinda);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    /* Tabs para cambiar entre secciones */
+    .nav-tabs .nav-link {
+        color: var(--guinda);
+        font-weight: 600;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: var(--guinda);
+        color: white;
+        border-color: var(--guinda);
+    }
+</style>
+
+<div class="consulta-container">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-2xl font-black mb-0" style="color: var(--guinda);">
+            <i class="fas fa-search"></i> Consulta de Registros e Inventario
+        </h2>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limpiarFiltros()">
+            <i class="fas fa-redo"></i> Limpiar Filtros
+        </button>
+    </div>
+
+    <!-- Tabs para cambiar entre Consulta de Movimientos e Inventario -->
+    <ul class="nav nav-tabs mb-4" id="consultaTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="movimientos-tab" data-bs-toggle="tab" data-bs-target="#movimientos" type="button" role="tab">
+                <i class="fas fa-exchange-alt"></i> Movimientos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario" type="button" role="tab">
+                <i class="fas fa-boxes"></i> Inventario en Tiempo Real
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Tabs -->
+    <div class="tab-content" id="consultaTabsContent">
+
+        <!-- ============================================== -->
+        <!-- TAB 1: CONSULTA DE MOVIMIENTOS -->
+        <!-- ============================================== -->
+        <div class="tab-pane fade show active" id="movimientos" role="tabpanel">
+
+            <!-- Panel de Filtros -->
+            <div class="filtros-card">
+                <h5 class="mb-3" style="color: var(--guinda);">
+                    <i class="fas fa-filter"></i> Filtros de Búsqueda
+                </h5>
+
+                <div class="row g-3">
+                    <!-- Búsqueda rápida por folio -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Búsqueda Rápida (Folio)</label>
+                        <input type="text" id="inputFolio" class="form-control" placeholder="Ej: E-1234, S-0856">
+                    </div>
+
+                    <!-- Tipo de movimiento -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Tipo de Movimiento</label>
+                        <select id="selectTipoMovimiento" class="form-control">
+                            <option value="todos">Todos</option>
+                            <option value="entrada">?? Entradas</option>
+                            <option value="salida">?? Salidas</option>
+                            <option value="traspaso">?? Traspasos</option>
+                        </select>
+                    </div>
+
+                    <!-- Estatus -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Estatus</label>
+                        <select id="selectEstatus" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="completado">Completado</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+
+                    <!-- Fecha Inicio -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Fecha Desde</label>
+                        <input type="date" id="inputFechaInicio" class="form-control">
+                    </div>
+
+                    <!-- Fecha Fin -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Fecha Hasta</label>
+                        <input type="date" id="inputFechaFin" class="form-control">
+                    </div>
+
+                    <!-- Artículo (opcional) -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Artículo (opcional)</label>
+                        <select id="selectArticulo" class="form-control">
+                            <option value="">-- Todos los artículos --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-end mt-3">
+                    <button type="button" class="btn btn-primary" onclick="buscarMovimientos()" style="background-color: var(--guinda); border-color: var(--guinda);">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div id="resultadosContainer">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0" style="color: var(--guinda);">
+                        <i class="fas fa-list"></i> Resultados: <span id="totalResultados">0</span> registros
+                    </h5>
+                    <button type="button" class="btn btn-success btn-sm" onclick="exportarExcel()" id="btnExportar" disabled>
+                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                    </button>
+                </div>
+
+                <!-- Tabla de Movimientos -->
+                <div class="table-responsive">
+                    <table id="tablaMovimientos" class="table table-striped table-hover table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Responsable</th>
+                                <th>Almacén</th>
+                                <th>Artículos</th>
+                                <th>Cantidad</th>
+                                <th>Estatus</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Datos cargados dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: INVENTARIO EN TIEMPO REAL -->
+        <!-- ============================================== -->
+        <div class="tab-pane fade" id="inventario" role="tabpanel">
+
+            <!-- Filtros de inventario -->
+            <div class="filtros-card">
+                <h5 class="mb-3" style="color: var(--guinda);">
+                    <i class="fas fa-filter"></i> Filtros de Inventario
+                </h5>
+
+                <div class="row g-3">
+                    <!-- Búsqueda por nombre de artículo -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Buscar Artículo</label>
+                        <input type="text" id="inputBusquedaInventario" class="form-control" placeholder="Nombre del artículo">
+                    </div>
+
+                    <!-- Filtro por categoría -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Categoría</label>
+                        <select id="selectCategoriaInventario" class="form-control">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+
+                    <!-- Solo con stock -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Mostrar</label>
+                        <select id="selectSoloConStock" class="form-control">
+                            <option value="false">Todos los artículos</option>
+                            <option value="true">Solo con stock disponible</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-end mt-3">
+                    <button type="button" class="btn btn-primary" onclick="cargarInventario()" style="background-color: var(--guinda); border-color: var(--guinda);">
+                        <i class="fas fa-sync-alt"></i> Actualizar Inventario
+                    </button>
+                </div>
+            </div>
+
+            <!-- Estadísticas del Almacén -->
+            <div class="mb-4" id="statsInventario" style="display:none;">
+                <!-- Encabezado de Estadísticas -->
+                <h5 class="mb-3" style="color: var(--guinda);">
+                    <i class="fas fa-chart-bar"></i> Estadísticas del Almacén
+                </h5>
+
+                <!-- Resumen de Inventario -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-boxes fa-2x mb-2" style="color: var(--dorado);"></i>
+                            <div class="stat-number" id="statTotalArticulos">0</div>
+                            <div class="stat-label">Total Artículos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                            <div class="stat-number text-success" id="statConStock">0</div>
+                            <div class="stat-label">Con Stock</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-times-circle fa-2x mb-2 text-danger"></i>
+                            <div class="stat-number text-danger" id="statSinStock">0</div>
+                            <div class="stat-label">Sin Stock</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                            <div class="stat-number text-warning" id="statAlertas">0</div>
+                            <div class="stat-label">Alertas Stock Bajo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Movimientos del Día -->
+                <h6 class="mb-2" style="color: var(--guinda);">
+                    <i class="fas fa-calendar-day"></i> Movimientos del Día
+                </h6>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="stat-card border-start border-success border-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-number text-success" id="statEntradasHoy">0</div>
+                                    <div class="stat-label">Entradas</div>
+                                </div>
+                                <i class="fas fa-arrow-down fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card border-start border-danger border-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-number text-danger" id="statSalidasHoy">0</div>
+                                    <div class="stat-label">Salidas</div>
+                                </div>
+                                <i class="fas fa-arrow-up fa-2x text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card border-start border-info border-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-number text-info" id="statTraspasosHoy">0</div>
+                                    <div class="stat-label">Traspasos</div>
+                                </div>
+                                <i class="fas fa-exchange-alt fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Movimientos del Mes -->
+                <h6 class="mb-2" style="color: var(--guinda);">
+                    <i class="fas fa-calendar-alt"></i> Movimientos del Mes
+                </h6>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card bg-light">
+                            <div class="stat-number text-success" id="statEntradasMes">0</div>
+                            <div class="stat-label"><i class="fas fa-arrow-down"></i> Entradas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-light">
+                            <div class="stat-number text-danger" id="statSalidasMes">0</div>
+                            <div class="stat-label"><i class="fas fa-arrow-up"></i> Salidas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-light">
+                            <div class="stat-number text-info" id="statTraspasosMes">0</div>
+                            <div class="stat-label"><i class="fas fa-exchange-alt"></i> Traspasos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-light">
+                            <div class="stat-number text-primary" id="statRecibidosMes">0</div>
+                            <div class="stat-label"><i class="fas fa-inbox"></i> Recibidos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Inventario -->
+            <div class="table-responsive">
+                <table id="tablaInventario" class="table table-striped table-hover table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Categoría</th>
+                            <th>Unidad</th>
+                            <th>Stock Actual</th>
+                            <th>Entradas Total</th>
+                            <th>Salidas Total</th>
+                            <th>Última Entrada</th>
+                            <th>Última Salida</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Datos cargados dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODAL: DETALLE DE MOVIMIENTO -->
+<!-- ============================================== -->
+<div class="modal fade" id="modalDetalleMovimiento" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--guinda); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Detalle del Movimiento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalleMovimientoContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </div>

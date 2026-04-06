@@ -43,6 +43,7 @@
             <script src="~/Scripts/salidas.js" asp-append-version="true"></script>
             <script src="~/Scripts/traspasos.js" asp-append-version="true"></script>
             <script src="~/Scripts/reportes.js" asp-append-version="true"></script>
+            <script src="~/Scripts/consulta.js" asp-append-version="true"></script>
             <link href="~/Scripts/styles.css" rel="stylesheet" asp-append-version="true" />
             <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
 
@@ -215,6 +216,16 @@
                         dataTableTraspasos.destroy();
                         dataTableTraspasos = null;
                         }
+                        if (typeof tablaMovimientos !== 'undefined' && tablaMovimientos !== null) {
+                        console.log('🧹 Destruyendo DataTable Movimientos (Consulta)');
+                        tablaMovimientos.destroy();
+                        tablaMovimientos = null;
+                        }
+                        if (typeof tablaInventario !== 'undefined' && tablaInventario !== null) {
+                        console.log('🧹 Destruyendo DataTable Inventario (Consulta)');
+                        tablaInventario.destroy();
+                        tablaInventario = null;
+                        }
 
                         // Actualizar texto del spinner
                         spinnerText.textContent = this.viewTitles[viewName] || 'Por favor espera...';
@@ -269,6 +280,15 @@
                         // ⭐ Esperar a que el DOM esté completamente renderizado
                         setTimeout(() => {
                         inicializarReportes();
+                        }, 300);
+                        }
+                        } else if (viewName === 'consulta') {
+                        // Inicializar módulo de consulta
+                        if (typeof inicializarConsulta === 'function') {
+                        console.log('🚀 Inicializando módulo Consulta');
+                        // ⭐ Esperar a que el DOM esté completamente renderizado
+                        setTimeout(() => {
+                        inicializarConsulta();
                         }, 300);
                         }
                         }
