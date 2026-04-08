@@ -315,16 +315,55 @@ namespace donativos.Controllers
 
             try
             {
-                var endpoint = "catalogos/categoria";
+                var endpoint = "catalogos/articulo/categoria";
+                _logger.LogInformation($"🔍 Consultando categorías: {ApiUrl}{endpoint}");
+
                 var response = await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, endpoint);
 
                 if (response.IsSuccessful)
                 {
-                    return Json(new { exito = true, data = JsonConvert.DeserializeObject(response.Content) });
+                    _logger.LogInformation($"✅ Respuesta categorías: {response.Content}");
+
+                    // La API puede retornar directamente un array o un objeto con data
+                    var content = response.Content?.Trim();
+
+                    // Si la respuesta ya es un array JSON, deserializar directamente
+                    if (content.StartsWith("["))
+                    {
+                        var categorias = JsonConvert.DeserializeObject<List<Categoria>>(content);
+                        return Json(new { exito = true, data = categorias });
+                    }
+                    // Si es un objeto con estructura {data: [...]} o {exito: true, data: [...]}
+                    else if (content.StartsWith("{"))
+                    {
+                        var responseObj = JsonConvert.DeserializeObject<dynamic>(content);
+
+                        // Intentar obtener el array de datos desde diferentes propiedades
+                        if (responseObj.data != null)
+                        {
+                            var categorias = JsonConvert.DeserializeObject<List<Categoria>>(JsonConvert.SerializeObject(responseObj.data));
+                            return Json(new { exito = true, data = categorias });
+                        }
+                        else if (responseObj.categorias != null)
+                        {
+                            var categorias = JsonConvert.DeserializeObject<List<Categoria>>(JsonConvert.SerializeObject(responseObj.categorias));
+                            return Json(new { exito = true, data = categorias });
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠ Estructura de respuesta no reconocida: {content}");
+                            return Json(new { exito = false, mensaje = "Estructura de respuesta no reconocida" });
+                        }
+                    }
+                    else
+                    {
+                        return Json(new { exito = false, mensaje = "Formato de respuesta inválido" });
+                    }
                 }
                 else
                 {
-                    return Json(new { exito = false, mensaje = "Error al obtener categorías" });
+                    _logger.LogError($"❌ Error al obtener categorías: {response.StatusCode} - {response.Content}");
+                    return Json(new { exito = false, mensaje = "Error al obtener categorías", error = response.Content });
                 }
             }
             catch (Exception ex)
@@ -351,15 +390,54 @@ namespace donativos.Controllers
                     endpoint += $"?busqueda={Uri.EscapeDataString(busqueda)}";
                 }
 
+                _logger.LogInformation($"🔍 Consultando artículos: {ApiUrl}{endpoint}");
+
                 var response = await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, endpoint);
 
                 if (response.IsSuccessful)
                 {
-                    return Json(new { exito = true, data = JsonConvert.DeserializeObject(response.Content) });
+                    _logger.LogInformation($"✅ Respuesta artículos: {response.Content}");
+
+                    // La API puede retornar directamente un array o un objeto con data
+                    var content = response.Content?.Trim();
+
+                    // Si la respuesta ya es un array JSON, deserializar directamente
+                    if (content.StartsWith("["))
+                    {
+                        var articulos = JsonConvert.DeserializeObject<List<ArticuloDTO>>(content);
+                        return Json(new { exito = true, data = articulos });
+                    }
+                    // Si es un objeto con estructura {data: [...]} o {exito: true, data: [...]}
+                    else if (content.StartsWith("{"))
+                    {
+                        var responseObj = JsonConvert.DeserializeObject<dynamic>(content);
+
+                        // Intentar obtener el array de datos desde diferentes propiedades
+                        if (responseObj.data != null)
+                        {
+                            var articulos = JsonConvert.DeserializeObject<List<ArticuloDTO>>(JsonConvert.SerializeObject(responseObj.data));
+                            return Json(new { exito = true, data = articulos });
+                        }
+                        else if (responseObj.articulos != null)
+                        {
+                            var articulos = JsonConvert.DeserializeObject<List<ArticuloDTO>>(JsonConvert.SerializeObject(responseObj.articulos));
+                            return Json(new { exito = true, data = articulos });
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠ Estructura de respuesta no reconocida: {content}");
+                            return Json(new { exito = false, mensaje = "Estructura de respuesta no reconocida" });
+                        }
+                    }
+                    else
+                    {
+                        return Json(new { exito = false, mensaje = "Formato de respuesta inválido" });
+                    }
                 }
                 else
                 {
-                    return Json(new { exito = false, mensaje = "Error al obtener artículos" });
+                    _logger.LogError($"❌ Error al obtener artículos: {response.StatusCode} - {response.Content}");
+                    return Json(new { exito = false, mensaje = "Error al obtener artículos", error = response.Content });
                 }
             }
             catch (Exception ex)

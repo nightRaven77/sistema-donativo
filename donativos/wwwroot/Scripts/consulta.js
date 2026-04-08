@@ -209,33 +209,77 @@ function inicializarTablaInventario() {
 async function cargarCatalogos() {
     try {
         // Cargar artículos para filtro
+        console.log('📦 Cargando catálogo de artículos...');
         const respArticulos = await fetch(getConsultaUrl('/Consulta/ObtenerArticulos'));
         const dataArticulos = await respArticulos.json();
-        
-        if (dataArticulos.exito) {
+
+        console.log('📦 Respuesta completa de artículos:', dataArticulos);
+        console.log('📦 Tipo de dataArticulos.data:', typeof dataArticulos.data);
+        console.log('📦 Es array dataArticulos.data?:', Array.isArray(dataArticulos.data));
+
+        if (dataArticulos.data) {
+            console.log('📦 Contenido de dataArticulos.data:', dataArticulos.data);
+            console.log('📦 Longitud del array:', dataArticulos.data.length);
+            if (dataArticulos.data.length > 0) {
+                console.log('📦 Primer artículo:', dataArticulos.data[0]);
+            }
+        }
+
+        if (dataArticulos.exito && dataArticulos.data) {
             const selectArticulo = $('#selectArticulo');
             selectArticulo.empty().append('<option value="">-- Todos los artículos --</option>');
-            
-            dataArticulos.data.forEach(articulo => {
-                selectArticulo.append(`<option value="${articulo.id_articulo}">${articulo.nombre}</option>`);
+
+            dataArticulos.data.forEach((articulo, index) => {
+                console.log(`  Artículo ${index}:`, articulo);
+                const idArticulo = articulo.id_articulo || articulo.IdArticulo || articulo.id;
+                const nombre = articulo.nombre || articulo.Nombre || articulo.name || 'Sin nombre';
+
+                console.log(`    -> ID: ${idArticulo}, Nombre: "${nombre}"`);
+
+                selectArticulo.append(`<option value="${idArticulo}">${nombre}</option>`);
             });
+            console.log('✅ Artículos cargados correctamente');
+        } else {
+            console.error('❌ Error cargando artículos:', dataArticulos);
         }
 
         // Cargar categorías para filtro de inventario
+        console.log('📦 Cargando catálogo de categorías...');
         const respCategorias = await fetch(getConsultaUrl('/Consulta/ObtenerCategorias'));
         const dataCategorias = await respCategorias.json();
-        
-        if (dataCategorias.exito) {
+
+        console.log('📦 Respuesta completa de categorías:', dataCategorias);
+        console.log('📦 Tipo de dataCategorias.data:', typeof dataCategorias.data);
+        console.log('📦 Es array dataCategorias.data?:', Array.isArray(dataCategorias.data));
+
+        if (dataCategorias.data) {
+            console.log('📦 Contenido de dataCategorias.data:', dataCategorias.data);
+            console.log('📦 Longitud del array:', dataCategorias.data.length);
+            if (dataCategorias.data.length > 0) {
+                console.log('📦 Primera categoría:', dataCategorias.data[0]);
+            }
+        }
+
+        if (dataCategorias.exito && dataCategorias.data) {
             const selectCategoria = $('#selectCategoriaInventario');
             selectCategoria.empty().append('<option value="">Todas las categorías</option>');
-            
-            dataCategorias.data.forEach(categoria => {
-                selectCategoria.append(`<option value="${categoria.id_categoria}">${categoria.nombre}</option>`);
+
+            dataCategorias.data.forEach((categoria, index) => {
+                console.log(`  Categoría ${index}:`, categoria);
+                const idCategoria = categoria.id_categoria || categoria.IdCategoria || categoria.id;
+                const nombre = categoria.nombre || categoria.Nombre || categoria.name || 'Sin nombre';
+
+                console.log(`    -> ID: ${idCategoria}, Nombre: "${nombre}"`);
+
+                selectCategoria.append(`<option value="${idCategoria}">${nombre}</option>`);
             });
+            console.log('✅ Categorías cargadas correctamente');
+        } else {
+            console.error('❌ Error cargando categorías:', dataCategorias);
         }
 
     } catch (error) {
-        console.error('Error al cargar catálogos:', error);
+        console.error('❌ Error al cargar catálogos:', error);
     }
 }
 

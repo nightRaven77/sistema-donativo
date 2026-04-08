@@ -1567,7 +1567,7 @@ namespace donativos.Controllers
             {
                 Console.WriteLine("=== Obteniendo Traspasos ===");
 
-                var response = await ExecuteApiAsync(token, "traspaso", "GET");
+                var response = await ExecuteApiAsync(token, "traspaso/miUsuario", "GET");
 
                 Console.WriteLine($"Status Code: {response.StatusCode}");
 
