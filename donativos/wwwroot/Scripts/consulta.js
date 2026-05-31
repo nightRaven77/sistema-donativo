@@ -48,11 +48,11 @@ function inicializarConsulta() {
     // Obtener el centro del usuario desde sessionStorage o variable global
     centroIDUsuario = usuarioSession?.centroID || sessionStorage.getItem('centroID');
 
-    if (!centroIDUsuario) {
-        console.warn('⚠ No se encontró el ID del centro del usuario');
-    } else {
-        console.log('✓ Centro ID del usuario:', centroIDUsuario);
-    }
+    //if (!centroIDUsuario) {
+    //    console.warn('⚠ No se encontró el ID del centro del usuario');
+    //} else {
+    //    console.log('✓ Centro ID del usuario:', centroIDUsuario);
+    //}
 
     // Limpiar DataTables previas si existen
     destruirTablasExistentes();
@@ -75,7 +75,7 @@ function inicializarConsulta() {
         if (centroIDUsuario) {
             // ⭐ Cargar estadísticas solo la primera vez que se muestra la pestaña
             if (!estadisticasCargadas) {
-                console.log('📊 Primera vez en pestaña Inventario - cargando estadísticas...');
+                //console.log('📊 Primera vez en pestaña Inventario - cargando estadísticas...');
                 cargarEstadisticasAlmacen();
                 estadisticasCargadas = true;
             }
@@ -91,7 +91,7 @@ function destruirTablasExistentes() {
     // Destruir tabla de movimientos si existe
     if (typeof tablaMovimientos !== 'undefined' && tablaMovimientos !== null) {
         try {
-            console.log('🧹 Destruyendo DataTable Movimientos');
+            //console.log('🧹 Destruyendo DataTable Movimientos');
             tablaMovimientos.destroy();
             tablaMovimientos = null;
         } catch (e) {
@@ -102,7 +102,7 @@ function destruirTablasExistentes() {
     // Destruir tabla de inventario si existe
     if (typeof tablaInventario !== 'undefined' && tablaInventario !== null) {
         try {
-            console.log('🧹 Destruyendo DataTable Inventario');
+            //console.log('🧹 Destruyendo DataTable Inventario');
             tablaInventario.destroy();
             tablaInventario = null;
         } catch (e) {
@@ -209,19 +209,19 @@ function inicializarTablaInventario() {
 async function cargarCatalogos() {
     try {
         // Cargar artículos para filtro
-        console.log('📦 Cargando catálogo de artículos...');
+        //console.log('📦 Cargando catálogo de artículos...');
         const respArticulos = await fetch(getConsultaUrl('/Consulta/ObtenerArticulos'));
         const dataArticulos = await respArticulos.json();
 
-        console.log('📦 Respuesta completa de artículos:', dataArticulos);
-        console.log('📦 Tipo de dataArticulos.data:', typeof dataArticulos.data);
-        console.log('📦 Es array dataArticulos.data?:', Array.isArray(dataArticulos.data));
+        //console.log('📦 Respuesta completa de artículos:', dataArticulos);
+        //console.log('📦 Tipo de dataArticulos.data:', typeof dataArticulos.data);
+        //console.log('📦 Es array dataArticulos.data?:', Array.isArray(dataArticulos.data));
 
         if (dataArticulos.data) {
-            console.log('📦 Contenido de dataArticulos.data:', dataArticulos.data);
-            console.log('📦 Longitud del array:', dataArticulos.data.length);
+            //console.log('📦 Contenido de dataArticulos.data:', dataArticulos.data);
+            //console.log('📦 Longitud del array:', dataArticulos.data.length);
             if (dataArticulos.data.length > 0) {
-                console.log('📦 Primer artículo:', dataArticulos.data[0]);
+                //console.log('📦 Primer artículo:', dataArticulos.data[0]);
             }
         }
 
@@ -230,50 +230,50 @@ async function cargarCatalogos() {
             selectArticulo.empty().append('<option value="">-- Todos los artículos --</option>');
 
             dataArticulos.data.forEach((articulo, index) => {
-                console.log(`  Artículo ${index}:`, articulo);
+                //console.log(`  Artículo ${index}:`, articulo);
                 const idArticulo = articulo.id_articulo || articulo.IdArticulo || articulo.id;
                 const nombre = articulo.nombre || articulo.Nombre || articulo.name || 'Sin nombre';
 
-                console.log(`    -> ID: ${idArticulo}, Nombre: "${nombre}"`);
+                //console.log(`    -> ID: ${idArticulo}, Nombre: "${nombre}"`);
 
                 selectArticulo.append(`<option value="${idArticulo}">${nombre}</option>`);
             });
-            console.log('✅ Artículos cargados correctamente');
+            //console.log('✅ Artículos cargados correctamente');
         } else {
             console.error('❌ Error cargando artículos:', dataArticulos);
         }
 
         // Cargar categorías para filtro de inventario
-        console.log('📦 Cargando catálogo de categorías...');
+        //console.log('📦 Cargando catálogo de categorías...');
         const respCategorias = await fetch(getConsultaUrl('/Consulta/ObtenerCategorias'));
         const dataCategorias = await respCategorias.json();
 
-        console.log('📦 Respuesta completa de categorías:', dataCategorias);
-        console.log('📦 Tipo de dataCategorias.data:', typeof dataCategorias.data);
-        console.log('📦 Es array dataCategorias.data?:', Array.isArray(dataCategorias.data));
+        //console.log('📦 Respuesta completa de categorías:', dataCategorias);
+        //console.log('📦 Tipo de dataCategorias.data:', typeof dataCategorias.data);
+        //console.log('📦 Es array dataCategorias.data?:', Array.isArray(dataCategorias.data));
 
-        if (dataCategorias.data) {
-            console.log('📦 Contenido de dataCategorias.data:', dataCategorias.data);
-            console.log('📦 Longitud del array:', dataCategorias.data.length);
-            if (dataCategorias.data.length > 0) {
-                console.log('📦 Primera categoría:', dataCategorias.data[0]);
-            }
-        }
+        //if (dataCategorias.data) {
+        //    //console.log('📦 Contenido de dataCategorias.data:', dataCategorias.data);
+        //    //console.log('📦 Longitud del array:', dataCategorias.data.length);
+        //    if (dataCategorias.data.length > 0) {
+        //        console.log('📦 Primera categoría:', dataCategorias.data[0]);
+        //    }
+        //}
 
         if (dataCategorias.exito && dataCategorias.data) {
             const selectCategoria = $('#selectCategoriaInventario');
             selectCategoria.empty().append('<option value="">Todas las categorías</option>');
 
             dataCategorias.data.forEach((categoria, index) => {
-                console.log(`  Categoría ${index}:`, categoria);
+                //console.log(`  Categoría ${index}:`, categoria);
                 const idCategoria = categoria.id_categoria || categoria.IdCategoria || categoria.id;
                 const nombre = categoria.nombre || categoria.Nombre || categoria.name || 'Sin nombre';
 
-                console.log(`    -> ID: ${idCategoria}, Nombre: "${nombre}"`);
+                //console.log(`    -> ID: ${idCategoria}, Nombre: "${nombre}"`);
 
                 selectCategoria.append(`<option value="${idCategoria}">${nombre}</option>`);
             });
-            console.log('✅ Categorías cargadas correctamente');
+            //console.log('✅ Categorías cargadas correctamente');
         } else {
             console.error('❌ Error cargando categorías:', dataCategorias);
         }
@@ -312,24 +312,24 @@ async function buscarMovimientos(pagina = 1) {
             .join('&');
 
         const url = getConsultaUrl(`/Consulta/ObtenerMovimientos?${queryString}`);
-        console.log('🔍 Consultando:', url);
+        //console.log('🔍 Consultando:', url);
 
         const response = await fetch(url);
         const data = await response.json();
 
         // 🔍 DEBUG: Ver qué está llegando
-        console.log('📦 Respuesta completa de la API:', data);
-        console.log('📊 Estructura de data.data:', data.data);
-        if (data.data && data.data.movimientos) {
-            console.log('✅ Primer movimiento:', data.data.movimientos[0]);
-        }
+        //console.log('📦 Respuesta completa de la API:', data);
+        //console.log('📊 Estructura de data.data:', data.data);
+        //if (data.data && data.data.movimientos) {
+        //    console.log('✅ Primer movimiento:', data.data.movimientos[0]);
+        //}
 
         if (data.exito && data.data) {
             renderizarMovimientos(data.data);
             $('#totalResultados').text(data.data.totalRegistros || 0);
             $('#btnExportar').prop('disabled', (data.data.totalRegistros || 0) === 0);
         } else {
-            console.error('❌ Error en la respuesta:', data);
+            //console.error('❌ Error en la respuesta:', data);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -353,7 +353,7 @@ async function buscarMovimientos(pagina = 1) {
 // RENDERIZAR MOVIMIENTOS EN DATATABLE
 // ============================================================
 function renderizarMovimientos(data) {
-    console.log('🎨 Renderizando movimientos. Data recibida:', data);
+    //console.log('🎨 Renderizando movimientos. Data recibida:', data);
     tablaMovimientos.clear();
 
     if (!data.movimientos || data.movimientos.length === 0) {
@@ -362,12 +362,12 @@ function renderizarMovimientos(data) {
         return;
     }
 
-    console.log(`📋 Renderizando ${data.movimientos.length} movimientos`);
+    //console.log(`📋 Renderizando ${data.movimientos.length} movimientos`);
 
     data.movimientos.forEach((mov, index) => {
         // 🔍 DEBUG: Ver el movimiento completo y el tipo específicamente
-        console.log(`Movimiento ${index}:`, mov);
-        console.log(`  -> Tipo desde API: "${mov.tipo}", TipoMovimiento alternativo: "${mov.tipoMovimiento}"`);
+        //console.log(`Movimiento ${index}:`, mov);
+        //console.log(`  -> Tipo desde API: "${mov.tipo}", TipoMovimiento alternativo: "${mov.tipoMovimiento}"`);
 
         // Badge de tipo (compacto, sin saltos de línea)
         let badgeTipo = '';
@@ -432,10 +432,10 @@ function renderizarMovimientos(data) {
             </button>
         `;
 
-        // 🔍 DEBUG: Ver los valores antes de agregar a la tabla
-        const totalArticulos = mov.totalArticulos || mov.total_articulos || 0;
-        const cantidadTotal = mov.cantidadTotal || mov.cantidad_total || 0;
-        console.log(`Fila ${index}: Artículos=${totalArticulos}, Cantidad=${cantidadTotal}`);
+        //// 🔍 DEBUG: Ver los valores antes de agregar a la tabla
+        //const totalArticulos = mov.totalArticulos || mov.total_articulos || 0;
+        //const cantidadTotal = mov.cantidadTotal || mov.cantidad_total || 0;
+        //console.log(`Fila ${index}: Artículos=${totalArticulos}, Cantidad=${cantidadTotal}`);
 
         tablaMovimientos.row.add([
             mov.folio || '-',
@@ -452,7 +452,7 @@ function renderizarMovimientos(data) {
     });
 
     tablaMovimientos.draw();
-    console.log('✅ Tabla renderizada correctamente');
+    //console.log('✅ Tabla renderizada correctamente');
 }
 
 // ============================================================
@@ -501,7 +501,7 @@ async function verDetalleMovimiento(tipo, id) {
 // RENDERIZAR DETALLE COMPLETO DE MOVIMIENTO
 // ============================================================
 function renderizarDetalleMovimiento(detalle) {
-    console.log('📦 Detalle completo recibido:', detalle);
+    //console.log('📦 Detalle completo recibido:', detalle);
 
     // La estructura real de la API: todo está directamente en detalle, no en datos_principales
     const folio = detalle.folio || '';
@@ -515,10 +515,10 @@ function renderizarDetalleMovimiento(detalle) {
     const tipo = (detalle.tipo_movimiento || detalle.tipo || '').toUpperCase();
     const estatus = detalle.estatus || '';
 
-    // almacen_origen es un objeto {id_almacen, nombre} O puede ser solo almacen
-    console.log('🏪 DEBUG almacen_origen:', detalle.almacen_origen);
-    console.log('🏪 DEBUG almacen:', detalle.almacen);
-    console.log('🏪 DEBUG datos completos:', JSON.stringify(detalle, null, 2));
+    //// almacen_origen es un objeto {id_almacen, nombre} O puede ser solo almacen
+    //console.log('🏪 DEBUG almacen_origen:', detalle.almacen_origen);
+    //console.log('🏪 DEBUG almacen:', detalle.almacen);
+    //console.log('🏪 DEBUG datos completos:', JSON.stringify(detalle, null, 2));
 
     // Intentar múltiples formas de obtener el almacén
     let almacenOrigen = '';
@@ -529,15 +529,15 @@ function renderizarDetalleMovimiento(detalle) {
     } else if (detalle.almacenOrigen) {
         almacenOrigen = typeof detalle.almacenOrigen === 'object' ? detalle.almacenOrigen.nombre : detalle.almacenOrigen;
     }
-    console.log('🏪 almacenOrigen extraido:', almacenOrigen);
+    //console.log('🏪 almacenOrigen extraido:', almacenOrigen);
 
     const almacenDestino = detalle.almacen_destino?.nombre || detalle.almacen_destino || '';
 
-    // responsable es un objeto {id, tipo, nombre, ...}
-    console.log('👤 DEBUG responsable:', detalle.responsable);
-    const responsable = detalle.responsable?.nombre || '';
-    const tipoResponsable = detalle.responsable?.tipo || '';
-    console.log('👤 responsable extraido:', responsable, '- tipo:', tipoResponsable);
+    //// responsable es un objeto {id, tipo, nombre, ...}
+    //console.log('👤 DEBUG responsable:', detalle.responsable);
+    //const responsable = detalle.responsable?.nombre || '';
+    //const tipoResponsable = detalle.responsable?.tipo || '';
+    //console.log('👤 responsable extraido:', responsable, '- tipo:', tipoResponsable);
 
     const observaciones = detalle.observaciones || '';
 
@@ -577,7 +577,7 @@ function renderizarDetalleMovimiento(detalle) {
 
     // Artículos: están en detalle.detalles (NO detalle_articulos)
     const articulos = detalle.detalles || [];
-    console.log(`📋 Total artículos: ${articulos.length}`, articulos);
+    //console.log(`📋 Total artículos: ${articulos.length}`, articulos);
 
     // Tabla de artículos
     html += `
@@ -600,7 +600,7 @@ function renderizarDetalleMovimiento(detalle) {
     let cantidadGeneral = 0;
 
     articulos.forEach((art, idx) => {
-        console.log(`  🔹 Artículo ${idx}:`, art);
+        //console.log(`  🔹 Artículo ${idx}:`, art);
 
         const nombreArticulo = art.nombre_articulo || art.nombreArticulo || 'Sin nombre';
         const unidadMedida = art.unidad_medida || art.unidadMedida || 'N/A';
@@ -611,7 +611,7 @@ function renderizarDetalleMovimiento(detalle) {
         totalGeneral += valorTotal;
         cantidadGeneral += cantidad;
 
-        console.log(`    ✅ Nombre: "${nombreArticulo}", Unidad: "${unidadMedida}", Cant: ${cantidad}`);
+        //console.log(`    ✅ Nombre: "${nombreArticulo}", Unidad: "${unidadMedida}", Cant: ${cantidad}`);
 
         html += `
             <tr>
