@@ -1,6 +1,349 @@
-<!-- Vista Parcial de Salidas para SPA -->
+@{
+    Layout = null;
+}
+
+<!-- Estilos personalizados para la tabla de salidas -->
+<style>
+    /* Estilos para optimizar la tabla de salidas */
+    #tablaSalidas {
+        font-size: 0.875rem; /* Reducir tamaño general de fuente */
+    }
+
+    /* Columnas con texto más pequeño y word wrap */
+    #tablaSalidas tbody td:nth-child(2), /* Fecha */
+    #tablaSalidas tbody td:nth-child(4), /* Beneficiario */
+    #tablaSalidas tbody td:nth-child(5)  /* Almacén Origen */
+    {
+        font-size: 0.75rem;
+        max-width: 150px;
+        word-wrap: break-word;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    /* ID más pequeño */
+    #tablaSalidas tbody td:nth-child(1) {
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    /* Tipo más compacto */
+    #tablaSalidas tbody td:nth-child(3) {
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* Badges más pequeños */
+    #tablaSalidas .badge {
+        font-size: 0.7rem;
+        padding: 0.25em 0.5em;
+    }
+
+    /* Botones de acción más compactos */
+    #tablaSalidas .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+
+    /* Headers más compactos */
+    #tablaSalidas thead th {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* Celdas más compactas */
+    #tablaSalidas tbody td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+</style>
+
 <div class="bg-white rounded-lg shadow-md p-8">
-    <h2 class="text-2xl font-black text-[#2d2d2d] mb-6 border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Salidas de Donativos</h2>
-    
-    <p class="text-stone-600">Contenido de salidas en construcción...</p>
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Registro de Salidas</h2>
+        <button type="button" class="btn btn-outline-dark" onclick="abrirModalNuevaSalida()">
+            <i class="fas fa-plus"></i> Nueva Salida
+        </button>
+    </div>
+
+    <!-- TABLA DE SALIDAS -->
+    <div class="card">
+        <div class="card-header bg-stone-100">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="mb-0 font-weight-bold">Tipo de Salida</label>
+                    <select id="filtroTipoSalida" class="form-control form-control-sm">
+                        <option value="">Todos</option>
+                        <option value="donacion">Donación a Beneficiario</option>
+                        <option value="merma">Merma/Baja</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="mb-0 font-weight-bold">Fecha Desde</label>
+                    <input type="date" id="filtroFechaDesde" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-3">
+                    <label class="mb-0 font-weight-bold">Fecha Hasta</label>
+                    <input type="date" id="filtroFechaHasta" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-3">
+                    <label class="mb-0">&nbsp;</label>
+                    <button class="btn btn-info btn-sm btn-block" onclick="filtrarSalidas()">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaSalidas" class="table table-striped table-hover nowrap w-100">
+                    <thead class="table-light">
+                        <tr style="background-color: var(--guinda); color: white;">
+                            <th>ID</th>
+                            <th>Folio</th>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Beneficiario</th>
+                            <th>Almacén Origen</th>
+                            <th>Artículos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- MODAL: Nueva Salida -->
+<div class="modal fade" id="modalNuevaSalida" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-guinda text-white" style="background-color: var(--guinda) !important;">
+                <h5 class="modal-title">
+                    <i class="fas fa-sign-out-alt"></i> <span id="tituloModalSalida">Nueva Salida</span>
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevaSalida" class="needs-validation" novalidate>
+
+                    <!-- SECCIÓN 1: Información General -->
+                    <div class="mb-6 pb-6 border-b-2 border-stone-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">1</div>
+                            <h3 class="text-lg font-bold text-stone-800">Información General</h3>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tipoSalida" class="font-bold">
+                                        <i class="fas fa-tag" style="color:var(--dorado)"></i> Tipo de Salida <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="tipoSalida" class="form-control" required onchange="cambiarTipoSalida()">
+                                        <option value="">-- Seleccione --</option>
+                                        <option value="donacion">Donación a Beneficiario</option>
+                                        <option value="merma">Merma</option>
+                                        <option value="baja">Baja</option>
+                                    </select>
+                                    <div class="invalid-feedback">Selecciona el tipo de salida</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fechaSalida" class="font-bold">
+                                        <i class="fas fa-calendar" style="color:var(--dorado)"></i> Fecha de Salida <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" id="fechaSalida" class="form-control" required>
+                                    <div class="invalid-feedback">La fecha es requerida</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="selectAlmacenOrigen" class="font-bold">
+                                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> Almacén Origen <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="selectAlmacenOrigen" class="form-control" required onchange="cargarInventarioAlmacen()">
+                                        <option value="">-- Seleccione --</option>
+                                    </select>
+                                    <div class="invalid-feedback">Selecciona el almacén</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="divBeneficiario">
+                                <div class="form-group">
+                                    <label for="textBuscarBeneficiario" class="font-bold">
+                                        <i class="fas fa-user-check" style="color:var(--dorado)"></i> Beneficiario <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" 
+                                               id="textBuscarBeneficiario" 
+                                               class="form-control" 
+                                               placeholder="Buscar beneficiario..." 
+                                               autocomplete="off">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-success" type="button" onclick="abrirModalNuevoBeneficiario()">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="listaBeneficiarios" class="list-group" style="display:none; position:absolute; z-index:1000; max-height:200px; overflow-y:auto; width: calc(100% - 30px);"></div>
+                                    <input type="hidden" id="id_beneficiario">
+                                    <small class="text-muted">Comienza a escribir para buscar o crear uno nuevo</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="motivoSalida" class="font-bold">
+                                        <i class="fas fa-comment" style="color:var(--dorado)"></i> Motivo
+                                    </label>
+                                    <textarea id="motivoSalida" class="form-control" rows="2" placeholder="Describa el motivo de la salida"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: Artículos -->
+                    <div class="mb-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">2</div>
+                            <h3 class="text-lg font-bold text-stone-800">Artículos a Entregar</h3>
+                        </div>
+
+                        <div class="alert alert-info" id="alertSeleccionarAlmacen">
+                            <i class="fas fa-info-circle"></i> Selecciona un almacén para ver el inventario disponible
+                        </div>
+
+                        <div id="seccionArticulos" style="display: none;">
+                            <div class="form-group">
+                                <label class="font-bold">
+                                    <i class="fas fa-search" style="color:var(--dorado)"></i> Buscar Artículo en Inventario
+                                </label>
+                                <input type="text" 
+                                       id="buscarArticuloInventario" 
+                                       class="form-control" 
+                                       placeholder="Buscar por nombre de artículo..." 
+                                       autocomplete="off">
+                                <div id="listaInventario" class="list-group mt-2" style="display:none; max-height:250px; overflow-y:auto;"></div>
+                            </div>
+
+                            <div id="articulosSeleccionados" class="mt-4">
+                                <!-- Aquí se agregarán los artículos seleccionados -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: Observaciones y Archivos -->
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label for="observacionesSalida" class="font-bold">
+                                <i class="fas fa-clipboard" style="color:var(--dorado)"></i> Observaciones
+                            </label>
+                            <textarea id="observacionesSalida" class="form-control" rows="3" placeholder="Observaciones adicionales (opcional)"></textarea>
+                        </div>
+
+                        <!-- Campo de archivos adjuntos -->
+                        <div class="form-group mt-4">
+                            <label for="fileAdjuntosSalida" class="font-bold">
+                                <i class="fas fa-paperclip" style="color:var(--dorado)"></i> Archivos Adjuntos
+                            </label>
+                            <input type="file" 
+                                   id="fileAdjuntosSalida" 
+                                   class="form-control-file" 
+                                   multiple 
+                                   accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx">
+                            <small class="form-text text-muted">
+                                Formatos permitidos: JPG, PNG, PDF, DOC, XLS (máx. 5MB por archivo)
+                            </small>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-guinda" onclick="guardarSalida()" style="background-color: var(--guinda) !important;">
+                    <i class="fas fa-save"></i> Guardar Salida
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Nuevo Beneficiario -->
+<div class="modal fade" id="modalNuevoBeneficiario" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus"></i> Nuevo Beneficiario
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoBeneficiario">
+                    <div class="form-group">
+                        <label for="nombreBeneficiario">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="nombreBeneficiario" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefonoBeneficiario">Teléfono</label>
+                        <input type="tel" id="telefonoBeneficiario" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailBeneficiario">Email</label>
+                        <input type="email" id="emailBeneficiario" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="direccionBeneficiario">Dirección</label>
+                        <textarea id="direccionBeneficiario" class="form-control" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="guardarNuevoBeneficiario()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Detalle de Salida -->
+<div class="modal fade" id="modalDetalleSalida" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Detalle de Salida
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="contenidoDetalleSalida">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- El script salidas.js ya está cargado globalmente en Index.cshtml -->

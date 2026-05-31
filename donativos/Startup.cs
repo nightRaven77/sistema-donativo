@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using donativos.Services;
+using donativos.Middleware;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using RazorLight;
 
 namespace donativos
 {
@@ -26,10 +27,15 @@ namespace donativos
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-<<<<<<< Updated upstream
-            services.AddMvc();
-=======
-            services.AddControllersWithViews();
+            // ? Configurar serialización JSON global con camelCase
+            services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    // Usar camelCase para todas las propiedades JSON
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    // Permitir lectura de números como strings
+                    options.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString;
+                });
 
             // Obtener configuración de cookies
             var cookieDomain = Configuration["AppSettings:CookieDomain"];
@@ -44,8 +50,9 @@ namespace donativos
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(180);
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    // En desarrollo, permitir HTTP; en producción, solo HTTPS
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
                     options.Cookie.Path = cookiePath;
 
                     // Configurar dominio solo si está especificado
@@ -54,7 +61,6 @@ namespace donativos
                         options.Cookie.Domain = cookieDomain;
                     }
                 });
->>>>>>> Stashed changes
 
             // Código para guardar variables de session
             services.AddDistributedMemoryCache(); // Usar caché en memoria
@@ -63,9 +69,7 @@ namespace donativos
                 options.IdleTimeout = TimeSpan.FromMinutes(180); // Tiempo de inactividad antes de que la sesión caduque
                 options.Cookie.HttpOnly = true; // Configuración del cookie
                 options.Cookie.IsEssential = true; // Necesario para la conformidad del GDPR
-<<<<<<< Updated upstream
-=======
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.Cookie.Path = cookiePath;
 
                 // Configurar dominio solo si está especificado
@@ -73,12 +77,18 @@ namespace donativos
                 {
                     options.Cookie.Domain = cookieDomain;
                 }
->>>>>>> Stashed changes
             });
 
-            services.AddControllersWithViews(); // O cualquier otro servicio que necesites
-
             // ====== AGREGAR SERVICIOS PERSONALIZADOS ======
+
+            // Registrar RazorLightEngine como Singleton (se reutiliza en toda la aplicación)
+            services.AddSingleton<IRazorLightEngine>(sp =>
+            {
+                return new RazorLightEngineBuilder()
+                    .UseMemoryCachingProvider()
+                    .Build();
+            });
+
             // Registrar el servicio de autenticación
             services.AddScoped<IAuthenticationService, AuthenticationService>();
 
@@ -87,43 +97,34 @@ namespace donativos
 
             // Registrar el servicio de mapeo de unidades de red
             services.AddSingleton<INetworkMappingService, NetworkMappingService>();
-
-            // Opcionales pero recomendados:
-            // Agregar logging
-            services.AddLogging(config =>
-            {
-                config.AddConsole();
-                config.AddDebug();
-            });
-
-            // CORS si lo necesitas (comentado por si no lo usas aún)
-            // services.AddCors(options =>
-            // {
-            //     options.AddDefaultPolicy(builder =>
-            //     {
-            //         builder.AllowAnyOrigin()
-            //                .AllowAnyMethod()
-            //                .AllowAnyHeader();
-            //     });
-            // });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, INetworkMappingService networkMappingService, ILogger<Startup> logger)
         {
+            // Middleware de manejo de excepciones (debe ir primero)
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler("/Acceso/Error");
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseRouting();
+            app.UseSession(); // Session debe ir ANTES de Authentication/Authorization
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             // Mapear la unidad de red al iniciar
             _ = MapNetworkDriveOnStartup(networkMappingService, logger);
 
-            app.UseStaticFiles();
-            app.UseRouting();
-            app.UseCors();
-            app.UseSession(); // Esto DEBE estar antes de UseEndpoints
-            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute("default", "{controller=Acceso}/{action=Login}");
@@ -137,21 +138,21 @@ namespace donativos
         {
             try
             {
-                logger.LogInformation("?? Mapeando unidad de red en el inicio de la aplicación...");
+                logger.LogInformation("Mapeando unidad de red en el inicio de la aplicación...");
                 var (success, message) = await networkMappingService.MapNetworkDriveAsync();
-                
+
                 if (success)
                 {
-                    logger.LogInformation($"? {message}");
+                    logger.LogInformation("Unidad de red mapeada correctamente: {Message}", message);
                 }
                 else
                 {
-                    logger.LogWarning($"??  No se pudo mapear la unidad: {message}");
+                    logger.LogWarning("No se pudo mapear la unidad: {Message}", message);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError($"? Error al mapear unidad en inicio: {ex.Message}");
+                logger.LogError(ex, "Error al mapear unidad en inicio");
             }
         }
     }

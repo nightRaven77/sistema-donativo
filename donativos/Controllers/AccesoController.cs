@@ -2,6 +2,7 @@
 using donativos.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ using IAuthenticationService = donativos.Services.IAuthenticationService;
 
 namespace donativos.Controllers
 {
+    [AllowAnonymous]
     public class AccesoController : Controller
     {
         private readonly IAuthenticationService _authService;
@@ -31,9 +33,10 @@ namespace donativos.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Login(Usuario user)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(LoginViewModel model)
         {
-            var result = await _authService.LoginAsync(user?.username, user?.password);
+            var result = await _authService.LoginAsync(model?.username, model?.password);
 
             if (!result.Success)
             {
@@ -61,7 +64,7 @@ namespace donativos.Controllers
                 // Firmar al usuario con la cookie de autenticación
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
 
-                // Guardar datos en sesión (mantener compatibilidad con código existente)
+                // Guardar datos en sesión (mantener compatibilidad)
                 HttpContext.Session.SetString("usuario", result.User.username);
                 HttpContext.Session.SetString("centroAcopio", result.User.centroAcopio ?? "");
                 HttpContext.Session.SetString("CentroID", result.User.centroID ?? "0");
@@ -77,6 +80,11 @@ namespace donativos.Controllers
                 ViewBag.MensajeError = "Error al inicializar sesión";
                 return View();
             }
+        }
+
+        public ActionResult Error()
+        {
+            return View();
         }
     }
 }

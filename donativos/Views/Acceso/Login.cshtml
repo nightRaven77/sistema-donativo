@@ -55,6 +55,7 @@
             <!-- Right Side - Form -->
             <div class="login-form-container">
                 <form action="@Url.Action("Login", "Acceso")" method="post" class="login-form animate-fade-in-right" id="loginForm">
+                    @Html.AntiForgeryToken()
                     <div class="form-header">
                         <h2>Bienvenido</h2>
                         <p>Ingresa tus credenciales para acceder</p>
@@ -158,12 +159,12 @@
         // Mostrar notificaciones si vienen del servidor (opcional)
         @if (ViewBag.MensajeError != null)
         {
-            <text>toastr.error('@Html.Raw(ViewBag.MensajeError)', 'Error de Login');</text>
+            <text>toastr.error(@Html.Raw(Json.Serialize(ViewBag.MensajeError.ToString())), 'Error de Login');</text>
         }
 
         @if (ViewBag.MensajeExito != null)
         {
-            <text>toastr.success('@Html.Raw(ViewBag.MensajeExito)', 'Éxito');</text>
+            <text>toastr.success(@Html.Raw(Json.Serialize(ViewBag.MensajeExito.ToString())), 'Éxito');</text>
         }
     </script>
 </body>

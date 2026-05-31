@@ -3,91 +3,44 @@ using donativos.Models;
 using donativos.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace donativos.Controllers
 {
-    /// <summary>
-    /// Helper para verificar y diagnosticar acceso a recursos compartidos UNC
-    /// Enfoque simplificado sin impersonación compleja
-    /// </summary>
-    public static class NetworkShareHelper
-    {
-        /// <summary>
-        /// Verifica si una ruta UNC es accesible
-        /// </summary>
-        public static (bool success, string error) VerifyNetworkPath(string uncPath)
-        {
-            try
-            {
-                Console.WriteLine($"🔍 Verificando acceso a: {uncPath}");
-
-                // Intentar acceso directo
-                if (Directory.Exists(uncPath))
-                {
-                    Console.WriteLine($"✓ Ruta accesible directamente");
-                    return (true, null);
-                }
-
-                Console.WriteLine($"⚠️  Ruta no accesible en acceso directo");
-                
-                // Intentar crear un archivo de prueba
-                string testFile = Path.Combine(uncPath, $".test_{Guid.NewGuid()}");
-                try
-                {
-                    File.WriteAllText(testFile, "test");
-                    File.Delete(testFile);
-                    Console.WriteLine($"✓ Ruta accesible (prueba de lectura/escritura)");
-                    return (true, null);
-                }
-                catch (DirectoryNotFoundException ex)
-                {
-                    return (false, $"Directorio no encontrado: {uncPath}. Asegúrese que la carpeta existe en el NAS.");
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-                    return (false, $"Acceso denegado a {uncPath}. Verifique permisos.");
-                }
-                catch (System.Net.Sockets.SocketException ex)
-                {
-                    return (false, $"No se puede conectar al servidor. El servidor NAS puede no estar disponible.");
-                }
-                catch (Exception ex)
-                {
-                    return (false, $"{ex.GetType().Name}: {ex.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                return (false, ex.Message);
-            }
-        }
-    }
-}
-
-namespace donativos.Controllers
-{
+    [Authorize]
     public class RegistrosController : Controller
     {
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
+        private readonly ILogger<RegistrosController> _logger;
 
-        public RegistrosController(IConfiguration configuration, IEmailService emailService)
+        // Constantes para nombres de vistas
+        private const string VIEW_INICIO = "_Inicio";
+        private const string VIEW_REGISTROS = "_Registros";
+        private const string VIEW_CONSULTA = "_Consulta";
+        private const string VIEW_SALIDAS = "_Salidas";
+        private const string VIEW_REPORTES = "_Reportes";
+        private const string VIEW_DASHBOARD = "_Dashboard";
+        private const string VIEW_TRASPASOS = "_Traspasos";
+        private const string VIEW_ERROR = "_Error";
+
+        public RegistrosController(IConfiguration configuration, IEmailService emailService, ILogger<RegistrosController> logger)
         {
             _configuration = configuration;
             _emailService = emailService;
+            _logger = logger;
         }
 
         private string ApiUrl => _configuration["apiUrl"];
@@ -109,11 +62,15 @@ namespace donativos.Controllers
                 // Validar que los datos no sean nulos
                 if (string.IsNullOrWhiteSpace(datos))
                 {
-                    return Json(new { exito = false, mensaje = "Datos de donativo requeridos" });
+                    return Json(new ApiResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "Datos de donativo requeridos" 
+                    });
                 }
 
                 // Enviar el donativo completo al API
-                var response = ExecuteApi(token, "donativo", "POST", datos);
+                var response = await ExecuteApiAsync(token, "donativo", "POST", datos);
 
                 Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
 
@@ -122,7 +79,7 @@ namespace donativos.Controllers
                     response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
                     Console.WriteLine("✓ Donativo registrado correctamente");
-                    
+
                     // Intentar enviar correo de agradecimiento
                     try
                     {
@@ -134,53 +91,53 @@ namespace donativos.Controllers
                         Console.WriteLine($"Advertencia: No se pudo enviar correo de agradecimiento: {ex.Message}");
                         // No fallar el registro solo porque no se pudo enviar el correo
                     }
-                    
-                    return Json(new
+
+                    return Json(new ApiResponse<string>
                     {
-                        exito = true,
-                        mensaje = "Donativo registrado correctamente",
-                        data = response.Content
+                        Exito = true,
+                        Mensaje = "Donativo registrado correctamente",
+                        Data = response.Content
                     });
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
                     Console.WriteLine("❌ Datos inválidos");
-                    return Json(new
+                    return Json(new ApiResponse
                     {
-                        exito = false,
-                        mensaje = "Datos de donativo inválidos: " + ExtraerMensajeError(response.Content),
-                        error = response.Content
+                        Exito = false,
+                        Mensaje = "Datos de donativo inválidos: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
                     });
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
                     Console.WriteLine("❌ Error interno del servidor");
-                    return Json(new
+                    return Json(new ApiResponse
                     {
-                        exito = false,
-                        mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
-                        error = response.Content
+                        Exito = false,
+                        Mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
                     });
                 }
                 else
                 {
                     Console.WriteLine($"❌ Error: {response.StatusCode}");
-                    return Json(new
+                    return Json(new ApiResponse
                     {
-                        exito = false,
-                        mensaje = $"Error {response.StatusCode}",
-                        error = response.Content
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
                     });
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error general: {ex.Message}");
-                return Json(new
+                return Json(new ApiResponse
                 {
-                    exito = false,
-                    mensaje = "Error inesperado al procesar el donativo",
-                    error = ex.Message
+                    Exito = false,
+                    Mensaje = "Error inesperado al procesar el donativo",
+                    Error = ex.Message
                 });
             }
         }
@@ -204,7 +161,7 @@ namespace donativos.Controllers
                 int idDonador = datosObj["id_donador"];
                 
                 // Obtener información del donador
-                var responseDonador = ExecuteApi(token, $"catalogos/donador/{idDonador}", "GET");
+                var responseDonador = await ExecuteApiAsync(token, $"catalogos/donador/{idDonador}", "GET");
                 if (responseDonador.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     Console.WriteLine($"⚠ No se pudo obtener datos del donador (ID: {idDonador}). Status: {responseDonador.StatusCode}");
@@ -282,7 +239,7 @@ namespace donativos.Controllers
                         continue;
 
                     // Obtener información del artículo
-                    var responseArticulo = ExecuteApi(token, $"catalogos/articulo/{idArticulo}", "GET");
+                    var responseArticulo = await ExecuteApiAsync(token, $"catalogos/articulo/{idArticulo}", "GET");
                     if (responseArticulo.StatusCode != System.Net.HttpStatusCode.OK)
                     {
                         Console.WriteLine($"⚠ No se pudo obtener artículo (ID: {idArticulo})");
@@ -312,10 +269,10 @@ namespace donativos.Controllers
         /// </summary>
         /// <param name="id_donativo"></param>
         /// <returns></returns>
-        public JsonResult obtenerDonativoDetalle(int id_donativo)
+        public async Task<JsonResult> obtenerDonativoDetalle(int id_donativo)
         {
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, $"donativo/{id_donativo}/detalles", "GET");
+            var response = await ExecuteApiAsync(token, $"donativo/{id_donativo}/detalles", "GET");
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(new { error = "Error al obtener detalles de donativo" });
@@ -328,10 +285,10 @@ namespace donativos.Controllers
         /// </summary>
         /// <param name="id_donativo"></param>
         /// <returns></returns>
-        public JsonResult obtenerDonativo(int id_donativo)
+        public async Task<JsonResult> obtenerDonativo(int id_donativo)
         {
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, $"donativo/{id_donativo}", "GET");
+            var response = await ExecuteApiAsync(token, $"donativo/{id_donativo}", "GET");
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(new { error = "Error al obtener detalles de donativo" });
@@ -347,59 +304,59 @@ namespace donativos.Controllers
                 Console.WriteLine($"Actualizando donativo ID {id_donativo} con datos: {datos}");
                 if (string.IsNullOrWhiteSpace(datos))
                 {
-                    return Json(new { exito = false, mensaje = "Datos de donativo requeridos" });
+                    return Json(new ApiResponse { Exito = false, Mensaje = "Datos de donativo requeridos" });
                 }
-                var response = ExecuteApi(token, $"donativo/{id_donativo}", "PUT", datos);
+                var response = await ExecuteApiAsync(token, $"donativo/{id_donativo}", "PUT", datos);
                 Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Console.WriteLine("✓ Donativo actualizado correctamente");
-                    return Json(new
+                    return Json(new ApiResponse<string>
                     {
-                        exito = true,
-                        mensaje = "Donativo actualizado correctamente",
-                        data = response.Content
+                        Exito = true,
+                        Mensaje = "Donativo actualizado correctamente",
+                        Data = response.Content
                     });
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
                     Console.WriteLine("❌ Datos inválidos");
-                    return Json(new
+                    return Json(new ApiResponse
                     {
-                        exito = false,
-                        mensaje = "Datos de donativo inválidos",
-                        error = response.Content
+                        Exito = false,
+                        Mensaje = "Datos de donativo inválidos",
+                        Error = response.Content
                     });
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
                     Console.WriteLine("❌ Error interno del servidor");
-                    return Json(new
+                    return Json(new ApiResponse
                     {
-                        exito = false,
-                        mensaje = "Error interno del servidor",
-                        error = response.Content
+                        Exito = false,
+                        Mensaje = "Error interno del servidor",
+                        Error = response.Content
                     });
                 }
                 else
                 {
                     Console.WriteLine($"❌ Error: {response.StatusCode}");
-                    return Json(new
+                    return Json(new ApiResponse
                     {
-                        exito = false,
-                        mensaje = $"Error {response.StatusCode}",
-                        error = response.Content
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
                     });
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error general: {ex.Message}");
-                return Json(new
+                return Json(new ApiResponse
                 {
-                    exito = false,
-                    mensaje = "Error inesperado al actualizar el donativo",
-                    error = ex.Message
+                    Exito = false,
+                    Mensaje = "Error inesperado al actualizar el donativo",
+                    Error = ex.Message
                 });
             }
         }
@@ -407,7 +364,7 @@ namespace donativos.Controllers
         /// <summary>
         /// Obtiene la lista de todos los donativos registrados
         /// </summary>
-        public IActionResult ObtenerDonativos()
+        public async Task<IActionResult> ObtenerDonativos()
         {
             var token = HttpContext.Session.GetString("token");
 
@@ -415,7 +372,7 @@ namespace donativos.Controllers
             {
                 Console.WriteLine("=== Iniciando ObtenerDonativos ===");
 
-                var response = ExecuteApi(token, "donativo/miUsuario", "GET");
+                var response = await ExecuteApiAsync(token, "donativo/miUsuario", "GET");
 
                 Console.WriteLine($"Status Code: {response.StatusCode}");
                 Console.WriteLine($"Response Content (primeros 200 chars): {response.Content?.Substring(0, Math.Min(200, response.Content?.Length ?? 0))}");
@@ -453,30 +410,30 @@ namespace donativos.Controllers
         /// <summary>
         /// Elimina un donativo
         /// </summary>
-        public JsonResult EliminarDonativo(int id_donativo)
+        public async Task<JsonResult> EliminarDonativo(int id_donativo)
         {
             var token = HttpContext.Session.GetString("token");
 
             try
             {
-                var response = ExecuteApi(token, $"donativo/{id_donativo}", "Delete");
+                var response = await ExecuteApiAsync(token, $"donativo/{id_donativo}", "Delete");
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK ||
                     response.StatusCode == System.Net.HttpStatusCode.NoContent)
                 {
                     Console.WriteLine($"Donativo eliminado correctamente");
-                    return Json(new { exito = true, mensaje = "Donativo eliminado correctamente" });
+                    return Json(new ApiResponse { Exito = true, Mensaje = "Donativo eliminado correctamente" });
                 }
                 else
                 {
                     Console.WriteLine($"Error al eliminar: {response.StatusCode}");
-                    return Json(new { exito = false, error = "Error al eliminar el donativo" });
+                    return Json(new ApiResponse { Exito = false, Error = "Error al eliminar el donativo" });
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error en EliminarDonativo: {ex.Message}");
-                return Json(new { exito = false, error = ex.Message });
+                return Json(new ApiResponse { Exito = false, Error = ex.Message });
             }
         }
         
@@ -495,7 +452,11 @@ namespace donativos.Controllers
 
                 if (files.Count == 0)
                 {
-                    return Json(new { exito = false, mensaje = "No hay archivos para guardar" });
+                    return Json(new GuardarArchivosResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "No hay archivos para guardar" 
+                    });
                 }
 
                 // Obtener ruta del configuration
@@ -505,7 +466,11 @@ namespace donativos.Controllers
                 if (string.IsNullOrWhiteSpace(nasPath))
                 {
                     Console.WriteLine("❌ Error: FileStorage:NasPath no configurado");
-                    return Json(new { exito = false, mensaje = "Error de configuración: ruta NAS no configurada" });
+                    return Json(new GuardarArchivosResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "Error de configuración: ruta NAS no configurada" 
+                    });
                 }
 
                 Console.WriteLine($"📁 Ruta NAS: {nasPath}");
@@ -523,35 +488,39 @@ namespace donativos.Controllers
                 catch (DirectoryNotFoundException ex)
                 {
                     Console.WriteLine($"❌ Ruta no encontrada: {ex.Message}");
-                    return Json(new
+                    return Json(new GuardarArchivosResponse
                     {
-                        exito = false,
-                        mensaje = "Error: La ruta del NAS no existe",
-                        diagnostico = $"Asegúrese que existe: {nasPath}"
+                        Exito = false,
+                        Mensaje = "Error: La ruta del NAS no existe",
+                        Diagnostico = $"Asegúrese que existe: {nasPath}"
                     });
                 }
                 catch (UnauthorizedAccessException ex)
                 {
                     Console.WriteLine($"❌ Acceso denegado: {ex.Message}");
-                    return Json(new
+                    return Json(new GuardarArchivosResponse
                     {
-                        exito = false,
-                        mensaje = "Error: Permisos insuficientes",
-                        diagnostico = "Verifique que el usuario tiene permisos de escritura"
+                        Exito = false,
+                        Mensaje = "Error: Permisos insuficientes",
+                        Diagnostico = "Verifique que el usuario tiene permisos de escritura"
                     });
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"❌ Error: {ex.GetType().Name} - {ex.Message}");
-                    return Json(new
+                    return Json(new GuardarArchivosResponse
                     {
-                        exito = false,
-                        mensaje = "Error al acceder al NAS",
-                        error = ex.Message
+                        Exito = false,
+                        Mensaje = "Error al acceder al NAS",
+                        Error = ex.Message
                     });
                 }
 
-                var archivosGuardados = new List<object>();
+                var archivosGuardados = new List<ArchivoResponse>();
+
+                // Extensiones permitidas
+                var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".gif", ".pdf", ".doc", ".docx", ".xls", ".xlsx" };
+                const long tamañoMaximo = 5 * 1024 * 1024; // 5 MB
 
                 // Guardar archivos
                 for (int i = 0; i < files.Count; i++)
@@ -559,14 +528,64 @@ namespace donativos.Controllers
                     var file = files[i];
                     var nombreOriginal = nombresOriginales.Count > i ? nombresOriginales[i] : file.FileName;
 
+                    // Validar tamaño
+                    if (file.Length > tamañoMaximo)
+                    {
+                        _logger.LogWarning("Archivo {FileName} excede el tamaño máximo permitido: {Size} bytes", nombreOriginal, file.Length);
+                        return Json(new GuardarArchivosResponse
+                        {
+                            Exito = false,
+                            Mensaje = $"El archivo '{nombreOriginal}' excede el tamaño máximo permitido de 5 MB"
+                        });
+                    }
+
+                    // Validar extensión
+                    string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(extension) || !extensionesPermitidas.Contains(extension))
+                    {
+                        _logger.LogWarning("Archivo {FileName} tiene extensión no permitida: {Extension}", nombreOriginal, extension);
+                        return Json(new GuardarArchivosResponse
+                        {
+                            Exito = false,
+                            Mensaje = $"El archivo '{nombreOriginal}' tiene una extensión no permitida. Solo se aceptan: {string.Join(", ", extensionesPermitidas)}"
+                        });
+                    }
+
+                    // Validar Content-Type
+                    var contentTypesPermitidos = new Dictionary<string, string[]>
+                    {
+                        { ".jpg", new[] { "image/jpeg" } },
+                        { ".jpeg", new[] { "image/jpeg" } },
+                        { ".png", new[] { "image/png" } },
+                        { ".gif", new[] { "image/gif" } },
+                        { ".pdf", new[] { "application/pdf" } },
+                        { ".doc", new[] { "application/msword" } },
+                        { ".docx", new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" } },
+                        { ".xls", new[] { "application/vnd.ms-excel" } },
+                        { ".xlsx", new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" } }
+                    };
+
+                    if (contentTypesPermitidos.TryGetValue(extension, out var tiposEsperados))
+                    {
+                        if (!tiposEsperados.Contains(file.ContentType))
+                        {
+                            _logger.LogWarning("Archivo {FileName} tiene Content-Type incorrecto: {ContentType} (esperado: {Expected})", 
+                                nombreOriginal, file.ContentType, string.Join(", ", tiposEsperados));
+                            return Json(new GuardarArchivosResponse
+                            {
+                                Exito = false,
+                                Mensaje = $"El archivo '{nombreOriginal}' no es un archivo válido del tipo esperado"
+                            });
+                        }
+                    }
+
                     // Generar nombre aleatorio
-                    string extension = Path.GetExtension(file.FileName);
                     string nombreAleatorio = $"{Guid.NewGuid()}{extension}";
                     string rutaCompleta = Path.Combine(nasPath, nombreAleatorio);
 
                     try
                     {
-                        Console.WriteLine($"📤 Guardando: {nombreOriginal}");
+                        _logger.LogInformation("Guardando archivo: {FileName} -> {SavedName}", nombreOriginal, nombreAleatorio);
 
                         // Guardar archivo
                         using (var stream = new FileStream(rutaCompleta, FileMode.Create, FileAccess.Write))
@@ -574,38 +593,42 @@ namespace donativos.Controllers
                             await file.CopyToAsync(stream);
                         }
 
-                        archivosGuardados.Add(new
+                        archivosGuardados.Add(new ArchivoResponse
                         {
-                            url = $"/{nombreAleatorio}",
-                            nombre_original = nombreOriginal,
-                            nombre_guardado = nombreAleatorio
+                            Url = $"/{nombreAleatorio}",
+                            NombreOriginal = nombreOriginal,
+                            NombreGuardado = nombreAleatorio
                         });
 
-                        Console.WriteLine($"✓ Guardado: {nombreAleatorio}");
+                        _logger.LogInformation("Archivo guardado exitosamente: {SavedName}", nombreAleatorio);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"❌ Error guardando {nombreOriginal}: {ex.GetType().Name}");
-                        return Json(new
+                        _logger.LogError(ex, "Error al guardar archivo {FileName}", nombreOriginal);
+                        return Json(new GuardarArchivosResponse
                         {
-                            exito = false,
-                            mensaje = $"Error al guardar {nombreOriginal}",
-                            error = ex.Message
+                            Exito = false,
+                            Mensaje = $"Error al guardar {nombreOriginal}",
+                            Error = ex.Message
                         });
                     }
                 }
 
-                Console.WriteLine($"✓ {archivosGuardados.Count} archivos guardados");
-                return Json(new { exito = true, archivos = archivosGuardados });
+                _logger.LogInformation("{Count} archivos guardados correctamente", archivosGuardados.Count);
+                return Json(new GuardarArchivosResponse 
+                { 
+                    Exito = true, 
+                    Archivos = archivosGuardados 
+                });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error general: {ex.GetType().Name}");
-                return Json(new
+                return Json(new GuardarArchivosResponse
                 {
-                    exito = false,
-                    mensaje = "Error al guardar archivos",
-                    error = ex.Message
+                    Exito = false,
+                    Mensaje = "Error al guardar archivos",
+                    Error = ex.Message
                 });
             }
         }
@@ -625,6 +648,446 @@ namespace donativos.Controllers
         }
         #endregion
 
+        #region Salidas
+
+        /// <summary>
+        /// Inserta una salida completa (donación o merma)
+        /// Estructura: {fecha_salida, id_almacen_origen, id_beneficiario, motivo, tipo_salida, detalles[]}
+        /// </summary>
+        public async Task<JsonResult> insertaSalida(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando salida: {datos}");
+
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "Datos de salida requeridos" 
+                    });
+                }
+
+                var response = await ExecuteApiAsync(token, "salida", "POST", datos);
+
+                Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Salida registrada correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Salida registrada correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de salida inválidos: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado al procesar la salida",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de salidas del usuario actual
+        /// </summary>
+        public async Task<IActionResult> ObtenerSalidas()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine("=== Obteniendo Salidas ===");
+
+                var response = await ExecuteApiAsync(token, "salida/miUsuario", "GET");
+
+                Console.WriteLine($"Status Code: {response.StatusCode}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Respuesta OK del API");
+
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Content("[]", "application/json");
+                    }
+
+                    return Content(response.Content, "application/json");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error al obtener salidas: {response.StatusCode}");
+                    return Content($"{{\"error\":\"Error {response.StatusCode}\"}}", "application/json");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción en ObtenerSalidas: {ex.Message}");
+                return Content($"{{\"error\":\"{ex.Message}\"}}", "application/json");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene una salida específica por ID
+        /// </summary>
+        public async Task<JsonResult> obtenerSalida(int id_salida)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                var response = await ExecuteApiAsync(token, $"salida/{id_salida}", "GET");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Salida no encontrada"
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al obtener salida",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en obtenerSalida: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+
+        public async Task<JsonResult> EliminarSalida(int id_salida)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                var response = await ExecuteApiAsync(token, $"salida/{id_salida}", "Delete");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    Console.WriteLine($"Salida eliminada correctamente");
+                    return Json(new ApiResponse { Exito = true, Mensaje = "Salida eliminada correctamente" });
+                }
+                else
+                {
+                    Console.WriteLine($"Error al eliminar: {response.StatusCode}");
+                    return Json(new ApiResponse { Exito = false, Error = "Error al eliminar la salida" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en EliminarSalida: {ex.Message}");
+                return Json(new ApiResponse { Exito = false, Error = ex.Message });
+            }
+        }
+        
+        /// <summary>
+        /// Obtiene el inventario/stock de un almacén específico con búsqueda opcional
+        /// Endpoint: GET /catalogos/articulo/stock/{idAlmacen}?buscar={termino}
+        /// </summary>
+        public async Task<JsonResult> ObtenerInventario(int id_almacen, string buscar = "")
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Obteniendo inventario del almacén: {id_almacen}, búsqueda: '{buscar}'");
+
+                // Construir la ruta con parámetro de búsqueda opcional
+                string relativePath = string.IsNullOrEmpty(buscar)
+                    ? $"catalogos/articulo/stock/{id_almacen}"
+                    : $"catalogos/articulo/stock/{id_almacen}?buscar={Uri.EscapeDataString(buscar)}";
+
+                var response = await ExecuteApiAsync(token, relativePath, "GET");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Json(new List<InventarioDTO>());
+                    }
+
+                    // Parsear el inventario - el API retorna directamente un array
+                    var parsedResponse = JsonConvert.DeserializeObject<dynamic>(response.Content);
+
+                    List<InventarioDTO> inventario = new List<InventarioDTO>();
+
+                    if (parsedResponse is JArray jArray)
+                    {
+                        foreach (var item in jArray)
+                        {
+                            var inv = ConvertirAInventarioNuevo(item);
+                            if (inv != null)
+                            {
+                                inventario.Add(inv);
+                            }
+                        }
+                    }
+                    else if (parsedResponse is JObject jObject)
+                    {
+                        // Por si el API envuelve la respuesta en un objeto
+                        JArray arrayData = null;
+
+                        if (jObject["data"] is JArray)
+                            arrayData = (JArray)jObject["data"];
+                        else if (jObject["inventario"] is JArray)
+                            arrayData = (JArray)jObject["inventario"];
+                        else if (jObject["items"] is JArray)
+                            arrayData = (JArray)jObject["items"];
+
+                        if (arrayData != null)
+                        {
+                            foreach (var item in arrayData)
+                            {
+                                var inv = ConvertirAInventarioNuevo(item);
+                                if (inv != null)
+                                {
+                                    inventario.Add(inv);
+                                }
+                            }
+                        }
+                    }
+
+                    Console.WriteLine($"✓ Inventario obtenido: {inventario.Count} artículos con stock");
+                    return Json(inventario);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine("⚠ No hay artículos con stock en este almacén");
+                    return Json(new List<InventarioDTO>());
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new { error = "Error al obtener inventario" });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new { error = $"Error {response.StatusCode}" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en ObtenerInventario: {ex.Message}");
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene beneficiarios con búsqueda opcional (similar a donadores)
+        /// </summary>
+        public async Task<JsonResult> ObtenerBeneficiarios(string search = "")
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            string relativePath = string.IsNullOrEmpty(search)
+                ? "catalogos/beneficiario"
+                : $"catalogos/beneficiario/buscar/{Uri.EscapeDataString(search)}";
+
+            var response = await ExecuteApiAsync(token, relativePath, "GET");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener beneficiarios" });
+            }
+
+            try
+            {
+                if (string.IsNullOrEmpty(response.Content))
+                {
+                    return Json(new List<BeneficiarioDTO>());
+                }
+
+                Console.WriteLine($"API Raw Response: {response.Content}");
+
+                var parsedResponse = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                List<BeneficiarioDTO> beneficiarios = new List<BeneficiarioDTO>();
+
+                if (parsedResponse is JArray jArray)
+                {
+                    beneficiarios = jArray
+                        .Select(item => ConvertirABeneficiario(item))
+                        .Where(b => b != null)
+                        .ToList();
+                }
+                else if (parsedResponse is JObject jObject)
+                {
+                    JArray arrayData = null;
+
+                    if (jObject["data"] is JArray)
+                        arrayData = (JArray)jObject["data"];
+                    else if (jObject["beneficiarios"] is JArray)
+                        arrayData = (JArray)jObject["beneficiarios"];
+                    else if (jObject["items"] is JArray)
+                        arrayData = (JArray)jObject["items"];
+
+                    if (arrayData != null)
+                    {
+                        beneficiarios = arrayData
+                            .Select(item => ConvertirABeneficiario(item))
+                            .Where(b => b != null)
+                            .ToList();
+                    }
+                }
+
+                Console.WriteLine($"Beneficiarios convertidos: {beneficiarios.Count}");
+                return Json(beneficiarios);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al parsear beneficiarios: {ex.Message}");
+                return Json(new List<BeneficiarioDTO>());
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todos los beneficiarios sin filtro de búsqueda (para dropdowns, etc)
+        /// </summary>
+        /// <returns></returns>
+        public async Task<JsonResult> ObtenerTodosBeneficiarios()
+            {
+            var token = HttpContext.Session.GetString("token");
+            var response = await ExecuteApiAsync(token, "catalogos/beneficiario", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener beneficiarios" });
+            }
+            return Json(response.Content);
+        }
+
+        /// <summary>
+        /// Inserta un nuevo beneficiario
+        /// </summary>
+        public async Task<JsonResult> insertaBeneficiario(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando beneficiario: {datos}");
+
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de beneficiario requeridos"
+                    });
+                }
+
+                var response = await ExecuteApiAsync(token, "catalogos/beneficiario", "POST", datos);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Beneficiario insertado correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Beneficiario registrado correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error interno del servidor",
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en insertaBeneficiario: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        #endregion
+
         #region Catalogos
         /// <summary>
         /// Creates a new donor record by sending the provided donor data to the API.
@@ -632,12 +1095,12 @@ namespace donativos.Controllers
         /// <param name="datos">A JSON-formatted string containing the donor information to be inserted. Must not be null or empty.</param>
         /// <returns>A JSON result containing the API response content if the operation succeeds; otherwise, a JSON result
         /// indicating a bad request if an internal server error occurs.</returns>
-        public JsonResult insertaDonador(string datos)
+        public async Task<JsonResult> insertaDonador(string datos)
         {
             var body = new { datos = datos };
 
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, "catalogos/donador", "POST", body.datos);
+            var response = await ExecuteApiAsync(token, "catalogos/donador", "POST", body.datos);
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(BadRequest());
@@ -652,11 +1115,11 @@ namespace donativos.Controllers
         /// <param name="datos">A JSON-formatted string containing the donor contact information to be inserted. Must not be null or empty.</param>
         /// <returns>A JSON result containing the API response content if the operation succeeds; otherwise, a JSON result
         /// indicating a bad request if an internal server error occurs.</returns>
-        public JsonResult insertaContactoDonaodor(string datos)
+        public async Task<JsonResult> insertaContactoDonador(string datos)
         {
             var body = new { datos = datos };
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, "catalogos/contactodonador", "POST", body.datos);
+            var response = await ExecuteApiAsync(token, "catalogos/contactodonador", "POST", body.datos);
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(BadRequest());
@@ -671,10 +1134,10 @@ namespace donativos.Controllers
         /// <param name="datos">A JSON-formatted string containing an array of article information to be inserted. 
         /// Format: [{"nombre":"...","cantidad":...},{...}]</param>
         /// <returns>A JSON result containing the results of all insertions. Returns success/error status for each article.</returns>
-        public JsonResult insertaArticulos(string datos)
+        public async Task<JsonResult> insertaArticulos(string datos)
         {
             var token = HttpContext.Session.GetString("token");
-            var resultados = new List<dynamic>();
+            var resultados = new List<InsertarArticuloResultado>();
             var contador = 0;
             var errores = 0;
 
@@ -697,42 +1160,42 @@ namespace donativos.Controllers
                         Console.WriteLine($"Insertando artículo: {articulo["nombre"]}");
 
                         // Enviar cada artículo al API
-                        var response = ExecuteApi(token, "catalogos/articulo", "POST", articuloJson);
+                        var response = await ExecuteApiAsync(token, "catalogos/articulo", "POST", articuloJson);
 
                         // Procesar la respuesta
                         if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                         {
                             errores++;
-                            resultados.Add(new
+                            resultados.Add(new InsertarArticuloResultado
                             {
-                                exito = false,
-                                nombre = articulo["nombre"],
-                                mensaje = "Error interno del servidor",
-                                statusCode = response.StatusCode.ToString()
+                                Exito = false,
+                                Nombre = articulo["nombre"]?.ToString(),
+                                Mensaje = "Error interno del servidor",
+                                StatusCode = response.StatusCode.ToString()
                             });
                             Console.WriteLine($"  ❌ Error al insertar: {articulo["nombre"]}");
                         }
                         else if (response.StatusCode == System.Net.HttpStatusCode.OK ||
                                  response.StatusCode == System.Net.HttpStatusCode.Created)
                         {
-                            resultados.Add(new
+                            resultados.Add(new InsertarArticuloResultado
                             {
-                                exito = true,
-                                nombre = articulo["nombre"],
-                                mensaje = "Artículo insertado correctamente",
-                                respuesta = response.Content
+                                Exito = true,
+                                Nombre = articulo["nombre"]?.ToString(),
+                                Mensaje = "Artículo insertado correctamente",
+                                Respuesta = response.Content
                             });
                             Console.WriteLine($"  ✓ Insertado: {articulo["nombre"]}");
                         }
                         else
                         {
                             errores++;
-                            resultados.Add(new
+                            resultados.Add(new InsertarArticuloResultado
                             {
-                                exito = false,
-                                nombre = articulo["nombre"],
-                                mensaje = $"Error {response.StatusCode}: {response.Content}",
-                                statusCode = response.StatusCode.ToString()
+                                Exito = false,
+                                Nombre = articulo["nombre"]?.ToString(),
+                                Mensaje = $"Error {response.StatusCode}: {response.Content}",
+                                StatusCode = response.StatusCode.ToString()
                             });
                             Console.WriteLine($"  ❌ Error {response.StatusCode}: {articulo["nombre"]}");
                         }
@@ -741,44 +1204,44 @@ namespace donativos.Controllers
                     {
                         errores++;
                         Console.WriteLine($"  ❌ Excepción: {ex.Message}");
-                        resultados.Add(new
+                        resultados.Add(new InsertarArticuloResultado
                         {
-                            exito = false,
-                            nombre = articulo["nombre"] ?? "Desconocido",
-                            mensaje = ex.Message,
-                            error = "Excepción durante la inserción"
+                            Exito = false,
+                            Nombre = articulo["nombre"]?.ToString() ?? "Desconocido",
+                            Mensaje = ex.Message,
+                            Error = "Excepción durante la inserción"
                         });
                     }
                 }
 
                 // Retornar resumen de resultados
-                return Json(new
+                return Json(new InsertarArticulosResponse
                 {
-                    exito = errores == 0,
-                    procesados = contador,
-                    exitingosos = contador - errores,
-                    errores = errores,
-                    resultados = resultados
+                    Exito = errores == 0,
+                    Procesados = contador,
+                    Exitosos = contador - errores,
+                    Errores = errores,
+                    Resultados = resultados
                 });
             }
             catch (JsonReaderException ex)
             {
                 Console.WriteLine($"Error al parsear JSON: {ex.Message}");
-                return Json(new
+                return Json(new InsertarArticulosResponse
                 {
-                    exito = false,
-                    mensaje = "Error al parsear el JSON",
-                    error = ex.Message
+                    Exito = false,
+                    Mensaje = "Error al parsear el JSON",
+                    Error = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error general: {ex.Message}");
-                return Json(new
+                return Json(new InsertarArticulosResponse
                 {
-                    exito = false,
-                    mensaje = "Error inesperado al procesar artículos",
-                    error = ex.Message
+                    Exito = false,
+                    Mensaje = "Error inesperado al procesar artículos",
+                    Error = ex.Message
                 });
             }
         }
@@ -792,7 +1255,7 @@ namespace donativos.Controllers
         /// retrieved.</param>
         /// <returns>A JSON result containing a list of donor data transfer objects. If no donors are found or an error occurs,
         /// the result contains an empty list or an error message.</returns>
-        public JsonResult ObtenerDonadores(string search = "")
+        public async Task<JsonResult> ObtenerDonadores(string search = "")
         {
             var token = HttpContext.Session.GetString("token");
 
@@ -801,7 +1264,7 @@ namespace donativos.Controllers
                 ? "catalogos/donador"
                 : $"catalogos/donador/buscar/{Uri.EscapeDataString(search)}";
 
-            var response = ExecuteApi(token, relativePath, "GET");
+            var response = await ExecuteApiAsync(token, relativePath, "GET");
 
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
@@ -867,15 +1330,33 @@ namespace donativos.Controllers
             }
         }
 
+
+        /// <summary>
+        /// Retrives a list of all donors from the API without any filtering. This method is used to populate dropdowns or lists where all donors are needed.
+        /// </summary>
+        /// <returns>A JSON result containing a</returns>
+        public async Task<JsonResult> ObtenerTodosDonadores()
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = await ExecuteApiAsync(token, "catalogos/donador", "GET");
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener donadores" });
+            }
+            return Json(response.Content);
+        }
+
+
+
         /// <summary>
         /// Retrieves the list of contacts associated with the specified donor.
         /// </summary>
         /// <param name="id_donador">The unique identifier of the donor whose contacts are to be retrieved.</param>
         /// <returns>A JSON result containing the donor's contacts if successful; otherwise, a JSON object with an error message.</returns>
-        public JsonResult ObtenerContactos(int id_donador)
+        public async Task<JsonResult> ObtenerContactos(int id_donador)
         {
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, $"catalogos/contactodonador/donador/{id_donador}", "GET");
+            var response = await ExecuteApiAsync(token, $"catalogos/contactodonador/donador/{id_donador}", "GET");
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(new { error = "Error al obtener contactos de donador" });
@@ -892,7 +1373,7 @@ namespace donativos.Controllers
         /// retrieved.</param>
         /// <returns>A JSON result containing a list of article data transfer objects. If no articles are found or an error occurs,
         /// the result contains an empty list or an error message.</returns>
-        public JsonResult ObtenerArticulos(string search = "")
+        public async Task<JsonResult> ObtenerArticulos(string search = "")
         {
             var token = HttpContext.Session.GetString("token");
 
@@ -901,7 +1382,7 @@ namespace donativos.Controllers
                 ? "catalogos/articulo"
                 : $"catalogos/articulo/buscar/{Uri.EscapeDataString(search)}";
 
-            var response = ExecuteApi(token, relativePath, "GET");
+            var response = await ExecuteApiAsync(token, relativePath, "GET");
 
             if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
@@ -967,15 +1448,411 @@ namespace donativos.Controllers
             }
         }
 
-        public JsonResult ObtenerAlmacenes() { 
+        public async Task<JsonResult> ObtenerAlmacenes() { 
             var token = HttpContext.Session.GetString("token");
-            var response = ExecuteApi(token, "catalogos/almacen", "GET");
+            var response = await ExecuteApiAsync(token, "catalogos/almacen", "GET");
             if(response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 return Json(new { error = "Error al obtener almacenes" });
             }
             return Json(response.Content);
         }
+
+        /// <summary>
+        /// Obtiene la lista de categorías desde el API
+        /// </summary>
+        public async Task<JsonResult> ObtenerCategorias()
+        {
+            var token = HttpContext.Session.GetString("token");
+            var response = await ExecuteApiAsync(token, "catalogos/articulo/categoria", "GET");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                return Json(new { error = "Error al obtener categorías" });
+            }
+
+            return Json(response.Content);
+        }
+        #endregion
+
+        #region Traspasos
+
+        /// <summary>
+        /// Inserta un traspaso entre almacenes
+        /// Estructura: {fecha_traspaso, almacen_origen, almacen_destino, motivo, is_instantaneo, detalles[]}
+        /// </summary>
+        public async Task<JsonResult> insertaTraspaso(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Insertando traspaso: {datos}");
+
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse 
+                    { 
+                        Exito = false, 
+                        Mensaje = "Datos de traspaso requeridos" 
+                    });
+                }
+
+                var response = await ExecuteApiAsync(token, "traspaso", "POST", datos);
+
+                Console.WriteLine($"Respuesta del API: {response.StatusCode} - {response.Content}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK ||
+                    response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine("✓ Traspaso registrado correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Traspaso registrado correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de traspaso inválidos: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Console.WriteLine("❌ Error interno del servidor");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error interno del servidor: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado al procesar el traspaso",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de traspasos
+        /// </summary>
+        public async Task<IActionResult> ObtenerTraspasos()
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine("=== Obteniendo Traspasos ===");
+
+                var response = await ExecuteApiAsync(token, "traspaso/miUsuario", "GET");
+
+                Console.WriteLine($"Status Code: {response.StatusCode}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Respuesta OK del API");
+
+                    if (string.IsNullOrEmpty(response.Content))
+                    {
+                        Console.WriteLine("⚠ Respuesta vacía del API");
+                        return Content("[]", "application/json");
+                    }
+
+                    return Content(response.Content, "application/json");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error al obtener traspasos: {response.StatusCode}");
+                    return Content($"{{\"error\":\"Error {response.StatusCode}\"}}", "application/json");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción en ObtenerTraspasos: {ex.Message}");
+                return Content($"{{\"error\":\"{ex.Message}\"}}", "application/json");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene un traspaso específico por ID
+        /// </summary>
+        public async Task<JsonResult> obtenerTraspaso(int id_traspaso)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                var response = await ExecuteApiAsync(token, $"traspaso/{id_traspaso}", "GET");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Traspaso no encontrado"
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al obtener traspaso",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en obtenerTraspaso: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Recibe/Aprueba un traspaso con observaciones y archivos opcionales
+        /// Ahora acepta un objeto JSON completo serializado en el parámetro 'datos'
+        /// Estructura: {idTraspaso, observaciones, archivos[{url, nombreOriginal, nombreGuardado, tipoArchivo}]}
+        /// </summary>
+        public async Task<JsonResult> RecibirTraspaso(string datos)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"=== Recibiendo traspaso con datos: {datos}");
+
+                // Validar que los datos no sean nulos
+                if (string.IsNullOrWhiteSpace(datos))
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Datos de recepción requeridos"
+                    });
+                }
+
+                // Deserializar el objeto de recepción
+                var recepcionObj = JsonConvert.DeserializeObject<dynamic>(datos);
+
+                if (recepcionObj == null)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al parsear datos de recepción"
+                    });
+                }
+
+                // Extraer valores
+                int? idTraspaso = recepcionObj["idTraspaso"];
+                string observaciones = recepcionObj["observaciones"]?.ToString() ?? "";
+
+                if (!idTraspaso.HasValue)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "ID de traspaso requerido"
+                    });
+                }
+
+                Console.WriteLine($"📦 ID Traspaso: {idTraspaso.Value}");
+                Console.WriteLine($"📝 Observaciones: {observaciones}");
+
+                // Preparar objeto para enviar al API (con archivos opcionales)
+                object datosRecepcion;
+
+                // Verificar si hay archivos
+                if (recepcionObj["archivos"] != null)
+                {
+                    var archivos = recepcionObj["archivos"];
+                    int cantidadArchivos = archivos is Newtonsoft.Json.Linq.JArray array ? array.Count : 0;
+
+                    if (cantidadArchivos > 0)
+                    {
+                        Console.WriteLine($"📎 Archivos adjuntos: {cantidadArchivos}");
+
+                        // Con archivos
+                        datosRecepcion = new
+                        {
+                            observaciones = observaciones,
+                            archivos = archivos
+                        };
+
+                        // Log de archivos
+                        foreach (var archivo in archivos)
+                        {
+                            string tipoArchivo = archivo["tipoArchivo"]?.ToString() ?? "N/A";
+                            string nombreOriginal = archivo["nombreOriginal"]?.ToString() ?? "N/A";
+                            Console.WriteLine($"   - {nombreOriginal} (Tipo: {tipoArchivo})");
+                        }
+                    }
+                    else
+                    {
+                        // Sin archivos válidos
+                        datosRecepcion = new { observaciones = observaciones };
+                    }
+                }
+                else
+                {
+                    // Sin archivos
+                    datosRecepcion = new { observaciones = observaciones };
+                }
+
+                // Serializar el objeto completo
+                string datosJson = JsonConvert.SerializeObject(datosRecepcion);
+                Console.WriteLine($"📤 Enviando al API: {datosJson}");
+
+                // Enviar al API
+                var response = await ExecuteApiAsync(token, $"traspaso/{idTraspaso.Value}/recibir", "POST", datosJson);
+
+                Console.WriteLine($"✓ Respuesta del API: {response.StatusCode}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Traspaso recibido correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Traspaso recibido correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("❌ Datos inválidos");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al recibir traspaso: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error: {response.StatusCode}");
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"❌ Error al parsear JSON: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error al procesar datos de recepción",
+                    Error = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en RecibirTraspaso: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Cancela un traspaso
+        /// </summary>
+        public async Task<JsonResult> CancelarTraspaso(int id_traspaso, string motivo_cancelacion)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                Console.WriteLine($"Cancelando traspaso ID: {id_traspaso}");
+
+                var datos = new { motivoCancelacion = motivo_cancelacion ?? "Sin motivo especificado" };
+                var response = await ExecuteApiAsync(token, $"traspaso/{id_traspaso}/cancelar", "POST", datos);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine("✓ Traspaso cancelado correctamente");
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Traspaso cancelado correctamente",
+                        Data = response.Content
+                    });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = "Error al cancelar traspaso: " + ExtraerMensajeError(response.Content),
+                        Error = response.Content
+                    });
+                }
+                else
+                {
+                    return Json(new ApiResponse
+                    {
+                        Exito = false,
+                        Mensaje = $"Error {response.StatusCode}",
+                        Error = response.Content
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en CancelarTraspaso: {ex.Message}");
+                return Json(new ApiResponse
+                {
+                    Exito = false,
+                    Mensaje = "Error inesperado",
+                    Error = ex.Message
+                });
+            }
+        }
+
         #endregion
 
         #region Utilidades API
@@ -992,17 +1869,18 @@ namespace donativos.Controllers
         /// <param name="body">The request body to send with the request. Used for methods that support a body, such as "POST" and "PUT".
         /// Can be null if not required.</param>
         /// <returns>A RestResponse object containing the response from the API, including status code, headers, and content.</returns>
-        private RestResponse ExecuteApi(string token, string relativePath, string method = "GET", object body = null)
+        private async Task<RestResponse> ExecuteApiAsync(string token, string relativePath, string method = "GET", object body = null)
         {
             return method.ToUpper() switch
             {
-                "GET" => RestSharpHelper.ExecuteGet(ApiUrl, token, relativePath),
-                "POST" => RestSharpHelper.ExecutePost(ApiUrl, token, relativePath, body),
-                "PUT" => RestSharpHelper.ExecutePut(ApiUrl, token, relativePath, body),
-                "DELETE" => RestSharpHelper.ExecuteDelete(ApiUrl, token, relativePath),
-                _ => RestSharpHelper.ExecuteGet(ApiUrl, token, relativePath)
+                "GET" => await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, relativePath),
+                "POST" => await RestSharpHelper.ExecutePostAsync(ApiUrl, token, relativePath, body),
+                "PUT" => await RestSharpHelper.ExecutePutAsync(ApiUrl, token, relativePath, body),
+                "DELETE" => await RestSharpHelper.ExecuteDeleteAsync(ApiUrl, token, relativePath),
+                _ => await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, relativePath)
             };
         }
+        #endregion
 
         /// <summary>
         /// Convierte un JToken a un objeto DonadorDTO
@@ -1148,13 +2026,13 @@ namespace donativos.Controllers
                     return "Error desconocido";
 
                 var obj = JObject.Parse(jsonContent);
-                
+
                 // Intentar diferentes nombres de campo
                 var mensaje = obj["message"]?.ToString() 
                            ?? obj["mensaje"]?.ToString() 
                            ?? obj["error"]?.ToString()
                            ?? jsonContent;
-                
+
                 return mensaje;
             }
             catch
@@ -1164,7 +2042,160 @@ namespace donativos.Controllers
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Convierte un JToken a un objeto BeneficiarioDTO
+        /// </summary>
+        private BeneficiarioDTO ConvertirABeneficiario(JToken token)
+        {
+            try
+            {
+                if (token == null) return null;
+
+                var beneficiario = new BeneficiarioDTO
+                {
+                    id_beneficiario = ExtractIntValue(token, "id_beneficiario", "idBeneficiario", "id"),
+                    codigo = ExtractStringValue(token, "codigo"),
+                    tipo = ExtractStringValue(token, "tipo"),
+                    nombre = ExtractStringValue(token, "nombre"),
+                    rfc = ExtractStringValue(token, "rfc", "RFC"),
+                    telefono = ExtractStringValue(token, "telefono"),
+                    email = ExtractStringValue(token, "email"),
+                    direccion = ExtractStringValue(token, "direccion"),
+                    colonia = ExtractStringValue(token, "colonia"),
+                    ciudad = ExtractStringValue(token, "ciudad"),
+                    estado = ExtractStringValue(token, "estado"),
+                    codigo_postal = ExtractStringValue(token, "codigo_postal", "codigoPostal"),
+                    notas = ExtractStringValue(token, "notas")
+                };
+
+                // Validar que tenga al menos un nombre
+                if (string.IsNullOrEmpty(beneficiario.nombre))
+                    return null;
+
+                return beneficiario;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error convirtiendo beneficiario: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convierte un JToken a un objeto InventarioDTO (nuevo endpoint con camelCase)
+        /// Estructura del endpoint: GET /catalogos/articulo/stock/{idAlmacen}
+        /// </summary>
+        private InventarioDTO ConvertirAInventarioNuevo(JToken token)
+        {
+            try
+            {
+                if (token == null) return null;
+
+                var inventario = new InventarioDTO
+                {
+                    idArticulo = ExtractIntValue(token, "idArticulo", "id_articulo") ?? 0,
+                    nombre = ExtractStringValue(token, "nombre"),
+                    idCategoria = ExtractIntValue(token, "idCategoria", "id_categoria"),
+                    nombreCategoria = ExtractStringValue(token, "nombreCategoria", "nombre_categoria"),
+                    stockActual = ExtractDecimalValue(token, "stockActual", "stock_actual", "stock") ?? 0,
+                    idAlmacen = ExtractIntValue(token, "idAlmacen", "id_almacen") ?? 0,
+                    nombreAlmacen = ExtractStringValue(token, "nombreAlmacen", "nombre_almacen"),
+                    fechaUltimaEntrada = ExtractDateTimeValue(token, "fechaUltimaEntrada", "fecha_ultima_entrada"),
+                    fechaUltimaSalida = ExtractDateTimeValue(token, "fechaUltimaSalida", "fecha_ultima_salida"),
+                    activo = ExtractBoolValue(token, "activo") ?? true,
+                    unidadMedida = ExtractStringValue(token, "unidadMedida", "unidad_medida", "unidad")
+                };
+
+                // Validar que tenga información mínima
+                if (inventario.idArticulo == 0)
+                {
+                    Console.WriteLine("⚠ Artículo sin ID válido");
+                    return null;
+                }
+
+                if (inventario.stockActual <= 0)
+                {
+                    Console.WriteLine($"⚠ Artículo {inventario.nombre} sin stock disponible");
+                    return null;
+                }
+
+                return inventario;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error convirtiendo inventario: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extrae un valor decimal de un JToken
+        /// </summary>
+        private decimal? ExtractDecimalValue(JToken token, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                var value = token[fieldName];
+                if (value == null) continue;
+
+                if (value is JArray array)
+                {
+                    if (array.Count > 0 && decimal.TryParse(array[0].ToString(), out decimal result))
+                        return result;
+                }
+                else if (value.Type != JTokenType.Null && decimal.TryParse(value.ToString(), out decimal result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Extrae un valor DateTime de un JToken
+        /// </summary>
+        private DateTime? ExtractDateTimeValue(JToken token, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                var value = token[fieldName];
+                if (value == null) continue;
+
+                if (value is JArray array)
+                {
+                    if (array.Count > 0 && DateTime.TryParse(array[0].ToString(), out DateTime result))
+                        return result;
+                }
+                else if (value.Type != JTokenType.Null && DateTime.TryParse(value.ToString(), out DateTime result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Extrae un valor bool de un JToken
+        /// </summary>
+        private bool? ExtractBoolValue(JToken token, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                var value = token[fieldName];
+                if (value == null) continue;
+
+                if (value is JArray array)
+                {
+                    if (array.Count > 0 && bool.TryParse(array[0].ToString(), out bool result))
+                        return result;
+                }
+                else if (value.Type != JTokenType.Null && bool.TryParse(value.ToString(), out bool result))
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
 
         #region Vistas y navegación
         public IActionResult Index(string a)
@@ -1188,20 +2219,23 @@ namespace donativos.Controllers
 
             return viewName?.ToLower() switch
             {
-                "inicio" => PartialView("_Inicio"),
-                "registros" => PartialView("_Registros"),
-                "consulta" => PartialView("_Consulta"),
-                "salidas" => PartialView("_Salidas"),
-                "reportes" => PartialView("_Reportes"),
-                "dashboard" => PartialView("_Dashboard"),
-                _ => PartialView("_Error")
+                "inicio" => PartialView(VIEW_INICIO),
+                "registros" => PartialView(VIEW_REGISTROS),
+                "consulta" => PartialView(VIEW_CONSULTA),
+                "traspasos" => PartialView(VIEW_TRASPASOS),
+                "salidas" => PartialView(VIEW_SALIDAS),
+                "reportes" => PartialView(VIEW_REPORTES),
+                "dashboard" => PartialView(VIEW_DASHBOARD),
+                _ => PartialView(VIEW_ERROR)
             };
         }
 
-        public IActionResult CerrarSesion()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CerrarSesion()
         {
             HttpContext.Session.Clear();
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Acceso");
         }
         #endregion

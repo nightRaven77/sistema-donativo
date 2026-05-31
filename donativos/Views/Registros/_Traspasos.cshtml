@@ -1,0 +1,384 @@
+@{
+    Layout = null;
+}
+
+<!-- Estilos personalizados para la tabla de traspasos -->
+<style>
+    /* Estilos para optimizar la tabla de traspasos */
+    #tablaTraspasos {
+        font-size: 0.875rem; /* Reducir tamaño general de fuente */
+    }
+
+    /* Columnas con texto más pequeño y word wrap */
+    #tablaTraspasos tbody td:nth-child(2), /* Folio */
+    #tablaTraspasos tbody td:nth-child(4), /* Almacén Origen */
+    #tablaTraspasos tbody td:nth-child(5)  /* Almacén Destino */
+    {
+        font-size: 0.75rem;
+        max-width: 150px;
+        word-wrap: break-word;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    /* ID más pequeño */
+    #tablaTraspasos tbody td:nth-child(1) {
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    /* Fecha más compacta */
+    #tablaTraspasos tbody td:nth-child(3) {
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* Badges más pequeños */
+    #tablaTraspasos .badge {
+        font-size: 0.7rem;
+        padding: 0.25em 0.5em;
+    }
+
+    /* Botones de acción más compactos */
+    #tablaTraspasos .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+
+    /* Headers más compactos */
+    #tablaTraspasos thead th {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* Celdas más compactas */
+    #tablaTraspasos tbody td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+</style>
+
+<div class="bg-white rounded-lg shadow-md p-8">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Gestión de Traspasos</h2>
+        <button type="button" class="btn btn-guinda" onclick="abrirModalNuevoTraspaso()">
+            <i class="fas fa-exchange-alt"></i> Nuevo Traspaso
+        </button>
+    </div>
+
+    <!-- FILTROS Y TABLA DE TRASPASOS -->
+    <div class="card">
+        <div class="card-header bg-stone-100">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="mb-0 font-weight-bold">Estado</label>
+                    <select id="filtroEstadoTraspaso" class="form-control form-control-sm">
+                        <option value="">Todos</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="mb-0 font-weight-bold">Tipo</label>
+                    <select id="filtroTipoTraspaso" class="form-control form-control-sm">
+                        <option value="">Todos</option>
+                        <option value="normal">Normal</option>
+                        <option value="instantaneo">Instantáneo</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="mb-0 font-weight-bold">Fecha Desde</label>
+                    <input type="date" id="filtroFechaDesdeTraspaso" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-3">
+                    <label class="mb-0">&nbsp;</label>
+                    <button class="btn btn-info btn-sm btn-block" onclick="filtrarTraspasos()">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaTraspasos" class="table table-striped table-hover nowrap w-100">
+                    <thead class="table-light">
+                        <tr style="background-color: var(--guinda); color: white;">
+                            <th>ID</th>
+                            <th>Folio</th>
+                            <th>Fecha</th>
+                            <th>Almacén Origen</th>
+                            <th>Almacén Destino</th>
+                            <th>Artículos</th>
+                            <th>Estado</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Nuevo Traspaso -->
+<div class="modal fade" id="modalNuevoTraspaso" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-guinda text-white" style="background-color: var(--guinda) !important;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt"></i> Nuevo Traspaso
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoTraspaso" class="needs-validation" novalidate>
+                    
+                    <!-- SECCIÓN 1: Información General -->
+                    <div class="mb-6 pb-6 border-b-2 border-stone-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">1</div>
+                            <h3 class="text-lg font-bold text-stone-800">Información del Traspaso</h3>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fechaTraspaso" class="font-bold">
+                                        <i class="fas fa-calendar" style="color:var(--dorado)"></i> Fecha <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" id="fechaTraspaso" class="form-control" required>
+                                    <div class="invalid-feedback">La fecha es requerida</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tipoTraspaso" class="font-bold">
+                                        <i class="fas fa-bolt" style="color:var(--dorado)"></i> Tipo de Traspaso <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="tipoTraspaso" class="form-control" required>
+                                        <option value="">-- Seleccione --</option>
+                                        <option value="normal">Normal (requiere aprobación)</option>
+                                        <option value="instantaneo">Instantáneo</option>
+                                    </select>
+                                    <div class="invalid-feedback">Selecciona el tipo de traspaso</div>
+                                    <small class="text-muted">Los traspasos instantáneos solo están disponibles para usuarios autorizados</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="selectAlmacenOrigen" class="font-bold">
+                                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> Almacén Origen <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="selectAlmacenOrigenTraspaso" class="form-control" required onchange="cargarInventarioAlmacenTraspaso()">
+                                        <option value="">-- Seleccione --</option>
+                                    </select>
+                                    <div class="invalid-feedback">Selecciona el almacén origen</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="selectAlmacenDestino" class="font-bold">
+                                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> Almacén Destino <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="selectAlmacenDestinoTraspaso" class="form-control" required>
+                                        <option value="">-- Seleccione --</option>
+                                    </select>
+                                    <div class="invalid-feedback">Selecciona el almacén destino</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="motivoTraspaso" class="font-bold">
+                                        <i class="fas fa-comment" style="color:var(--dorado)"></i> Motivo <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea id="motivoTraspaso" class="form-control" rows="2" placeholder="Describa el motivo del traspaso" required></textarea>
+                                    <div class="invalid-feedback">El motivo es requerido</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: Artículos -->
+                    <div class="mb-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">2</div>
+                            <h3 class="text-lg font-bold text-stone-800">Artículos a Traspasar</h3>
+                        </div>
+
+                        <div class="alert alert-info" id="alertSeleccionarAlmacenTraspaso">
+                            <i class="fas fa-info-circle"></i> Selecciona el almacén origen para ver el inventario disponible
+                        </div>
+
+                        <div id="seccionArticulosTraspaso" style="display: none;">
+                            <div class="form-group">
+                                <label class="font-bold">
+                                    <i class="fas fa-search" style="color:var(--dorado)"></i> Buscar Artículo en Inventario
+                                </label>
+                                <input type="text" 
+                                       id="buscarArticuloInventarioTraspaso" 
+                                       class="form-control" 
+                                       placeholder="Buscar por nombre de artículo..." 
+                                       autocomplete="off">
+                                <div id="listaInventarioTraspaso" class="list-group mt-2" style="display:none; max-height:250px; overflow-y:auto;"></div>
+                            </div>
+
+                            <div id="articulosSeleccionadosTraspaso" class="mt-4">
+                                <!-- Aquí se agregarán los artículos seleccionados -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: Observaciones y Archivos -->
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label for="observacionesTraspaso" class="font-bold">
+                                <i class="fas fa-clipboard" style="color:var(--dorado)"></i> Observaciones
+                            </label>
+                            <textarea id="observacionesTraspaso" class="form-control" rows="3" placeholder="Observaciones adicionales (opcional)"></textarea>
+                        </div>
+
+                        <!-- Campo de archivos adjuntos -->
+                        <div class="form-group mt-4">
+                            <label for="fileAdjuntosTraspaso" class="font-bold">
+                                <i class="fas fa-paperclip" style="color:var(--dorado)"></i> Archivos Adjuntos
+                            </label>
+                            <input type="file" 
+                                   id="fileAdjuntosTraspaso" 
+                                   class="form-control-file" 
+                                   multiple 
+                                   accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx">
+                            <small class="form-text text-muted">
+                                Formatos permitidos: JPG, PNG, PDF, DOC, XLS (máx. 5MB por archivo)
+                            </small>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-guinda" onclick="guardarTraspaso()" style="background-color: var(--guinda) !important;">
+                    <i class="fas fa-save"></i> Crear Traspaso
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Detalle de Traspaso -->
+<div class="modal fade" id="modalDetalleTraspaso" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Detalle de Traspaso
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="contenidoDetalleTraspaso">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div class="modal-footer" id="accionesDetalleTraspaso">
+                <!-- Se agregan botones según el estado -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Recibir Traspaso -->
+<div class="modal fade" id="modalRecibirTraspaso" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle"></i> Recibir Traspaso
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="idTraspasoRecibir">
+                <div class="form-group">
+                    <label for="observacionesRecepcion">Observaciones de Recepción</label>
+                    <textarea id="observacionesRecepcion" class="form-control" rows="3" placeholder="Opcional: Agrega observaciones sobre la recepción"></textarea>
+                </div>
+
+                <!-- Campo de archivos adjuntos -->
+                <div class="form-group mt-3">
+                    <label for="fileAdjuntosRecepcion" class="font-bold">
+                        <i class="fas fa-paperclip" style="color:var(--dorado)"></i> Archivos Adjuntos (Recepción)
+                    </label>
+                    <input type="file" 
+                           id="fileAdjuntosRecepcion" 
+                           class="form-control-file" 
+                           multiple 
+                           accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx">
+                    <small class="form-text text-muted">
+                        Opcional: Adjunta fotos o documentos de la recepción (máx. 5MB por archivo)
+                    </small>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Al confirmar, el inventario se actualizará automáticamente.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarRecepcionTraspaso()">
+                    <i class="fas fa-check"></i> Confirmar Recepción
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Cancelar Traspaso -->
+<div class="modal fade" id="modalCancelarTraspaso" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-times-circle"></i> Cancelar Traspaso
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="idTraspasoCancelar">
+                <div class="form-group">
+                    <label for="motivoCancelacion">Motivo de Cancelación <span class="text-danger">*</span></label>
+                    <textarea id="motivoCancelacion" class="form-control" rows="3" placeholder="Especifica el motivo de la cancelación" required></textarea>
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> Esta acción no se puede deshacer.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarCancelacionTraspaso()">
+                    <i class="fas fa-ban"></i> Cancelar Traspaso
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- El script traspasos.js ya está cargado globalmente en Index.cshtml -->
+

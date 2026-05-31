@@ -1,5 +1,643 @@
 <div class="bg-white rounded-lg shadow-md p-8">
-    <h2 class="text-2xl font-black text-[#2d2d2d] mb-6 border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">Reportes</h2>
-    
-    <p class="text-stone-600">Contenido de reportes en construcción...</p>
+    <h2 class="text-2xl font-black text-[#2d2d2d] mb-6 border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">
+        <i class="fas fa-chart-bar"></i> Reportes
+    </h2>
+
+    <p class="text-stone-600 mb-6">Genera reportes en formato Excel con información detallada del sistema de inventario.</p>
+
+    <!-- ===================================================================== -->
+    <!-- TARJETAS DE REPORTES -->
+    <!-- ===================================================================== -->
+    <div class="row">
+        <!-- Reporte de Entradas -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-box-open fa-3x" style="color: var(--dorado);"></i>
+                    </div>
+                    <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Entradas</h5>
+                    <p class="card-text text-muted small">
+                        Consulta todas las entradas de mercancía al inventario, con detalles de donadores, artículos y fechas.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('entradas')">
+                        <i class="fas fa-file-excel"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte de Salidas -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-dolly fa-3x" style="color: var(--dorado);"></i>
+                    </div>
+                    <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Salidas</h5>
+                    <p class="card-text text-muted small">
+                        Detalle de salidas de inventario (donaciones y mermas), con información de beneficiarios y artículos.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('salidas')">
+                        <i class="fas fa-file-excel"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte de Traspasos -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-exchange-alt fa-3x" style="color: var(--dorado);"></i>
+                    </div>
+                    <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Traspasos</h5>
+                    <p class="card-text text-muted small">
+                        Movimientos de mercancía entre almacenes, con información de origen, destino y estatus.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('traspasos')">
+                        <i class="fas fa-file-excel"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte de Existencias -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-warehouse fa-3x" style="color: var(--dorado);"></i>
+                    </div>
+                    <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Existencias</h5>
+                    <p class="card-text text-muted small">
+                        Inventario actual por almacén, con stock disponible, valorización y alertas de stock mínimo.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('existencias')">
+                        <i class="fas fa-file-excel"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte Kardex -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-clipboard-list fa-3x" style="color: var(--dorado);"></i>
+                    </div>
+                    <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Kardex de Inventario</h5>
+                    <p class="card-text text-muted small">
+                        Historial detallado de movimientos de un artículo específico, con entradas, salidas y saldos.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('kardex')">
+                        <i class="fas fa-file-excel"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- ===================================================================== -->
+<!-- MODAL DE PARÁMETROS -->
+<!-- ===================================================================== -->
+<div class="modal fade" id="modalParametrosReporte" tabindex="-1" role="dialog" aria-labelledby="tituloModalParametros" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--guinda); color: white;">
+                <h5 class="modal-title font-weight-bold" id="tituloModalParametros">
+                    <i class="fas fa-filter"></i> Parámetros del Reporte
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formParametrosReporte">
+                    <!-- Grupo: Rango de fechas -->
+                    <div class="grupo-parametro" id="grupoFechas" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="fechaInicio" class="font-weight-bold">
+                                    <i class="fas fa-calendar-alt"></i> Fecha Inicio <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" class="form-control" id="fechaInicio" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fechaFin" class="font-weight-bold">
+                                    <i class="fas fa-calendar-alt"></i> Fecha Fin <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" class="form-control" id="fechaFin" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Fecha de Corte (Existencias) -->
+                    <div class="grupo-parametro" id="grupoFechaCorte" style="display: none;">
+                        <div class="form-group">
+                            <label for="fechaCorte" class="font-weight-bold">
+                                <i class="fas fa-calendar-check"></i> Fecha de Corte
+                            </label>
+                            <input type="date" class="form-control" id="fechaCorte">
+                            <small class="form-text text-muted">Opcional: Consulta el inventario a una fecha específica</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Almacén (único) -->
+                    <div class="grupo-parametro" id="grupoAlmacen" style="display: none;">
+                        <div class="form-group">
+                            <label for="selectAlmacen" class="font-weight-bold">
+                                <i class="fas fa-warehouse"></i> Almacén
+                            </label>
+                            <select class="form-control" id="selectAlmacen">
+                                <option value="">Todos los almacenes</option>
+                            </select>
+                            <small class="form-text text-muted">Opcional: Filtra por un almacén específico</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Almacenes (Origen y Destino para Traspasos) -->
+                    <div class="grupo-parametro" id="grupoAlmacenes" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="selectAlmacenOrigen" class="font-weight-bold">
+                                    <i class="fas fa-warehouse"></i> Almacén Origen
+                                </label>
+                                <select class="form-control" id="selectAlmacenOrigen">
+                                    <option value="">Todos los almacenes</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="selectAlmacenDestino" class="font-weight-bold">
+                                    <i class="fas fa-warehouse"></i> Almacén Destino
+                                </label>
+                                <select class="form-control" id="selectAlmacenDestino">
+                                    <option value="">Todos los almacenes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Categoría -->
+                    <div class="grupo-parametro" id="grupoCategoria" style="display: none;">
+                        <div class="form-group">
+                            <label for="selectCategoria" class="font-weight-bold">
+                                <i class="fas fa-tags"></i> Categoría
+                            </label>
+                            <select class="form-control" id="selectCategoria">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                            <small class="form-text text-muted">Opcional: Filtra por una categoría específica</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Tipo de Salida -->
+                    <div class="grupo-parametro" id="grupoTipoSalida" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-tag"></i> Tipo de Salida
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="tipoSalidaTodos" name="tipoSalida" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="tipoSalidaTodos">Todos</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="tipoSalidaBeneficiario" name="tipoSalida" class="custom-control-input" value="Beneficiario">
+                                    <label class="custom-control-label" for="tipoSalidaBeneficiario">Beneficiario</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="tipoSalidaMerma" name="tipoSalida" class="custom-control-input" value="merma">
+                                    <label class="custom-control-label" for="tipoSalidaMerma">Merma</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Opcional: Filtra por tipo de salida</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Estatus de Salida -->
+                    <div class="grupo-parametro" id="grupoEstatusSalida" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-info-circle"></i> Estatus
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusSalidaTodos" name="estatusSalida" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="estatusSalidaTodos">Todos</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusSalidaEntregada" name="estatusSalida" class="custom-control-input" value="Entregada">
+                                    <label class="custom-control-label" for="estatusSalidaEntregada">Entregada</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusSalidaCancelada" name="estatusSalida" class="custom-control-input" value="cancelada">
+                                    <label class="custom-control-label" for="estatusSalidaCancelada">Cancelada</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Opcional: Filtra por estatus de la salida</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Agrupación Salidas -->
+                    <div class="grupo-parametro" id="grupoAgrupacionSalidas" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-layer-group"></i> Agrupar Por
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparSalidasNinguno" name="agruparPorSalidas" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="agruparSalidasNinguno">Sin agrupar</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparSalidasCategoria" name="agruparPorSalidas" class="custom-control-input" value="Categoria">
+                                    <label class="custom-control-label" for="agruparSalidasCategoria">Categoría</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparSalidasBeneficiario" name="agruparPorSalidas" class="custom-control-input" value="Beneficiario">
+                                    <label class="custom-control-label" for="agruparSalidasBeneficiario">Beneficiario</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Estatus (Traspasos) -->
+                    <div class="grupo-parametro" id="grupoEstatus" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-info-circle"></i> Estatus
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusTraspTodos" name="estatusTraspasos" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="estatusTraspTodos">Todos</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusTraspAprobado" name="estatusTraspasos" class="custom-control-input" value="aprobado">
+                                    <label class="custom-control-label" for="estatusTraspAprobado">Aprobado</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusTraspPendiente" name="estatusTraspasos" class="custom-control-input" value="pendiente">
+                                    <label class="custom-control-label" for="estatusTraspPendiente">Pendiente</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="estatusTraspCancelado" name="estatusTraspasos" class="custom-control-input" value="cancelado">
+                                    <label class="custom-control-label" for="estatusTraspCancelado">Cancelado</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Opcional: Filtra por estatus del traspaso</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Agrupación Traspasos -->
+                    <div class="grupo-parametro" id="grupoAgrupacionTraspasos" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-layer-group"></i> Agrupar Por
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparTraspNinguno" name="agruparPorTraspasos" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="agruparTraspNinguno">Sin agrupar</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparTraspOrigen" name="agruparPorTraspasos" class="custom-control-input" value="AlmacenOrigen">
+                                    <label class="custom-control-label" for="agruparTraspOrigen">Almacén Origen</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparTraspDestino" name="agruparPorTraspasos" class="custom-control-input" value="AlmacenDestino">
+                                    <label class="custom-control-label" for="agruparTraspDestino">Almacén Destino</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Rango de Cantidades (Existencias) -->
+                    <div class="grupo-parametro" id="grupoRangoCantidades" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputCantidadMinima" class="font-weight-bold">
+                                    <i class="fas fa-arrow-down"></i> Cantidad Mínima
+                                </label>
+                                <input type="number" class="form-control" id="inputCantidadMinima" min="0" value="0" placeholder="Ej: 0">
+                                <small class="form-text text-muted">Mínimo de existencias</small>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputCantidadMaxima" class="font-weight-bold">
+                                    <i class="fas fa-arrow-up"></i> Cantidad Máxima
+                                </label>
+                                <input type="number" class="form-control" id="inputCantidadMaxima" min="0" value="100" placeholder="Ej: 100">
+                                <small class="form-text text-muted">Máximo de existencias</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Solo sin Existencia (Checkbox) -->
+                    <div class="grupo-parametro" id="grupoSoloSinExistencia" style="display: none;">
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="checkSoloSinExistencia">
+                                <label class="custom-control-label font-weight-bold" for="checkSoloSinExistencia">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i> Solo artículos sin existencia
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">Mostrar únicamente artículos con cantidad = 0</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Agrupación Existencias -->
+                    <div class="grupo-parametro" id="grupoAgrupacionExistencias" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-layer-group"></i> Agrupar Por
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparExistNinguno" name="agruparPorExistencias" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="agruparExistNinguno">Sin agrupar</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparExistCategoria" name="agruparPorExistencias" class="custom-control-input" value="categoria">
+                                    <label class="custom-control-label" for="agruparExistCategoria">Categoría</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparExistAlmacen" name="agruparPorExistencias" class="custom-control-input" value="almacen">
+                                    <label class="custom-control-label" for="agruparExistAlmacen">Almacén</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Ordenamiento Existencias -->
+                    <div class="grupo-parametro" id="grupoOrdenamientoExistencias" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="selectOrdenarPorExist" class="font-weight-bold">
+                                    <i class="fas fa-sort"></i> Ordenar Por
+                                </label>
+                                <select class="form-control" id="selectOrdenarPorExist">
+                                    <option value="nombre">Nombre</option>
+                                    <option value="cantidad">Cantidad</option>
+                                    <option value="categoria">Categoría</option>
+                                    <option value="ultimaEntrada">Última Entrada</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="font-weight-bold">
+                                    <i class="fas fa-sort-amount-down"></i> Orden
+                                </label>
+                                <div class="mt-2">
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="ordenExistDesc" name="ordenExistencias" class="custom-control-input" value="DESC" checked>
+                                        <label class="custom-control-label" for="ordenExistDesc">
+                                            <i class="fas fa-sort-amount-down"></i> Descendente
+                                        </label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="ordenExistAsc" name="ordenExistencias" class="custom-control-input" value="asc">
+                                        <label class="custom-control-label" for="ordenExistAsc">
+                                            <i class="fas fa-sort-amount-up"></i> Ascendente
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Donador -->
+                    <div class="grupo-parametro" id="grupoDonador" style="display: none;">
+                        <div class="form-group">
+                            <label for="selectDonador" class="font-weight-bold">
+                                <i class="fas fa-user-tie"></i> Donador
+                            </label>
+                            <select class="form-control" id="selectDonador">
+                                <option value="">Todos los donadores</option>
+                            </select>
+                            <small class="form-text text-muted">Opcional: Filtra por un donador específico</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Beneficiario (Salidas) -->
+                    <div class="grupo-parametro" id="grupoBeneficiario" style="display: none;">
+                        <div class="form-group">
+                            <label for="selectBeneficiario" class="font-weight-bold">
+                                <i class="fas fa-hands-helping"></i> Beneficiario
+                            </label>
+                            <select class="form-control" id="selectBeneficiario">
+                                <option value="">Todos los beneficiarios</option>
+                            </select>
+                            <small class="form-text text-muted">Opcional: Filtra por un beneficiario específico</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Artículo (Opcional para Entradas) -->
+                    <div class="grupo-parametro" id="grupoArticuloOpcional" style="display: none;">
+                        <div class="form-group">
+                            <label for="buscarArticuloOpcional" class="font-weight-bold">
+                                <i class="fas fa-search"></i> Buscar Artículo
+                            </label>
+                            <input type="text" class="form-control" id="buscarArticuloOpcional" placeholder="Escribe el nombre del artículo..." autocomplete="off">
+                            <select class="form-control d-none" id="selectArticuloOpcional"></select>
+                            <div id="listaArticulosOpcional" class="list-group position-absolute w-100" style="z-index: 1050; display: none; max-height: 300px; overflow-y: auto;"></div>
+                            <small class="form-text text-muted">Opcional: Filtra por un artículo específico</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Tipo de Entrada -->
+                    <div class="grupo-parametro" id="grupoTipoEntrada" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-box"></i> Tipo de Entrada
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="tipoTodos" name="tipoEntrada" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="tipoTodos">Todos</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="tipoEspecie" name="tipoEntrada" class="custom-control-input" value="especie">
+                                    <label class="custom-control-label" for="tipoEspecie">Especie</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Opcional: Filtra por tipo de entrada</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Estatus de Entrada -->
+                    <div class="grupo-parametro" id="grupoEstatusEntrada" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-info-circle"></i> Estatus
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="estatusTodos" name="estatusEntrada" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="estatusTodos">Todos</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="estatusRecibido" name="estatusEntrada" class="custom-control-input" value="Recibido">
+                                    <label class="custom-control-label" for="estatusRecibido">Recibido</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="estatusCancelado" name="estatusEntrada" class="custom-control-input" value="Cancelado">
+                                    <label class="custom-control-label" for="estatusCancelado">Cancelado</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Opcional: Filtra por estatus de la entrada</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Agrupación -->
+                    <div class="grupo-parametro" id="grupoAgrupacion" style="display: none;">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-layer-group"></i> Agrupar Por
+                            </label>
+                            <div class="mt-2">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparNinguno" name="agruparPor" class="custom-control-input" value="" checked>
+                                    <label class="custom-control-label" for="agruparNinguno">Sin agrupar</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparCategoria" name="agruparPor" class="custom-control-input" value="Categoria">
+                                    <label class="custom-control-label" for="agruparCategoria">Categoría</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparAlmacen" name="agruparPor" class="custom-control-input" value="Almacen">
+                                    <label class="custom-control-label" for="agruparAlmacen">Almacén</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparFecha" name="agruparPor" class="custom-control-input" value="Fecha">
+                                    <label class="custom-control-label" for="agruparFecha">Fecha</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="agruparDonador" name="agruparPor" class="custom-control-input" value="Donador">
+                                    <label class="custom-control-label" for="agruparDonador">Donador</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Ordenamiento -->
+                    <div class="grupo-parametro" id="grupoOrdenamiento" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="selectOrdenarPor" class="font-weight-bold">
+                                    <i class="fas fa-sort"></i> Ordenar Por
+                                </label>
+                                <select class="form-control" id="selectOrdenarPor">
+                                    <option value="fecha_recepcion">Fecha de Recepción</option>
+                                    <option value="folio">Folio</option>
+                                    <option value="donador">Donador</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="font-weight-bold">
+                                    <i class="fas fa-sort-amount-down"></i> Orden
+                                </label>
+                                <div class="mt-2">
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="ordenDesc" name="orden" class="custom-control-input" value="DESC" checked>
+                                        <label class="custom-control-label" for="ordenDesc">
+                                            <i class="fas fa-sort-amount-down"></i> Descendente
+                                        </label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="ordenAsc" name="orden" class="custom-control-input" value="ASC">
+                                        <label class="custom-control-label" for="ordenAsc">
+                                            <i class="fas fa-sort-amount-up"></i> Ascendente
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Paginación -->
+                    <div class="grupo-parametro" id="grupoPaginacion" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputPagina" class="font-weight-bold">
+                                    <i class="fas fa-file-alt"></i> Página
+                                </label>
+                                <input type="number" class="form-control" id="inputPagina" min="1" value="1">
+                                <small class="form-text text-muted">Número de página a generar</small>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputRegistrosPorPagina" class="font-weight-bold">
+                                    <i class="fas fa-list-ol"></i> Registros por Página
+                                </label>
+                                <input type="number" class="form-control" id="inputRegistrosPorPagina" min="10" max="1000" value="50" step="10">
+                                <small class="form-text text-muted">Cantidad de registros (10-1000)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grupo: Artículo (Kardex) -->
+                    <div class="grupo-parametro" id="grupoArticulo" style="display: none;">
+                        <div class="form-group">
+                            <label for="buscarArticulo" class="font-weight-bold">
+                                <i class="fas fa-search"></i> Buscar Artículo <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="buscarArticulo" placeholder="Escribe el nombre del artículo..." autocomplete="off">
+                            <select class="form-control d-none" id="selectArticulo"></select>
+                            <div id="listaArticulos" class="list-group position-absolute w-100" style="z-index: 1050; display: none; max-height: 300px; overflow-y: auto;"></div>
+                            <small class="form-text text-muted">Requerido: Selecciona el artículo para generar el Kardex</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnGenerarReporte" onclick="generarReporte()">
+                    <i class="fas fa-file-excel"></i> Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- SCRIPTS -->
+<!-- ===================================================================== -->
+<!-- 
+    ?? NOTA: reportes.js ya está cargado en Index.cshtml
+    La inicialización se realiza automáticamente al cargar esta vista parcial
+    mediante el evento 'viewLoaded' en App.loadView()
+-->
+
+<style>
+    /* Efecto hover para las tarjetas */
+    .hover-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+    }
+
+    /* Estilo para los botones de las tarjetas */
+    .card .btn-primary {
+        background-color: var(--guinda);
+        border-color: var(--guinda);
+    }
+
+    .card .btn-primary:hover {
+        background-color: var(--dorado);
+        border-color: var(--dorado);
+        color: var(--guinda);
+    }
+</style>
