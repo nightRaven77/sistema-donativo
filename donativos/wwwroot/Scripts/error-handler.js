@@ -6,7 +6,7 @@
  * Especializado en conflictos 409 (recursos duplicados)
  * 
  * @version 1.0.0
- * @author Sistema de Donativos - DIF Hidalgo
+ * @author Sistema de Donativos
  */
 
 // ===================================================================
@@ -191,9 +191,12 @@ function manejarErrorAjax(xhr, status, error, opciones = {}) {
             'No Autorizado'
         );
         
-        // Opcional: Redirigir al login después de 2 segundos
+        // Redirigir al login después de 2 segundos
         setTimeout(() => {
-            window.location.href = '/Login';
+            const basePath = (typeof AjaxService !== 'undefined' && AjaxService.getBasePath)
+                ? AjaxService.getBasePath()
+                : '/';
+            window.location.href = `${basePath}Acceso/Login`;
         }, 2000);
         return false;
     }

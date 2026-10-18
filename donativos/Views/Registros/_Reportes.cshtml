@@ -3,7 +3,7 @@
         <i class="fas fa-chart-bar"></i> Reportes
     </h2>
 
-    <p class="text-stone-600 mb-6">Genera reportes en formato Excel con información detallada del sistema de inventario.</p>
+    <p class="text-stone-600 mb-6">Genera reportes en formato Excel con informaciÃ³n detallada del sistema de inventario.</p>
 
     <!-- ===================================================================== -->
     <!-- TARJETAS DE REPORTES -->
@@ -18,7 +18,7 @@
                     </div>
                     <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Entradas</h5>
                     <p class="card-text text-muted small">
-                        Consulta todas las entradas de mercancía al inventario, con detalles de donadores, artículos y fechas.
+                        Consulta todas las entradas de mercancÃ­a al inventario, con detalles de donadores, artÃ­culos y fechas.
                     </p>
                     <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('entradas')">
                         <i class="fas fa-file-excel"></i> Generar Reporte
@@ -36,7 +36,7 @@
                     </div>
                     <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Salidas</h5>
                     <p class="card-text text-muted small">
-                        Detalle de salidas de inventario (donaciones y mermas), con información de beneficiarios y artículos.
+                        Detalle de salidas de inventario (donaciones y mermas), con informaciÃ³n de beneficiarios y artÃ­culos.
                     </p>
                     <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('salidas')">
                         <i class="fas fa-file-excel"></i> Generar Reporte
@@ -54,7 +54,7 @@
                     </div>
                     <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Traspasos</h5>
                     <p class="card-text text-muted small">
-                        Movimientos de mercancía entre almacenes, con información de origen, destino y estatus.
+                        Movimientos de mercancÃ­a entre almacenes, con informaciÃ³n de origen, destino y estatus.
                     </p>
                     <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('traspasos')">
                         <i class="fas fa-file-excel"></i> Generar Reporte
@@ -72,7 +72,7 @@
                     </div>
                     <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Reporte de Existencias</h5>
                     <p class="card-text text-muted small">
-                        Inventario actual por almacén, con stock disponible, valorización y alertas de stock mínimo.
+                        Inventario actual por almacÃ©n, con stock disponible, valorizaciÃ³n y alertas de stock mÃ­nimo.
                     </p>
                     <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('existencias')">
                         <i class="fas fa-file-excel"></i> Generar Reporte
@@ -90,7 +90,7 @@
                     </div>
                     <h5 class="card-title font-weight-bold" style="color: var(--guinda);">Kardex de Inventario</h5>
                     <p class="card-text text-muted small">
-                        Historial detallado de movimientos de un artículo específico, con entradas, salidas y saldos.
+                        Historial detallado de movimientos de un artÃ­culo especÃ­fico, con entradas, salidas y saldos.
                     </p>
                     <button type="button" class="btn btn-primary btn-block mt-3" onclick="abrirModalParametros('kardex')">
                         <i class="fas fa-file-excel"></i> Generar Reporte
@@ -102,16 +102,16 @@
 </div>
 
 <!-- ===================================================================== -->
-<!-- MODAL DE PARÁMETROS -->
+<!-- MODAL DE PARÃMETROS -->
 <!-- ===================================================================== -->
 <div class="modal fade" id="modalParametrosReporte" tabindex="-1" role="dialog" aria-labelledby="tituloModalParametros" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header" style="background-color: var(--guinda); color: white;">
                 <h5 class="modal-title font-weight-bold" id="tituloModalParametros">
-                    <i class="fas fa-filter"></i> Parámetros del Reporte
+                    <i class="fas fa-filter"></i> ParÃ¡metros del Reporte
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Cerrar">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -143,20 +143,20 @@
                                 <i class="fas fa-calendar-check"></i> Fecha de Corte
                             </label>
                             <input type="date" class="form-control" id="fechaCorte">
-                            <small class="form-text text-muted">Opcional: Consulta el inventario a una fecha específica</small>
+                            <small class="form-text text-muted">Opcional: Consulta el inventario a una fecha especÃ­fica</small>
                         </div>
                     </div>
 
-                    <!-- Grupo: Almacén (único) -->
+                    <!-- Grupo: AlmacÃ©n (Ãºnico) -->
                     <div class="grupo-parametro" id="grupoAlmacen" style="display: none;">
                         <div class="form-group">
                             <label for="selectAlmacen" class="font-weight-bold">
-                                <i class="fas fa-warehouse"></i> Almacén
+                                <i class="fas fa-warehouse"></i> AlmacÃ©n
                             </label>
                             <select class="form-control" id="selectAlmacen">
                                 <option value="">Todos los almacenes</option>
                             </select>
-                            <small class="form-text text-muted">Opcional: Filtra por un almacén específico</small>
+                            <small class="form-text text-muted">Opcional: Filtra por un almacÃ©n especÃ­fico</small>
                         </div>
                     </div>
 
@@ -165,7 +165,7 @@
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="selectAlmacenOrigen" class="font-weight-bold">
-                                    <i class="fas fa-warehouse"></i> Almacén Origen
+                                    <i class="fas fa-warehouse"></i> AlmacÃ©n Origen
                                 </label>
                                 <select class="form-control" id="selectAlmacenOrigen">
                                     <option value="">Todos los almacenes</option>
@@ -173,7 +173,7 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="selectAlmacenDestino" class="font-weight-bold">
-                                    <i class="fas fa-warehouse"></i> Almacén Destino
+                                    <i class="fas fa-warehouse"></i> AlmacÃ©n Destino
                                 </label>
                                 <select class="form-control" id="selectAlmacenDestino">
                                     <option value="">Todos los almacenes</option>
@@ -182,16 +182,16 @@
                         </div>
                     </div>
 
-                    <!-- Grupo: Categoría -->
+                    <!-- Grupo: CategorÃ­a -->
                     <div class="grupo-parametro" id="grupoCategoria" style="display: none;">
                         <div class="form-group">
                             <label for="selectCategoria" class="font-weight-bold">
-                                <i class="fas fa-tags"></i> Categoría
+                                <i class="fas fa-tags"></i> CategorÃ­a
                             </label>
                             <select class="form-control" id="selectCategoria">
-                                <option value="">Todas las categorías</option>
+                                <option value="">Todas las categorÃ­as</option>
                             </select>
-                            <small class="form-text text-muted">Opcional: Filtra por una categoría específica</small>
+                            <small class="form-text text-muted">Opcional: Filtra por una categorÃ­a especÃ­fica</small>
                         </div>
                     </div>
 
@@ -243,7 +243,7 @@
                         </div>
                     </div>
 
-                    <!-- Grupo: Agrupación Salidas -->
+                    <!-- Grupo: AgrupaciÃ³n Salidas -->
                     <div class="grupo-parametro" id="grupoAgrupacionSalidas" style="display: none;">
                         <div class="form-group">
                             <label class="font-weight-bold">
@@ -256,14 +256,14 @@
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparSalidasCategoria" name="agruparPorSalidas" class="custom-control-input" value="Categoria">
-                                    <label class="custom-control-label" for="agruparSalidasCategoria">Categoría</label>
+                                    <label class="custom-control-label" for="agruparSalidasCategoria">CategorÃ­a</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparSalidasBeneficiario" name="agruparPorSalidas" class="custom-control-input" value="Beneficiario">
                                     <label class="custom-control-label" for="agruparSalidasBeneficiario">Beneficiario</label>
                                 </div>
                             </div>
-                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                            <small class="form-text text-muted">CÃ³mo agrupar la informaciÃ³n en el reporte</small>
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@
                         </div>
                     </div>
 
-                    <!-- Grupo: Agrupación Traspasos -->
+                    <!-- Grupo: AgrupaciÃ³n Traspasos -->
                     <div class="grupo-parametro" id="grupoAgrupacionTraspasos" style="display: none;">
                         <div class="form-group">
                             <label class="font-weight-bold">
@@ -308,14 +308,14 @@
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparTraspOrigen" name="agruparPorTraspasos" class="custom-control-input" value="AlmacenOrigen">
-                                    <label class="custom-control-label" for="agruparTraspOrigen">Almacén Origen</label>
+                                    <label class="custom-control-label" for="agruparTraspOrigen">AlmacÃ©n Origen</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparTraspDestino" name="agruparPorTraspasos" class="custom-control-input" value="AlmacenDestino">
-                                    <label class="custom-control-label" for="agruparTraspDestino">Almacén Destino</label>
+                                    <label class="custom-control-label" for="agruparTraspDestino">AlmacÃ©n Destino</label>
                                 </div>
                             </div>
-                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                            <small class="form-text text-muted">CÃ³mo agrupar la informaciÃ³n en el reporte</small>
                         </div>
                     </div>
 
@@ -324,17 +324,17 @@
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="inputCantidadMinima" class="font-weight-bold">
-                                    <i class="fas fa-arrow-down"></i> Cantidad Mínima
+                                    <i class="fas fa-arrow-down"></i> Cantidad MÃ­nima
                                 </label>
                                 <input type="number" class="form-control" id="inputCantidadMinima" min="0" value="0" placeholder="Ej: 0">
-                                <small class="form-text text-muted">Mínimo de existencias</small>
+                                <small class="form-text text-muted">MÃ­nimo de existencias</small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="inputCantidadMaxima" class="font-weight-bold">
-                                    <i class="fas fa-arrow-up"></i> Cantidad Máxima
+                                    <i class="fas fa-arrow-up"></i> Cantidad MÃ¡xima
                                 </label>
                                 <input type="number" class="form-control" id="inputCantidadMaxima" min="0" value="100" placeholder="Ej: 100">
-                                <small class="form-text text-muted">Máximo de existencias</small>
+                                <small class="form-text text-muted">MÃ¡ximo de existencias</small>
                             </div>
                         </div>
                     </div>
@@ -345,14 +345,14 @@
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="checkSoloSinExistencia">
                                 <label class="custom-control-label font-weight-bold" for="checkSoloSinExistencia">
-                                    <i class="fas fa-exclamation-triangle text-warning"></i> Solo artículos sin existencia
+                                    <i class="fas fa-exclamation-triangle text-warning"></i> Solo artÃ­culos sin existencia
                                 </label>
                             </div>
-                            <small class="form-text text-muted">Mostrar únicamente artículos con cantidad = 0</small>
+                            <small class="form-text text-muted">Mostrar Ãºnicamente artÃ­culos con cantidad = 0</small>
                         </div>
                     </div>
 
-                    <!-- Grupo: Agrupación Existencias -->
+                    <!-- Grupo: AgrupaciÃ³n Existencias -->
                     <div class="grupo-parametro" id="grupoAgrupacionExistencias" style="display: none;">
                         <div class="form-group">
                             <label class="font-weight-bold">
@@ -365,14 +365,14 @@
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparExistCategoria" name="agruparPorExistencias" class="custom-control-input" value="categoria">
-                                    <label class="custom-control-label" for="agruparExistCategoria">Categoría</label>
+                                    <label class="custom-control-label" for="agruparExistCategoria">CategorÃ­a</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparExistAlmacen" name="agruparPorExistencias" class="custom-control-input" value="almacen">
-                                    <label class="custom-control-label" for="agruparExistAlmacen">Almacén</label>
+                                    <label class="custom-control-label" for="agruparExistAlmacen">AlmacÃ©n</label>
                                 </div>
                             </div>
-                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                            <small class="form-text text-muted">CÃ³mo agrupar la informaciÃ³n en el reporte</small>
                         </div>
                     </div>
 
@@ -386,8 +386,8 @@
                                 <select class="form-control" id="selectOrdenarPorExist">
                                     <option value="nombre">Nombre</option>
                                     <option value="cantidad">Cantidad</option>
-                                    <option value="categoria">Categoría</option>
-                                    <option value="ultimaEntrada">Última Entrada</option>
+                                    <option value="categoria">CategorÃ­a</option>
+                                    <option value="ultimaEntrada">Ãšltima Entrada</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-6">
@@ -421,7 +421,7 @@
                             <select class="form-control" id="selectDonador">
                                 <option value="">Todos los donadores</option>
                             </select>
-                            <small class="form-text text-muted">Opcional: Filtra por un donador específico</small>
+                            <small class="form-text text-muted">Opcional: Filtra por un donador especÃ­fico</small>
                         </div>
                     </div>
 
@@ -434,20 +434,20 @@
                             <select class="form-control" id="selectBeneficiario">
                                 <option value="">Todos los beneficiarios</option>
                             </select>
-                            <small class="form-text text-muted">Opcional: Filtra por un beneficiario específico</small>
+                            <small class="form-text text-muted">Opcional: Filtra por un beneficiario especÃ­fico</small>
                         </div>
                     </div>
 
-                    <!-- Grupo: Artículo (Opcional para Entradas) -->
+                    <!-- Grupo: ArtÃ­culo (Opcional para Entradas) -->
                     <div class="grupo-parametro" id="grupoArticuloOpcional" style="display: none;">
                         <div class="form-group">
                             <label for="buscarArticuloOpcional" class="font-weight-bold">
-                                <i class="fas fa-search"></i> Buscar Artículo
+                                <i class="fas fa-search"></i> Buscar ArtÃ­culo
                             </label>
-                            <input type="text" class="form-control" id="buscarArticuloOpcional" placeholder="Escribe el nombre del artículo..." autocomplete="off">
+                            <input type="text" class="form-control" id="buscarArticuloOpcional" placeholder="Escribe el nombre del artÃ­culo..." autocomplete="off">
                             <select class="form-control d-none" id="selectArticuloOpcional"></select>
                             <div id="listaArticulosOpcional" class="list-group position-absolute w-100" style="z-index: 1050; display: none; max-height: 300px; overflow-y: auto;"></div>
-                            <small class="form-text text-muted">Opcional: Filtra por un artículo específico</small>
+                            <small class="form-text text-muted">Opcional: Filtra por un artÃ­culo especÃ­fico</small>
                         </div>
                     </div>
 
@@ -495,7 +495,7 @@
                         </div>
                     </div>
 
-                    <!-- Grupo: Agrupación -->
+                    <!-- Grupo: AgrupaciÃ³n -->
                     <div class="grupo-parametro" id="grupoAgrupacion" style="display: none;">
                         <div class="form-group">
                             <label class="font-weight-bold">
@@ -508,11 +508,11 @@
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparCategoria" name="agruparPor" class="custom-control-input" value="Categoria">
-                                    <label class="custom-control-label" for="agruparCategoria">Categoría</label>
+                                    <label class="custom-control-label" for="agruparCategoria">CategorÃ­a</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparAlmacen" name="agruparPor" class="custom-control-input" value="Almacen">
-                                    <label class="custom-control-label" for="agruparAlmacen">Almacén</label>
+                                    <label class="custom-control-label" for="agruparAlmacen">AlmacÃ©n</label>
                                 </div>
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="agruparFecha" name="agruparPor" class="custom-control-input" value="Fecha">
@@ -523,7 +523,7 @@
                                     <label class="custom-control-label" for="agruparDonador">Donador</label>
                                 </div>
                             </div>
-                            <small class="form-text text-muted">Cómo agrupar la información en el reporte</small>
+                            <small class="form-text text-muted">CÃ³mo agrupar la informaciÃ³n en el reporte</small>
                         </div>
                     </div>
 
@@ -535,7 +535,7 @@
                                     <i class="fas fa-sort"></i> Ordenar Por
                                 </label>
                                 <select class="form-control" id="selectOrdenarPor">
-                                    <option value="fecha_recepcion">Fecha de Recepción</option>
+                                    <option value="fecha_recepcion">Fecha de RecepciÃ³n</option>
                                     <option value="folio">Folio</option>
                                     <option value="donador">Donador</option>
                                 </select>
@@ -562,19 +562,19 @@
                         </div>
                     </div>
 
-                    <!-- Grupo: Paginación -->
+                    <!-- Grupo: PaginaciÃ³n -->
                     <div class="grupo-parametro" id="grupoPaginacion" style="display: none;">
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="inputPagina" class="font-weight-bold">
-                                    <i class="fas fa-file-alt"></i> Página
+                                    <i class="fas fa-file-alt"></i> PÃ¡gina
                                 </label>
                                 <input type="number" class="form-control" id="inputPagina" min="1" value="1">
-                                <small class="form-text text-muted">Número de página a generar</small>
+                                <small class="form-text text-muted">NÃºmero de pÃ¡gina a generar</small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="inputRegistrosPorPagina" class="font-weight-bold">
-                                    <i class="fas fa-list-ol"></i> Registros por Página
+                                    <i class="fas fa-list-ol"></i> Registros por PÃ¡gina
                                 </label>
                                 <input type="number" class="form-control" id="inputRegistrosPorPagina" min="10" max="1000" value="50" step="10">
                                 <small class="form-text text-muted">Cantidad de registros (10-1000)</small>
@@ -582,23 +582,23 @@
                         </div>
                     </div>
 
-                    <!-- Grupo: Artículo (Kardex) -->
+                    <!-- Grupo: ArtÃ­culo (Kardex) -->
                     <div class="grupo-parametro" id="grupoArticulo" style="display: none;">
                         <div class="form-group">
                             <label for="buscarArticulo" class="font-weight-bold">
-                                <i class="fas fa-search"></i> Buscar Artículo <span class="text-danger">*</span>
+                                <i class="fas fa-search"></i> Buscar ArtÃ­culo <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="buscarArticulo" placeholder="Escribe el nombre del artículo..." autocomplete="off">
+                            <input type="text" class="form-control" id="buscarArticulo" placeholder="Escribe el nombre del artÃ­culo..." autocomplete="off">
                             <select class="form-control d-none" id="selectArticulo"></select>
                             <div id="listaArticulos" class="list-group position-absolute w-100" style="z-index: 1050; display: none; max-height: 300px; overflow-y: auto;"></div>
-                            <small class="form-text text-muted">Requerido: Selecciona el artículo para generar el Kardex</small>
+                            <small class="form-text text-muted">Requerido: Selecciona el artÃ­culo para generar el Kardex</small>
                         </div>
                     </div>
                 </form>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-success" id="btnGenerarReporte" onclick="generarReporte()">
@@ -613,8 +613,8 @@
 <!-- SCRIPTS -->
 <!-- ===================================================================== -->
 <!-- 
-    ?? NOTA: reportes.js ya está cargado en Index.cshtml
-    La inicialización se realiza automáticamente al cargar esta vista parcial
+    ?? NOTA: reportes.js ya estÃ¡ cargado en Index.cshtml
+    La inicializaciÃ³n se realiza automÃ¡ticamente al cargar esta vista parcial
     mediante el evento 'viewLoaded' en App.loadView()
 -->
 

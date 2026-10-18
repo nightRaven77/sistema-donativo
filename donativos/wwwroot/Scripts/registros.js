@@ -360,17 +360,10 @@ document.addEventListener('registrosViewLoaded', function () {
         // Luego cargar los datos
         cargarDonativos();
 
-        // Botón refrescar
-        const btnRefrescar = document.getElementById('btnRefrescarDonativos');
-        if (btnRefrescar) {
-            // console.log('✓ Botón refrescar encontrado, agregando listener');
-            btnRefrescar.addEventListener('click', function () {
-                // console.log('Botón refrescar clickeado');
-                cargarDonativos();
-            });
-        } else {
-            console.warn('⚠ Botón refrescar NO encontrado');
-        }
+        // Botón refrescar (evitar listeners duplicados)
+        $('#btnRefrescarDonativos').off('click').on('click', function () {
+            cargarDonativos();
+        });
     }, 200);
 });
 
@@ -1864,7 +1857,7 @@ function guardarDonativoCompleto(todosLosArticulos, donadorId, archivosGuardados
                     icon: 'success',
                     title: '¡Donativo Registrado!',
                     text: 'El donativo se ha registrado correctamente',
-                    confirmButtonColor: '#9c223c',
+                    confirmButtonColor: '#1e3a8a',
                     confirmButtonText: 'Aceptar'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -2178,7 +2171,7 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
                     icon: 'success',
                     title: '¡Donativo Actualizado!',
                     text: 'El donativo se ha actualizado correctamente',
-                    confirmButtonColor: '#9c223c',
+                    confirmButtonColor: '#1e3a8a',
                     confirmButtonText: 'Aceptar'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -2206,67 +2199,6 @@ function enviarActualizacionDonativo(idDonativo, todosLosArticulos, archivosNuev
             }
         });
 }
-
-/**
- * Evento personalizado cuando la vista de registros se carga
- */
-document.addEventListener('registrosViewLoaded', function () {
-    // console.log('=== registrosViewLoaded evento disparado ===');
-
-    setTimeout(function () {
-        // console.log('Iniciando cargarDonativos después de registrosViewLoaded');
-        cargarDonativos();
-        cargarAlmacenes();
-
-        // Botón refrescar
-        const btnRefrescar = document.getElementById('btnRefrescarDonativos');
-        if (btnRefrescar) {
-            // console.log('✓ Botón refrescar encontrado, agregando listener');
-            btnRefrescar.addEventListener('click', function () {
-                // console.log('Botón refrescar clickeado');
-                cargarDonativos();
-            });
-        } else {
-            console.warn('⚠ Botón refrescar NO encontrado');
-        }
-    }, 200);
-});
-
-//// Botón refrescar
-//document.getElementById('btnRefrescarDonativos').addEventListener('click', function () {
-//    cargarDonativos();
-//});
-
-// Inicialización para cuando se carga el DOM por primera vez
-document.addEventListener('DOMContentLoaded', function () {
-    // console.log('=== DOMContentLoaded ===');
-
-    // Si acciden directamente a la página de registros
-    const tabla = document.getElementById('tablaDonativos');
-    if (tabla) {
-        // console.log('Tabla encontrada en carga inicial, disparando evento');
-        document.dispatchEvent(new Event('registrosViewLoaded'));
-    }
-});
-
-/**
- * Obtiene el color del badge según el estatus
- */
-function obtenerColorEstatus(estatus) {
-    // Usar clases estándar de Bootstrap con nombres correctos
-    const colores = {
-        'Recibido': 'bg-success',
-        'recibido': 'bg-success',
-        'Pendiente': 'bg-warning',
-        'pendiente': 'bg-warning',
-        'Cancelado': 'bg-danger',
-        'cancelado': 'bg-danger',
-        'Rechazado': 'bg-dark',
-        'rechazado': 'bg-dark'
-    };
-    return colores[estatus] || 'bg-secondary';
-}
-
 
 /**
  * Obtiene el color del badge según el estado del artículo
@@ -2330,14 +2262,15 @@ function cargarDonativoEnFormulario(donativo) {
     archivosAdjuntos = [];
     archivosExistentes = donativo.archivos || [];
 
-    // Activar modo edición
-    activarModoEdicion(donativo.id_donativo);
+    // Activar modo edición (soportar camelCase y snake_case)
+    const idEdicion = donativo.idDonativo || donativo.id_donativo;
+    activarModoEdicion(idEdicion);
 
     // Cambiar etiqueta del botón
-    $('#btnGuardarDonativo').html('<i class="fas fa-save"></i> Actualizar Donativo');
+    $('#btnGuardarDonativo').html('<i class="fas fa-save mr-2"></i> Actualizar Donativo');
     $('#btnCancelarEdicion').removeClass('d-none');
 
-    console.log('Modo edición activado para donativo ID:', donativo.idDonativo);
+    console.log('Modo edición activado para donativo ID:', idEdicion);
 
     $('#id_donador').val(donativo.donador?.idDonador || '');
     $('#selectTipoDonador').val(donativo.donador?.tipo || '');

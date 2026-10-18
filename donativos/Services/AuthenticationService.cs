@@ -29,7 +29,7 @@ namespace donativos.Services
                 return new AuthenticationResult
                 {
                     Success = false,
-                    Message = "Usuario y contrase馻 son requeridos",
+                    Message = "Usuario y contrase帽a son requeridos",
                     ErrorCode = "EMPTY_CREDENTIALS"
                 };
             }
@@ -43,11 +43,11 @@ namespace donativos.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error durante autenticaci髇 de {Usuario}", username);
+                _logger.LogError(ex, "Error durante autenticaci贸n de {Usuario}", username);
                 return new AuthenticationResult
                 {
                     Success = false,
-                    Message = "Error inesperado durante la autenticaci髇",
+                    Message = "Error inesperado durante la autenticaci贸n",
                     ErrorCode = "AUTHENTICATION_ERROR"
                 };
             }
@@ -61,10 +61,10 @@ namespace donativos.Services
                     DeserializeAndValidateUser(response, username),
 
                 HttpStatusCode.BadRequest => 
-                    CreateErrorResult("Credenciales inv醠idas", "INVALID_CREDENTIALS", username),
+                    CreateErrorResult("Credenciales inv谩lidas", "INVALID_CREDENTIALS", username),
 
                 HttpStatusCode.Unauthorized or HttpStatusCode.NotFound => 
-                    CreateErrorResult("Usuario o contrase馻 incorrectos", "INVALID_LOGIN", username),
+                    CreateErrorResult("Usuario o contrase帽a incorrectos", "INVALID_LOGIN", username),
 
                 HttpStatusCode.Forbidden => 
                     CreateErrorResult("Cuenta desactivada o sin permisos", "ACCOUNT_DISABLED", username),
@@ -91,8 +91,8 @@ namespace donativos.Services
             {
                 if (string.IsNullOrEmpty(response.Content))
                 {
-                    _logger.LogError("Respuesta vac韆 del API para {Usuario}", username);
-                    return CreateErrorResult("Respuesta inv醠ida del servidor", "EMPTY_RESPONSE", username);
+                    _logger.LogError("Respuesta vac铆a del API para {Usuario}", username);
+                    return CreateErrorResult("Respuesta inv谩lida del servidor", "EMPTY_RESPONSE", username);
                 }
 
                 var user = JsonConvert.DeserializeObject<Usuario>(response.Content);
@@ -103,12 +103,12 @@ namespace donativos.Services
                     return CreateErrorResult("Datos de usuario incompletos", "INCOMPLETE_DATA", username);
                 }
 
-                _logger.LogInformation("Autenticaci髇 exitosa para {Usuario}", username);
+                _logger.LogInformation("Autenticaci贸n exitosa para {Usuario}", username);
 
                 return new AuthenticationResult
                 {
                     Success = true,
-                    Message = "Autenticaci髇 exitosa",
+                    Message = "Autenticaci贸n exitosa",
                     User = user
                 };
             }
@@ -121,7 +121,7 @@ namespace donativos.Services
 
         private AuthenticationResult CreateErrorResult(string message, string errorCode, string username)
         {
-            _logger.LogWarning("Fallo de autenticaci髇 para {Usuario}: {ErrorCode} - {Message}", 
+            _logger.LogWarning("Fallo de autenticaci贸n para {Usuario}: {ErrorCode} - {Message}", 
                 username, errorCode, message);
 
             return new AuthenticationResult

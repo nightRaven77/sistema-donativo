@@ -14,7 +14,7 @@ namespace donativos.Extensions
         private static readonly Lazy<RestClient> _client = new Lazy<RestClient>(() => new RestClient());
 
         /// <summary>
-        /// Ejecuta una solicitud GET de forma asíncrona
+        /// Ejecuta una solicitud GET de forma asÃ­ncrona
         /// </summary>
         public static async Task<RestResponse> ExecuteGetAsync(string baseUrl, string token, string resourcePath)
         {
@@ -29,7 +29,7 @@ namespace donativos.Extensions
         }
 
         /// <summary>
-        /// Ejecuta una solicitud POST con body JSON de forma asíncrona
+        /// Ejecuta una solicitud POST con body JSON de forma asÃ­ncrona
         /// </summary>
         public static async Task<RestResponse> ExecutePostAsync(string baseUrl, string token, string resourcePath, object body)
         {
@@ -49,7 +49,7 @@ namespace donativos.Extensions
         }
 
         /// <summary>
-        /// Ejecuta una solicitud PUT con body JSON de forma asíncrona
+        /// Ejecuta una solicitud PUT con body JSON de forma asÃ­ncrona
         /// </summary>
         public static async Task<RestResponse> ExecutePutAsync(string baseUrl, string token, string resourcePath, object body)
         {
@@ -69,7 +69,7 @@ namespace donativos.Extensions
         }
 
         /// <summary>
-        /// Ejecuta una solicitud DELETE de forma asíncrona
+        /// Ejecuta una solicitud DELETE de forma asÃ­ncrona
         /// </summary>
         public static async Task<RestResponse> ExecuteDeleteAsync(string baseUrl, string token, string resourcePath)
         {

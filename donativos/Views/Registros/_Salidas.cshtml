@@ -6,13 +6,13 @@
 <style>
     /* Estilos para optimizar la tabla de salidas */
     #tablaSalidas {
-        font-size: 0.875rem; /* Reducir tamaÒo general de fuente */
+        font-size: 0.875rem; /* Reducir tama√±o general de fuente */
     }
 
-    /* Columnas con texto m·s pequeÒo y word wrap */
+    /* Columnas con texto m√°s peque√±o y word wrap */
     #tablaSalidas tbody td:nth-child(2), /* Fecha */
     #tablaSalidas tbody td:nth-child(4), /* Beneficiario */
-    #tablaSalidas tbody td:nth-child(5)  /* AlmacÈn Origen */
+    #tablaSalidas tbody td:nth-child(5)  /* Almac√©n Origen */
     {
         font-size: 0.75rem;
         max-width: 150px;
@@ -21,38 +21,38 @@
         line-height: 1.2;
     }
 
-    /* ID m·s pequeÒo */
+    /* ID m√°s peque√±o */
     #tablaSalidas tbody td:nth-child(1) {
         font-size: 0.75rem;
         text-align: center;
     }
 
-    /* Tipo m·s compacto */
+    /* Tipo m√°s compacto */
     #tablaSalidas tbody td:nth-child(3) {
         font-size: 0.75rem;
         white-space: nowrap;
     }
 
-    /* Badges m·s pequeÒos */
+    /* Badges m√°s peque√±os */
     #tablaSalidas .badge {
         font-size: 0.7rem;
         padding: 0.25em 0.5em;
     }
 
-    /* Botones de acciÛn m·s compactos */
+    /* Botones de acci√≥n m√°s compactos */
     #tablaSalidas .btn-sm {
         padding: 0.2rem 0.4rem;
         font-size: 0.75rem;
     }
 
-    /* Headers m·s compactos */
+    /* Headers m√°s compactos */
     #tablaSalidas thead th {
         font-size: 0.8rem;
         padding: 0.5rem;
         white-space: nowrap;
     }
 
-    /* Celdas m·s compactas */
+    /* Celdas m√°s compactas */
     #tablaSalidas tbody td {
         padding: 0.5rem;
         vertical-align: middle;
@@ -75,7 +75,7 @@
                     <label class="mb-0 font-weight-bold">Tipo de Salida</label>
                     <select id="filtroTipoSalida" class="form-control form-control-sm">
                         <option value="">Todos</option>
-                        <option value="donacion">DonaciÛn a Beneficiario</option>
+                        <option value="donacion">Donaci√≥n a Beneficiario</option>
                         <option value="merma">Merma/Baja</option>
                     </select>
                 </div>
@@ -105,8 +105,8 @@
                             <th>Fecha</th>
                             <th>Tipo</th>
                             <th>Beneficiario</th>
-                            <th>AlmacÈn Origen</th>
-                            <th>ArtÌculos</th>
+                            <th>Almac√©n Origen</th>
+                            <th>Art√≠culos</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -132,11 +132,11 @@
             <div class="modal-body">
                 <form id="formNuevaSalida" class="needs-validation" novalidate>
 
-                    <!-- SECCI”N 1: InformaciÛn General -->
+                    <!-- SECCI√ìN 1: Informaci√≥n General -->
                     <div class="mb-6 pb-6 border-b-2 border-stone-200">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">1</div>
-                            <h3 class="text-lg font-bold text-stone-800">InformaciÛn General</h3>
+                            <h3 class="text-lg font-bold text-stone-800">Informaci√≥n General</h3>
                         </div>
 
                         <div class="row">
@@ -147,7 +147,7 @@
                                     </label>
                                     <select id="tipoSalida" class="form-control" required onchange="cambiarTipoSalida()">
                                         <option value="">-- Seleccione --</option>
-                                        <option value="donacion">DonaciÛn a Beneficiario</option>
+                                        <option value="donacion">Donaci√≥n a Beneficiario</option>
                                         <option value="merma">Merma</option>
                                         <option value="baja">Baja</option>
                                     </select>
@@ -169,12 +169,12 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="selectAlmacenOrigen" class="font-bold">
-                                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> AlmacÈn Origen <span class="text-danger">*</span>
+                                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> Almac√©n Origen <span class="text-danger">*</span>
                                     </label>
                                     <select id="selectAlmacenOrigen" class="form-control" required onchange="cargarInventarioAlmacen()">
                                         <option value="">-- Seleccione --</option>
                                     </select>
-                                    <div class="invalid-feedback">Selecciona el almacÈn</div>
+                                    <div class="invalid-feedback">Selecciona el almac√©n</div>
                                 </div>
                             </div>
                             <div class="col-md-6" id="divBeneficiario">
@@ -213,37 +213,37 @@
                         </div>
                     </div>
 
-                    <!-- SECCI”N 2: ArtÌculos -->
+                    <!-- SECCI√ìN 2: Art√≠culos -->
                     <div class="mb-6">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">2</div>
-                            <h3 class="text-lg font-bold text-stone-800">ArtÌculos a Entregar</h3>
+                            <h3 class="text-lg font-bold text-stone-800">Art√≠culos a Entregar</h3>
                         </div>
 
                         <div class="alert alert-info" id="alertSeleccionarAlmacen">
-                            <i class="fas fa-info-circle"></i> Selecciona un almacÈn para ver el inventario disponible
+                            <i class="fas fa-info-circle"></i> Selecciona un almac√©n para ver el inventario disponible
                         </div>
 
                         <div id="seccionArticulos" style="display: none;">
                             <div class="form-group">
                                 <label class="font-bold">
-                                    <i class="fas fa-search" style="color:var(--dorado)"></i> Buscar ArtÌculo en Inventario
+                                    <i class="fas fa-search" style="color:var(--dorado)"></i> Buscar Art√≠culo en Inventario
                                 </label>
                                 <input type="text" 
                                        id="buscarArticuloInventario" 
                                        class="form-control" 
-                                       placeholder="Buscar por nombre de artÌculo..." 
+                                       placeholder="Buscar por nombre de art√≠culo..." 
                                        autocomplete="off">
                                 <div id="listaInventario" class="list-group mt-2" style="display:none; max-height:250px; overflow-y:auto;"></div>
                             </div>
 
                             <div id="articulosSeleccionados" class="mt-4">
-                                <!-- AquÌ se agregar·n los artÌculos seleccionados -->
+                                <!-- Aqu√≠ se agregar√°n los art√≠culos seleccionados -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- SECCI”N 3: Observaciones y Archivos -->
+                    <!-- SECCI√ìN 3: Observaciones y Archivos -->
                     <div class="mb-4">
                         <div class="form-group">
                             <label for="observacionesSalida" class="font-bold">
@@ -263,7 +263,7 @@
                                    multiple 
                                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx">
                             <small class="form-text text-muted">
-                                Formatos permitidos: JPG, PNG, PDF, DOC, XLS (m·x. 5MB por archivo)
+                                Formatos permitidos: JPG, PNG, PDF, DOC, XLS (m√°x. 5MB por archivo)
                             </small>
                         </div>
                     </div>
@@ -290,7 +290,7 @@
                 <h5 class="modal-title">
                     <i class="fas fa-user-plus"></i> Nuevo Beneficiario
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Cerrar">
                     <span>&times;</span>
                 </button>
             </div>
@@ -301,7 +301,7 @@
                         <input type="text" id="nombreBeneficiario" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="telefonoBeneficiario">TelÈfono</label>
+                        <label for="telefonoBeneficiario">Tel√©fono</label>
                         <input type="tel" id="telefonoBeneficiario" class="form-control">
                     </div>
                     <div class="form-group">
@@ -309,7 +309,7 @@
                         <input type="email" id="emailBeneficiario" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label for="direccionBeneficiario">DirecciÛn</label>
+                        <label for="direccionBeneficiario">Direcci√≥n</label>
                         <textarea id="direccionBeneficiario" class="form-control" rows="2"></textarea>
                     </div>
                 </form>
@@ -332,12 +332,12 @@
                 <h5 class="modal-title">
                     <i class="fas fa-info-circle"></i> Detalle de Salida
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Cerrar">
                     <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body" id="contenidoDetalleSalida">
-                <!-- Se llena din·micamente -->
+                <!-- Se llena din√°micamente -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -346,4 +346,4 @@
     </div>
 </div>
 
-<!-- El script salidas.js ya est· cargado globalmente en Index.cshtml -->
+<!-- El script salidas.js ya est√° cargado globalmente en Index.cshtml -->

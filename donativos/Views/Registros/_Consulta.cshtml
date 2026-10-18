@@ -192,13 +192,13 @@
             <!-- Panel de Filtros -->
             <div class="filtros-card">
                 <h5 class="mb-3" style="color: var(--guinda);">
-                    <i class="fas fa-filter"></i> Filtros de Búsqueda
+                    <i class="fas fa-filter"></i> Filtros de BÃºsqueda
                 </h5>
 
                 <div class="row g-3">
-                    <!-- Búsqueda rápida por folio -->
+                    <!-- BÃºsqueda rÃ¡pida por folio -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Búsqueda Rápida (Folio)</label>
+                        <label class="form-label fw-bold">BÃºsqueda RÃ¡pida (Folio)</label>
                         <input type="text" id="inputFolio" class="form-control" placeholder="Ej: E-1234, S-0856">
                     </div>
 
@@ -236,11 +236,11 @@
                         <input type="date" id="inputFechaFin" class="form-control">
                     </div>
 
-                    <!-- Artículo (opcional) -->
+                    <!-- ArtÃ­culo (opcional) -->
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Artículo (opcional)</label>
+                        <label class="form-label fw-bold">ArtÃ­culo (opcional)</label>
                         <select id="selectArticulo" class="form-control">
-                            <option value="">-- Todos los artículos --</option>
+                            <option value="">-- Todos los artÃ­culos --</option>
                         </select>
                     </div>
                 </div>
@@ -271,17 +271,17 @@
                                 <th>Folio</th>
                                 <th>Tipo</th>
                                 <th>Fecha</th>
-                                <th>Descripción</th>
+                                <th>DescripciÃ³n</th>
                                 <th>Responsable</th>
-                                <th>Almacén</th>
-                                <th>Artículos</th>
+                                <th>AlmacÃ©n</th>
+                                <th>ArtÃ­culos</th>
                                 <th>Cantidad</th>
                                 <th>Estatus</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Datos cargados dinámicamente -->
+                            <!-- Datos cargados dinÃ¡micamente -->
                         </tbody>
                     </table>
                 </div>
@@ -301,17 +301,17 @@
                 </h5>
 
                 <div class="row g-3">
-                    <!-- Búsqueda por nombre de artículo -->
+                    <!-- BÃºsqueda por nombre de artÃ­culo -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Buscar Artículo</label>
-                        <input type="text" id="inputBusquedaInventario" class="form-control" placeholder="Nombre del artículo">
+                        <label class="form-label fw-bold">Buscar ArtÃ­culo</label>
+                        <input type="text" id="inputBusquedaInventario" class="form-control" placeholder="Nombre del artÃ­culo">
                     </div>
 
-                    <!-- Filtro por categoría -->
+                    <!-- Filtro por categorÃ­a -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Categoría</label>
+                        <label class="form-label fw-bold">CategorÃ­a</label>
                         <select id="selectCategoriaInventario" class="form-control">
-                            <option value="">Todas las categorías</option>
+                            <option value="">Todas las categorÃ­as</option>
                         </select>
                     </div>
 
@@ -319,7 +319,7 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Mostrar</label>
                         <select id="selectSoloConStock" class="form-control">
-                            <option value="false">Todos los artículos</option>
+                            <option value="false">Todos los artÃ­culos</option>
                             <option value="true">Solo con stock disponible</option>
                         </select>
                     </div>
@@ -332,11 +332,11 @@
                 </div>
             </div>
 
-            <!-- Estadísticas del Almacén -->
+            <!-- EstadÃ­sticas del AlmacÃ©n -->
             <div class="mb-4" id="statsInventario" style="display:none;">
-                <!-- Encabezado de Estadísticas -->
+                <!-- Encabezado de EstadÃ­sticas -->
                 <h5 class="mb-3" style="color: var(--guinda);">
-                    <i class="fas fa-chart-bar"></i> Estadísticas del Almacén
+                    <i class="fas fa-chart-bar"></i> EstadÃ­sticas del AlmacÃ©n
                 </h5>
 
                 <!-- Resumen de Inventario -->
@@ -345,7 +345,7 @@
                         <div class="stat-card">
                             <i class="fas fa-boxes fa-2x mb-2" style="color: var(--dorado);"></i>
                             <div class="stat-number" id="statTotalArticulos">0</div>
-                            <div class="stat-label">Total Artículos</div>
+                            <div class="stat-label">Total ArtÃ­culos</div>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -371,9 +371,9 @@
                     </div>
                 </div>
 
-                <!-- Movimientos del Día -->
+                <!-- Movimientos del DÃ­a -->
                 <h6 class="mb-2" style="color: var(--guinda);">
-                    <i class="fas fa-calendar-day"></i> Movimientos del Día
+                    <i class="fas fa-calendar-day"></i> Movimientos del DÃ­a
                 </h6>
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -448,19 +448,19 @@
                 <table id="tablaInventario" class="table table-striped table-hover table-bordered" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Artículo</th>
-                            <th>Categoría</th>
+                            <th>ArtÃ­culo</th>
+                            <th>CategorÃ­a</th>
                             <th>Unidad</th>
                             <th>Stock Actual</th>
                             <th>Entradas Total</th>
                             <th>Salidas Total</th>
-                            <th>Última Entrada</th>
-                            <th>Última Salida</th>
+                            <th>Ãšltima Entrada</th>
+                            <th>Ãšltima Salida</th>
                             <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Datos cargados dinámicamente -->
+                        <!-- Datos cargados dinÃ¡micamente -->
                     </tbody>
                 </table>
             </div>

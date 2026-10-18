@@ -8,7 +8,7 @@ namespace donativos.Services
 {
     /// <summary>
     /// Servicio para mapear unidades de red con credenciales
-    /// Ejecuta: net use \\servidor\carpeta contraseña /user:usuario /persistent:yes
+    /// Ejecuta: net use \\servidor\carpeta contraseÃ±a /user:usuario /persistent:yes
     /// </summary>
     public interface INetworkMappingService
     {
@@ -40,7 +40,7 @@ namespace donativos.Services
 
                 if (string.IsNullOrWhiteSpace(nasPath) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
-                    var msg = "Configuración incompleta para mapear unidad de red";
+                    var msg = "ConfiguraciÃ³n incompleta para mapear unidad de red";
                     _logger.LogWarning(msg);
                     return (false, msg);
                 }
@@ -53,10 +53,10 @@ namespace donativos.Services
                 _logger.LogInformation($"?? Share path: {sharePath}");
                 _logger.LogInformation($"?? Usuario: {username}");
 
-                // Comando: net use \\servidor\carpeta /user:usuario contraseña /persistent:yes
+                // Comando: net use \\servidor\carpeta /user:usuario contraseÃ±a /persistent:yes
                 string command = $"net use \"{sharePath}\" /user:\"{username}\" \"{password}\" /persistent:yes";
 
-                _logger.LogInformation("Ejecutando comando: net use [RUTA] /user:[USUARIO] [CONTRASEÑA] /persistent:yes");
+                _logger.LogInformation("Ejecutando comando: net use [RUTA] /user:[USUARIO] [CONTRASEÃ‘A] /persistent:yes");
 
                 var result = await ExecuteCommandAsync("cmd.exe", $"/c {command}");
 
@@ -73,7 +73,7 @@ namespace donativos.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"? Excepción en MapNetworkDriveAsync: {ex.Message}");
+                _logger.LogError($"? ExcepciÃ³n en MapNetworkDriveAsync: {ex.Message}");
                 return (false, ex.Message);
             }
         }
@@ -112,13 +112,13 @@ namespace donativos.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"? Excepción en DisconnectNetworkDriveAsync: {ex.Message}");
+                _logger.LogError($"? ExcepciÃ³n en DisconnectNetworkDriveAsync: {ex.Message}");
                 return (false, ex.Message);
             }
         }
 
         /// <summary>
-        /// Ejecuta un comando en la línea de comandos
+        /// Ejecuta un comando en la lÃ­nea de comandos
         /// </summary>
         private async Task<(bool success, string message)> ExecuteCommandAsync(string fileName, string arguments)
         {
@@ -152,7 +152,7 @@ namespace donativos.Services
                         }
                         else
                         {
-                            // Error code 67 significa que la unidad ya está mapeada (consideramos exitoso)
+                            // Error code 67 significa que la unidad ya estÃ¡ mapeada (consideramos exitoso)
                             if (process.ExitCode == 67 && arguments.Contains("/delete"))
                             {
                                 return (true, "La unidad no estaba conectada");

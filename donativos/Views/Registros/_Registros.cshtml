@@ -2,13 +2,13 @@
 <style>
     /* Estilos para optimizar la tabla de donativos */
     #tablaDonativos {
-        font-size: 0.875rem; /* Reducir tamaÒo general de fuente */
+        font-size: 0.875rem; /* Reducir tama√±o general de fuente */
     }
 
-    /* Columnas con texto m·s pequeÒo y word wrap */
+    /* Columnas con texto m√°s peque√±o y word wrap */
     #tablaDonativos tbody td:nth-child(2), /* Folio */
     #tablaDonativos tbody td:nth-child(3), /* Donador */
-    #tablaDonativos tbody td:nth-child(4)  /* Fecha RecepciÛn */
+    #tablaDonativos tbody td:nth-child(4)  /* Fecha Recepci√≥n */
     {
         font-size: 0.75rem;
         max-width: 150px;
@@ -17,39 +17,39 @@
         line-height: 1.2;
     }
 
-    /* ID m·s pequeÒo */
+    /* ID m√°s peque√±o */
     #tablaDonativos tbody td:nth-child(1) {
         font-size: 0.75rem;
         text-align: center;
     }
 
-    /* Tipo y Estatus m·s compactos */
+    /* Tipo y Estatus m√°s compactos */
     #tablaDonativos tbody td:nth-child(5),
     #tablaDonativos tbody td:nth-child(6) {
         font-size: 0.75rem;
         white-space: nowrap;
     }
 
-    /* Badges m·s pequeÒos */
+    /* Badges m√°s peque√±os */
     #tablaDonativos .badge {
         font-size: 0.7rem;
         padding: 0.25em 0.5em;
     }
 
-    /* Botones de acciÛn m·s compactos */
+    /* Botones de acci√≥n m√°s compactos */
     #tablaDonativos .btn-sm {
         padding: 0.2rem 0.4rem;
         font-size: 0.75rem;
     }
 
-    /* Headers m·s compactos */
+    /* Headers m√°s compactos */
     #tablaDonativos thead th {
         font-size: 0.8rem;
         padding: 0.5rem;
         white-space: nowrap;
     }
 
-    /* Celdas m·s compactas */
+    /* Celdas m√°s compactas */
     #tablaDonativos tbody td {
         padding: 0.5rem;
         vertical-align: middle;
@@ -65,11 +65,11 @@
         <!-- Input hidden para guardar el Centro ID del usuario -->
         <input type="hidden" id="centroIDUsuario" value="">
 
-        <!-- SECCI”N 1: DATOS DEL DONADOR -->
+        <!-- SECCI√ìN 1: DATOS DEL DONADOR -->
         <div id="seccionDonador" class="mb-8 pb-8 border-b-2 border-stone-200">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">1</div>
-                <h3 class="text-lg font-bold text-stone-800">InformaciÛn del Donador</h3>
+                <h3 class="text-lg font-bold text-stone-800">Informaci√≥n del Donador</h3>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -79,11 +79,11 @@
                         <i class="fas fa-tag" style="color:var(--dorado)"></i> <b>Tipo de Donador</b> <span class="text-red-500">*</span>
                     </label>
                     <select id="selectTipoDonador" class="form-control" required>
-                        <option value="">-- Seleccione una OpciÛn --</option>
+                        <option value="">-- Seleccione una Opci√≥n --</option>
                         <option value="persona">Persona</option>
-                        <option value="organizacion">OrganizaciÛn</option>
+                        <option value="organizacion">Organizaci√≥n</option>
                         <option value="empresa">Empresa</option>
-                        <option value="anonimo">AnÛnimo</option>
+                        <option value="anonimo">An√≥nimo</option>
                         <option value="gobierno">Gobierno</option>
                         <option value="otro">Otro</option>
                     </select>
@@ -103,7 +103,7 @@
                                autocomplete="off"
                                required>
                         <div class="invalid-feedback">El nombre es requerido</div>
-                        <!-- Lista de resultados de b˙squeda -->
+                        <!-- Lista de resultados de b√∫squeda -->
                         <div id="listaDonadores" class="position-absolute w-100 bg-white border border-stone-300 rounded-lg mt-1 shadow-lg d-none" style="max-height: 300px; overflow-y: auto; z-index: 1000; top: 100%;">
                         </div>
                     </div>
@@ -122,13 +122,13 @@
                            id="textRFC"
                            placeholder="RFC (13 caracteres)"
                            maxlength="13">
-                    <div class="invalid-feedback">RFC requerido y v·lido</div>
+                    <div class="invalid-feedback">RFC requerido y v√°lido</div>
                 </div>
 
-                <!-- TelÈfono -->
+                <!-- Tel√©fono -->
                 <div class="form-group">
                     <label for="textTelefonoDonador" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>TelÈfono</b>
+                        <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>Tel√©fono</b>
                     </label>
                     <input type="tel"
                            class="form-control"
@@ -147,18 +147,18 @@
                            class="form-control"
                            id="textEmailDonador"
                            placeholder="correo@example.com">
-                    <div class="invalid-feedback">Email v·lido requerido</div>
+                    <div class="invalid-feedback">Email v√°lido requerido</div>
                 </div>
 
-                <!-- DirecciÛn -->
+                <!-- Direcci√≥n -->
                 <div class="form-group">
                     <label for="textDireccionDonador" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-map-marker-alt" style="color:var(--dorado)"></i> <b>DirecciÛn</b>
+                        <i class="fas fa-map-marker-alt" style="color:var(--dorado)"></i> <b>Direcci√≥n</b>
                     </label>
                     <input type="text"
                            class="form-control"
                            id="textDireccionDonador"
-                           placeholder="Calle y n˙mero">
+                           placeholder="Calle y n√∫mero">
                 </div>
             </div>
 
@@ -198,10 +198,10 @@
                            placeholder="Estado o provincia">
                 </div>
 
-                <!-- CÛdigo Postal -->
+                <!-- C√≥digo Postal -->
                 <div class="form-group">
                     <label for="textCodigoPostalDonador" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-mailbox" style="color:var(--dorado)"></i> <b>CÛdigo Postal</b>
+                        <i class="fas fa-mailbox" style="color:var(--dorado)"></i> <b>C√≥digo Postal</b>
                     </label>
                     <input type="text"
                            class="form-control"
@@ -221,11 +221,11 @@
             </div>
         </div>
 
-        <!-- SECCI”N 2: DATOS DEL CONTACTO (Condicional para OrganizaciÛn/Empresa) -->
+        <!-- SECCI√ìN 2: DATOS DEL CONTACTO (Condicional para Organizaci√≥n/Empresa) -->
         <div id="seccionContacto" class="mb-8 pb-8 border-b-2 border-stone-200 hidden">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">2</div>
-                <h3 class="text-lg font-bold text-stone-800">InformaciÛn de Contacto</h3>
+                <h3 class="text-lg font-bold text-stone-800">Informaci√≥n de Contacto</h3>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -257,10 +257,10 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <!-- TelÈfono Fijo -->
+                <!-- Tel√©fono Fijo -->
                 <div class="form-group">
                     <label for="textTelefonoContacto" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>TelÈfono Fijo</b>
+                        <i class="fas fa-phone" style="color:var(--dorado)"></i> <b>Tel√©fono Fijo</b>
                     </label>
                     <input type="tel"
                            class="form-control"
@@ -268,15 +268,15 @@
                            placeholder="+52 (55) 1234-5678">
                 </div>
 
-                <!-- ExtensiÛn -->
+                <!-- Extensi√≥n -->
                 <div class="form-group">
                     <label for="textExtensionContacto" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-plus-square" style="color:var(--dorado)"></i> <b>ExtensiÛn</b>
+                        <i class="fas fa-plus-square" style="color:var(--dorado)"></i> <b>Extensi√≥n</b>
                     </label>
                     <input type="text"
                            class="form-control"
                            id="textExtensionContacto"
-                           placeholder="ExtensiÛn (opcional)">
+                           placeholder="Extensi√≥n (opcional)">
                 </div>
             </div>
 
@@ -325,7 +325,7 @@
                     <select id="selectMedioPreferido" class="form-control">
                         <option value="">-- Seleccione --</option>
                         <option value="email">Email</option>
-                        <option value="telefono">TelÈfono</option>
+                        <option value="telefono">Tel√©fono</option>
                         <option value="celular">Celular</option>
                         <option value="otro">Otro</option>
                     </select>
@@ -340,7 +340,7 @@
                                type="checkbox"
                                id="checkEsPrincipal">
                         <label class="form-check-label" for="checkEsPrincipal">
-                            <b>øEs el contacto principal?</b>
+                            <b>¬øEs el contacto principal?</b>
                         </label>
                     </div>
                 </div>
@@ -370,24 +370,24 @@
             </div>
         </div>
 
-        <!-- SECCI”N 2.5: INFORMACI”N DEL DONATIVO -->
+        <!-- SECCI√ìN 2.5: INFORMACI√ìN DEL DONATIVO -->
         <div id="seccionDonativo" class="mb-8 pb-8 border-b-2 border-stone-200">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">3</div>
-                <h3 class="text-lg font-bold text-stone-800">InformaciÛn del Donativo</h3>
+                <h3 class="text-lg font-bold text-stone-800">Informaci√≥n del Donativo</h3>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <!-- Fecha de RecepciÛn -->
+                <!-- Fecha de Recepci√≥n -->
                 <div class="form-group">
                     <label for="dateRecepcion" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-calendar-alt" style="color:var(--dorado)"></i> <b>Fecha de RecepciÛn</b> <span class="text-red-500">*</span>
+                        <i class="fas fa-calendar-alt" style="color:var(--dorado)"></i> <b>Fecha de Recepci√≥n</b> <span class="text-red-500">*</span>
                     </label>
                     <input type="date"
                            class="form-control"
                            id="dateRecepcion"
                            required>
-                    <div class="invalid-feedback">La fecha de recepciÛn es requerida</div>
+                    <div class="invalid-feedback">La fecha de recepci√≥n es requerida</div>
                     <small class="text-stone-500 mt-1 block">Por defecto se establece la fecha actual</small>
                 </div>
 
@@ -420,27 +420,27 @@
 
                 <div class="form-group">
                     <label for="selectAlmacenDestino" class="block text-sm font-bold text-stone-700 mb-2">
-                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> <b>AlmacÈn Destino</b> <span class="text-red-500">*</span>
+                        <i class="fas fa-warehouse" style="color:var(--dorado)"></i> <b>Almac√©n Destino</b> <span class="text-red-500">*</span>
                     </label>
                     <select id="selectAlmacenDestino" class="form-control" required>
-                        <option value="">-- Seleccione un AlmacÈn --</option>
-                        <!-- Las opciones se cargar·n din·micamente -->
+                        <option value="">-- Seleccione un Almac√©n --</option>
+                        <!-- Las opciones se cargar√°n din√°micamente -->
                     </select>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="fileAdjuntos" class="block text-sm font-bold text-stone-700 mb-2">
-                    <i class="fas fa-paperclip" style="color:var(--dorado)"></i> <b>Adjuntar Archivos/Im·genes</b>
+                    <i class="fas fa-paperclip" style="color:var(--dorado)"></i> <b>Adjuntar Archivos/Im√°genes</b>
                 </label>
                 <input type="file"
                        class="form-control"
                        id="fileAdjuntos"
                        multiple
                        accept="image/*,.pdf,.doc,.docx,.xlsx,.xls"
-                       placeholder="Selecciona archivos o im·genes">
+                       placeholder="Selecciona archivos o im√°genes">
                 <small class="text-stone-500 mt-1 block">
-                    Formatos permitidos: Im·genes (JPG, PNG, GIF), PDF, Word (DOC, DOCX), Excel (XLS, XLSX)
+                    Formatos permitidos: Im√°genes (JPG, PNG, GIF), PDF, Word (DOC, DOCX), Excel (XLS, XLSX)
                 </small>
             </div>
 
@@ -455,35 +455,35 @@
             </div>
         </div>
 
-        <!-- SECCI”N 3: ARTÕCULOS DONADOS -->
+        <!-- SECCI√ìN 3: ART√çCULOS DONADOS -->
         <div id="seccionArticulos" class="mb-8">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-guinda rounded-full w-8 h-8 flex items-center justify-center text-white font-bold" style="background-color: var(--guinda);">4</div>
-                <h3 class="text-lg font-bold text-stone-800">ArtÌculos Donados</h3>
+                <h3 class="text-lg font-bold text-stone-800">Art√≠culos Donados</h3>
             </div>
 
             <div id="contenedorArticulos" class="space-y-4 mb-6">
-                <!-- Los artÌculos se aÒadir·n din·micamente aquÌ -->
+                <!-- Los art√≠culos se a√±adir√°n din√°micamente aqu√≠ -->
             </div>
 
             <button type="button" id="btnAgregarArticulo" class="btn btn-sm text-white font-bold" style="background-color: var(--dorado); border-color: var(--dorado);">
-                <i class="fas fa-plus mr-2"></i> Agregar ArtÌculo
+                <i class="fas fa-plus mr-2"></i> Agregar Art√≠culo
             </button>
         </div>
 
-        <!-- Botones de AcciÛn -->
+        <!-- Botones de Acci√≥n -->
         <div class="flex justify-end gap-3 pt-6">
             <button type="button" id="btnCancelar" class="btn btn-secondary" style="background-color: var(--gris); border-color: var(--gris);">
                 <i class="fas fa-times mr-2"></i> Cancelar
             </button>
-            <button type="submit" class="btn btn-lg py-2 text-white font-bold" style="background-color: var(--guinda); border-color: var(--guinda);">
+            <button type="submit" id="btnGuardarDonativo" class="btn btn-lg py-2 text-white font-bold" style="background-color: var(--guinda); border-color: var(--guinda);">
                 <i class="fas fa-save mr-2"></i> Guardar Registro
             </button>
         </div>
     </form>
 </div>
 
-<!-- SECCI”N DE VISUALIZACI”N DE DONATIVOS -->
+<!-- SECCI√ìN DE VISUALIZACI√ìN DE DONATIVOS -->
 <div id="tabDonativos" class="bg-white rounded-lg shadow-md p-8 mt-8">
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -502,15 +502,15 @@
                     <th>ID</th>
                     <th>Folio</th>
                     <th>Donador</th>
-                    <th>Fecha RecepciÛn</th>
+                    <th>Fecha Recepci√≥n</th>
                     <th>Tipo</th>
                     <th>Estatus</th>
-                    <th>Cantidad ArtÌculos</th>
+                    <th>Cantidad Art√≠culos</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Los datos se cargar·n aquÌ autom·ticamente -->
+                <!-- Los datos se cargar√°n aqu√≠ autom√°ticamente -->
             </tbody>
         </table>
     </div>
@@ -524,13 +524,13 @@
                 <h5 class="modal-title">
                     <i class="fas fa-receipt"></i> Detalles del Donativo
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Cerrar">
                     <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
                 <div id="contenidoDetalles">
-                    <!-- Los detalles se cargar·n aquÌ din·micamente -->
+                    <!-- Los detalles se cargar√°n aqu√≠ din√°micamente -->
                 </div>
             </div>
             <div class="modal-footer">

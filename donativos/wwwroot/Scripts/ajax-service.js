@@ -18,46 +18,11 @@ const AjaxService = (function() {
      * @returns {string} Ruta base para las URLs
      */
     function _getBasePath() {
-        const hostname = window.location.hostname;
-        const host = window.location.host; // Incluye puerto si existe
-        const hasPort = host.includes(':');
-
-        console.log(`🔍 Detectando ambiente... Hostname: ${hostname}, Host: ${host}, Tiene puerto: ${hasPort}`);
-        // ============================================
-        // AMBIENTES DE DESARROLLO Y STAGING (usa /)
-        // ============================================
-
-        // 1. Debug local: localhost:puerto
-        if (hostname === 'localhost' && hasPort) {
-            return '/';
-        }
-
-        // 2. Publicación local: localhost sin puerto
-        if (hostname === 'localhost' && !hasPort ) {
+        const pathname = window.location.pathname || '/';
+        if (pathname.toLowerCase().startsWith('/donaciones/') || pathname.toLowerCase() === '/donaciones') {
             return '/donaciones/';
         }
-
-        // 3. Loopback: 127.0.0.1
-        if (hostname === '127.0.0.1') {
-            return '/donaciones/';
-        }
-
-        // 4. Staging: IP 172.16.x.x (red interna)
-        if (hostname.startsWith('172.16.')) {
-            return '/donaciones/';
-        }
-
-        // 5. Desarrollo: IP 192.168.x.x (red local)
-        if (hostname.startsWith('192.168.')) {
-            return '/donaciones/';
-        }
-
-        // ============================================
-        // PRODUCCIÓN (usa /donaciones/)
-        // ============================================
-
-        // Cualquier otro hostname (dominio) es producción
-        return '/donaciones/';
+        return '/';
     }
 
     // Ruta base para todas las peticiones

@@ -647,7 +647,7 @@ namespace donativos.Controllers
             {
                 range.Style.Font.Bold = true;
                 range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(114, 47, 55)); // Color guinda
+                range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(30, 58, 138)); // Color primario
                 range.Style.Font.Color.SetColor(System.Drawing.Color.White);
                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
             }
@@ -700,7 +700,7 @@ namespace donativos.Controllers
             // METADATOS
             // ============================================
             package.Workbook.Properties.Title = "Reporte de Movimientos";
-            package.Workbook.Properties.Author = "Sistema de Donativos DIF Hidalgo";
+            package.Workbook.Properties.Author = "Sistema de Donativos";
             package.Workbook.Properties.Created = DateTime.Now;
 
             return package.GetAsByteArray();

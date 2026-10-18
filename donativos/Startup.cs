@@ -27,21 +27,21 @@ namespace donativos
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // ? Configurar serializaciÛn JSON global con camelCase
+            // ? Configurar serializaci√≥n JSON global con camelCase
             services.AddControllersWithViews()
                 .AddJsonOptions(options =>
                 {
                     // Usar camelCase para todas las propiedades JSON
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-                    // Permitir lectura de n˙meros como strings
+                    // Permitir lectura de n√∫meros como strings
                     options.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString;
                 });
 
-            // Obtener configuraciÛn de cookies
+            // Obtener configuraci√≥n de cookies
             var cookieDomain = Configuration["AppSettings:CookieDomain"];
             var cookiePath = Configuration["AppSettings:CookiePath"] ?? "/";
 
-            // AutenticaciÛn por cookie
+            // Autenticaci√≥n por cookie
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -50,29 +50,29 @@ namespace donativos
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(180);
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
-                    // En desarrollo, permitir HTTP; en producciÛn, solo HTTPS
+                    // En desarrollo, permitir HTTP; en producci√≥n, solo HTTPS
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                     options.Cookie.SameSite = SameSiteMode.Lax;
                     options.Cookie.Path = cookiePath;
 
-                    // Configurar dominio solo si est· especificado
+                    // Configurar dominio solo si est√° especificado
                     if (!string.IsNullOrWhiteSpace(cookieDomain))
                     {
                         options.Cookie.Domain = cookieDomain;
                     }
                 });
 
-            // CÛdigo para guardar variables de session
-            services.AddDistributedMemoryCache(); // Usar cachÈ en memoria
+            // C√≥digo para guardar variables de session
+            services.AddDistributedMemoryCache(); // Usar cach√© en memoria
             services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(180); // Tiempo de inactividad antes de que la sesiÛn caduque
-                options.Cookie.HttpOnly = true; // ConfiguraciÛn del cookie
+                options.IdleTimeout = TimeSpan.FromMinutes(180); // Tiempo de inactividad antes de que la sesi√≥n caduque
+                options.Cookie.HttpOnly = true; // Configuraci√≥n del cookie
                 options.Cookie.IsEssential = true; // Necesario para la conformidad del GDPR
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.Cookie.Path = cookiePath;
 
-                // Configurar dominio solo si est· especificado
+                // Configurar dominio solo si est√° especificado
                 if (!string.IsNullOrWhiteSpace(cookieDomain))
                 {
                     options.Cookie.Domain = cookieDomain;
@@ -81,7 +81,7 @@ namespace donativos
 
             // ====== AGREGAR SERVICIOS PERSONALIZADOS ======
 
-            // Registrar RazorLightEngine como Singleton (se reutiliza en toda la aplicaciÛn)
+            // Registrar RazorLightEngine como Singleton (se reutiliza en toda la aplicaci√≥n)
             services.AddSingleton<IRazorLightEngine>(sp =>
             {
                 return new RazorLightEngineBuilder()
@@ -89,10 +89,10 @@ namespace donativos
                     .Build();
             });
 
-            // Registrar el servicio de autenticaciÛn
+            // Registrar el servicio de autenticaci√≥n
             services.AddScoped<IAuthenticationService, AuthenticationService>();
 
-            // Registrar el servicio de correo electrÛnico
+            // Registrar el servicio de correo electr√≥nico
             services.AddScoped<IEmailService, EmailService>();
 
             // Registrar el servicio de mapeo de unidades de red
@@ -132,13 +132,13 @@ namespace donativos
         }
 
         /// <summary>
-        /// Mapea la unidad de red al iniciar la aplicaciÛn
+        /// Mapea la unidad de red al iniciar la aplicaci√≥n
         /// </summary>
         private async Task MapNetworkDriveOnStartup(INetworkMappingService networkMappingService, ILogger<Startup> logger)
         {
             try
             {
-                logger.LogInformation("Mapeando unidad de red en el inicio de la aplicaciÛn...");
+                logger.LogInformation("Mapeando unidad de red en el inicio de la aplicaci√≥n...");
                 var (success, message) = await networkMappingService.MapNetworkDriveAsync();
 
                 if (success)

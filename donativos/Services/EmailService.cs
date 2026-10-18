@@ -1,4 +1,4 @@
-﻿using donativos.Models;
+using donativos.Models;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
@@ -77,7 +77,7 @@ namespace donativos.Services
     <style>
         body { font-family: 'Montserrat', Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        .header { background: linear-gradient(135deg, #bc955c 0%, #9c223c 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+        .header { background: linear-gradient(135deg, #0284c7 0%, #1e3a8a 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
         .logo-container { margin-bottom: 15px; }
         .logo-image { max-width: 200px; height: auto; }
         .content { padding: 20px; }
@@ -87,14 +87,14 @@ namespace donativos.Services
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { font-weight: bold; color: #333; }
         .footer { background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #999; border-radius: 0 0 8px 8px; }
-        .signature { margin-top: 30px; font-weight: bold; color: #bc955c; }
+        .signature { margin-top: 30px; font-weight: bold; color: #0284c7; }
     </style>
 </head>
 <body>
     <div class=""container"">
         <div class=""header"">
             <div class=""logo-container"">
-                        <img src=""cid:@Model.LogoContentId"" alt=""DIF Hidalgo"" class=""logo-image"">
+                        <img src=""cid:@Model.LogoContentId"" alt=""Sistema de Donativos"" class=""logo-image"">
                     </div>
             <h1>¡Gracias por tu donativo!</h1>
             <p>@Model.NombreCentroAcopio</p>
@@ -203,14 +203,14 @@ namespace donativos.Services
         }
 
         /// <summary>
-        /// Obtiene la ruta correcta del logo del DIF
+        /// Obtiene la ruta correcta del logo del sistema
         /// </summary>
         private string ObtenerRutaLogo()
         {
             try
             {
                 // Use the actual web root path instead of AppContext.BaseDirectory
-                string logoPath = System.IO.Path.Combine(_webHostEnvironment.WebRootPath, "assets", "imagenes", "logodif.png");
+                string logoPath = System.IO.Path.Combine(_webHostEnvironment.WebRootPath, "assets", "imagenes", "logo.png");
                 
                 _logger.LogInformation($"Buscando logo en: {logoPath}");
                 

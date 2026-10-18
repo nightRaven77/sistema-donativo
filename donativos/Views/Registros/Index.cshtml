@@ -1,4 +1,4 @@
-﻿@*
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @using Microsoft.AspNetCore.Http
@@ -13,7 +13,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <meta name="generator" content="">
-    <title>DIF Hidalgo</title>
+    <title>Sistema de Donativos</title>
 
     <!-- Bootstrap core CSS -->
     <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet" asp-append-version="true">
@@ -21,10 +21,9 @@
         <link href="~/css/tailwind.min.css" rel="stylesheet" asp-append-version="true">
             <!-- FontAwesome -->
             <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-            <!-- jQuery 3.4.0 (una sola versión) -->
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+            <!-- jQuery 3.7.0 (unificado con Login) -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
-            <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
             <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -46,10 +45,6 @@
             <script src="~/Scripts/consulta.js" asp-append-version="true"></script>
             <link href="~/Scripts/styles.css" rel="stylesheet" asp-append-version="true" />
             <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
-
-                <!-- Scripts necesarios -->
-                <link href="https://cdn.jsdelivr.net/npm/table-js-simple@1.0.0/table.css" rel="stylesheet">
-                <script src="https://cdn.jsdelivr.net/npm/table-js-simple@1.0.0/table.min.js"></script>
 
                 <!-- DataTables CSS -->
                 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -74,12 +69,22 @@
                     </div>
                 </div>
 
+                <!-- Barra superior móvil -->
+                <header class="mobile-topbar">
+                    <button type="button" onclick="App.toggleMobileSidebar()" class="text-white border-0 bg-transparent p-2" aria-label="Abrir menú">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <span class="font-bold text-sm tracking-wide">Sistema de Donativos</span>
+                    <span class="text-xs text-stone-300 truncate max-w-[140px]">@ViewBag.centro</span>
+                </header>
+                <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="App.closeMobileSidebar()"></div>
+
                 <div class="flex min-h-screen">
                     <!-- Sidebar -->
-                    <aside class="w-64 bg-[#2d2d2d] text-white flex-shrink-0 shadow-xl fixed h-full z-50">
+                    <aside id="appSidebar" class="w-64 bg-[#2d2d2d] text-white flex-shrink-0 shadow-xl fixed h-full z-50">
                         <div class="sidebar-header">
-                            <img src="~/assets/imagenes/logodif.png" alt="DIF Hidalgo" class="w-full">
-                                <p class="text-[10px] text-stone-400 uppercase mt-2 italic font-semibold">Hidalgo Solidario</p>
+                            <img src="~/assets/imagenes/logo.png" alt="Sistema de Donativos" class="w-full">
+                                <p class="text-[10px] text-stone-400 uppercase mt-2 italic font-semibold">Gestión Solidaria</p>
                             </div>
 
                             <nav class="sidebar-nav">
@@ -92,24 +97,24 @@
                                     <span class="ml-3">Nuevo Registro</span>
                                 </a>
                                 <a href="#" onclick="App.loadView(event, 'consulta'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-search w-6"></i>
+                                    <i class="fas fa-search w-6" style="color:var(--dorado)"></i>
                                     <span class="ml-3">Consulta Registros</span>
                                 </a>
                                 <div class="px-6 py-2 text-[10px] text-stone-500 uppercase font-black mt-4">Operaciones</div>
                                 <a href="#" onclick="App.loadView(event, 'salidas'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-arrow-up w-6"></i>
+                                    <i class="fas fa-arrow-up w-6" style="color:var(--dorado)"></i>
                                     <span class="ml-3">Salidas</span>
                                 </a>
                                 <a href="#" onclick="App.loadView(event, 'traspasos'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fa-solid fa-arrows-h w-6"></i>
+                                    <i class="fa-solid fa-arrows-left-right w-6" style="color:var(--dorado)"></i>
                                     <span class="ml-3">Traspasos</span>
                                 </a>
                                 <a href="#" onclick="App.loadView(event, 'reportes'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fa-solid fa-file-text"></i>
+                                    <i class="fa-solid fa-file-lines w-6" style="color:var(--dorado)"></i>
                                     <span class="ml-3">Reportes</span>
                                 </a>
                                 <a href="#" onclick="App.loadView(event, 'dashboard'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-chart-line w-6"></i>
+                                    <i class="fas fa-chart-line w-6" style="color:var(--dorado)"></i>
                                     <span class="ml-3">Dashboard</span>
                                 </a>
                                 <div class="px-6 py-2 text-[10px] text-stone-500 uppercase font-black mt-4">Sistema</div>
@@ -188,8 +193,19 @@
                         this.loadViewInternal('inicio');
                         },
 
+                        toggleMobileSidebar() {
+                        document.getElementById('appSidebar')?.classList.toggle('mobile-open');
+                        document.getElementById('sidebarBackdrop')?.classList.toggle('active');
+                        },
+
+                        closeMobileSidebar() {
+                        document.getElementById('appSidebar')?.classList.remove('mobile-open');
+                        document.getElementById('sidebarBackdrop')?.classList.remove('active');
+                        },
+
                         loadView(event, viewName) {
                         event?.preventDefault();
+                        this.closeMobileSidebar();
 
                         // Actualizar sidebar
                         document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -206,6 +222,10 @@
                         const spinnerText = document.getElementById('spinnerText');
 
                         // ⭐ LIMPIAR DATATABLES ANTES DE CAMBIAR DE VISTA
+                        if (typeof dataTable !== 'undefined' && dataTable !== null) {
+                        dataTable.destroy();
+                        dataTable = null;
+                        }
                         if (typeof dataTableSalidas !== 'undefined' && dataTableSalidas !== null) {
                         console.log('🧹 Destruyendo DataTable Salidas');
                         dataTableSalidas.destroy();

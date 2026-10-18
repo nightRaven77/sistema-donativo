@@ -1,4 +1,4 @@
-﻿using donativos.Extensions;
+using donativos.Extensions;
 using donativos.Models;
 using donativos.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -2203,7 +2203,7 @@ namespace donativos.Controllers
             var sessionUsuario = HttpContext.Session.GetString("usuario");
             var centro = HttpContext.Session.GetString("centroAcopio");
             var usuario = HttpContext.Session.GetString("nombreCompleto");
-            if (sessionUsuario == null) return BadRequest();
+            if (sessionUsuario == null) return RedirectToAction("Login", "Acceso");
 
             ViewBag.a = a;
             ViewBag.centro = centro;
@@ -2215,7 +2215,7 @@ namespace donativos.Controllers
         public IActionResult GetView(string viewName, string a)
         {
             var sessionUsuario = HttpContext.Session.GetString("usuario");
-            if (sessionUsuario == null) return BadRequest();
+            if (sessionUsuario == null) return Unauthorized(new { mensaje = "Sesión expirada" });
 
             return viewName?.ToLower() switch
             {
@@ -2241,17 +2241,31 @@ namespace donativos.Controllers
         #endregion
 
         /// <summary>
-        /// Sirve un archivo desde el NAS
+        /// Sirve un archivo desde el almacenamiento configurado
         /// </summary>
         [HttpGet]
         public IActionResult ObtenerArchivo(string archivo)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(archivo))
+                {
+                    return BadRequest(new { mensaje = "Nombre de archivo requerido" });
+                }
+
                 var nasPath = _configuration["FileStorage:NasPath"];
-                
-                // El archivo viene como "/guid.extension", quitar la barra inicial
-                var nombreArchivo = archivo.TrimStart('/');
+                if (string.IsNullOrWhiteSpace(nasPath))
+                {
+                    return NotFound(new { mensaje = "Ruta de almacenamiento no configurada" });
+                }
+
+                // Prevenir Path Traversal usando únicamente el nombre de archivo seguro
+                var nombreArchivo = Path.GetFileName(archivo.TrimStart('/', '\\'));
+                if (string.IsNullOrWhiteSpace(nombreArchivo))
+                {
+                    return BadRequest(new { mensaje = "Nombre de archivo inválido" });
+                }
+
                 var rutaCompleta = Path.Combine(nasPath, nombreArchivo);
                 
                 if (!System.IO.File.Exists(rutaCompleta))
@@ -2263,12 +2277,7 @@ namespace donativos.Controllers
                 var extension = Path.GetExtension(rutaCompleta).ToLower();
                 var contentType = ObtenerContentType(extension);
                 
-                var bytes = System.IO.File.ReadAllBytes(rutaCompleta);
-                var nombreOriginal = Path.GetFileName(rutaCompleta);
-                
-                Console.WriteLine($"✓ Sirviendo archivo: {nombreOriginal} ({contentType})");
-                
-                return File(bytes, contentType, enableRangeProcessing: true);
+                return PhysicalFile(rutaCompleta, contentType, enableRangeProcessing: true);
             }
             catch (Exception ex)
             {

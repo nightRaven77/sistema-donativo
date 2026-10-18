@@ -1,7 +1,7 @@
-﻿:root {
+:root {
     --gris: #656565;
-    --dorado: #bc955c;
-    --guinda: #9c223c;
+    --dorado: #0284c7;
+    --guinda: #1e3a8a;
 }
 
 .sidebar-item:hover {
@@ -23,7 +23,7 @@
         display: block;
     }
 
-@@keyframes fadeIn {
+@keyframes fadeIn {
     from {
         opacity: 0;
     }
@@ -33,7 +33,7 @@
     }
 }
 
-@@keyframes spin {
+@keyframes spin {
     from {
         transform: rotate(0deg);
     }
@@ -47,6 +47,34 @@
     background-color: var(--guinda);
 }
 
+.border-dorado {
+    border-color: var(--dorado) !important;
+}
+
+.btn-guinda {
+    background-color: var(--guinda);
+    border-color: var(--guinda);
+    color: white;
+}
+
+.btn-guinda:hover {
+    background-color: #172554;
+    border-color: #172554;
+    color: white;
+}
+
+.btn-dorado {
+    background-color: var(--dorado);
+    border-color: var(--dorado);
+    color: white;
+}
+
+.btn-dorado:hover {
+    background-color: #0369a1;
+    border-color: #0369a1;
+    color: white;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -54,6 +82,14 @@ body {
 
 main {
     margin-left: 256px;
+}
+
+.mobile-topbar {
+    display: none;
+}
+
+.sidebar-backdrop {
+    display: none;
 }
 
 .loading {
@@ -81,7 +117,7 @@ main {
 .spinner-icon {
     width: 60px;
     height: 60px;
-    border: 5px solid rgba(188, 149, 92, 0.3);
+    border: 5px solid rgba(2, 132, 199, 0.3);
     border-top: 5px solid var(--dorado);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -128,30 +164,47 @@ aside {
     }
 
     .sidebar-nav::-webkit-scrollbar-thumb {
-        background: #bc955c;
+        background: #0284c7;
         border-radius: 3px;
     }
 
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
-            background: #a07f4b;
+            background: #0369a1;
         }
 
 /* Firefox scrollbar */
 .sidebar-nav {
-    scrollbar-color: #bc955c #2d2d2d;
+    scrollbar-color: #0284c7 #2d2d2d;
     scrollbar-width: thin;
 }
 
-@@media (max-width: 768px) {
+@media (max-width: 768px) {
     main {
         margin-left: 0;
+        padding-top: 4.5rem !important;
+    }
+
+    .mobile-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background-color: #2d2d2d;
+        color: white;
+        padding: 0 1rem;
+        z-index: 45;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     aside {
         position: fixed;
         width: 256px;
         height: 100vh;
-        z-index: 40;
+        z-index: 50;
         left: -256px;
         transition: left 0.3s ease;
     }
@@ -159,6 +212,14 @@ aside {
         aside.mobile-open {
             left: 0;
         }
+
+    .sidebar-backdrop.active {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 48;
+    }
 }
 
 /* ===== BADGE STYLES ===== */

@@ -18,23 +18,11 @@ let estadisticasCargadas = false; // ⭐ Bandera para controlar carga de estadí
  * @returns {string} URL completa con ruta base
  */
 function getConsultaUrl(relativeUrl) {
-    const hostname = window.location.hostname;
-    const host = window.location.host;
-    const hasPort = host.includes(':');
+    const pathname = window.location.pathname || '/';
+    const basePath = pathname.toLowerCase().startsWith('/donaciones/') || pathname.toLowerCase() === '/donaciones'
+        ? '/donaciones/'
+        : '/';
 
-    // Determinar ruta base según ambiente
-    let basePath = '/';
-
-    // Debug local: localhost:puerto → /
-    if (hostname === 'localhost' && hasPort) {
-        basePath = '/';
-    }
-    // Publicación local/staging/producción: localhost, 127.0.0.1, IPs, dominios → /donaciones/
-    else {
-        basePath = '/donaciones/';
-    }
-
-    // Limpiar URL relativa y construir URL completa
     const cleanUrl = relativeUrl.startsWith('/') ? relativeUrl.substring(1) : relativeUrl;
     return `${basePath}${cleanUrl}`;
 }
@@ -432,10 +420,8 @@ function renderizarMovimientos(data) {
             </button>
         `;
 
-        //// 🔍 DEBUG: Ver los valores antes de agregar a la tabla
-        //const totalArticulos = mov.totalArticulos || mov.total_articulos || 0;
-        //const cantidadTotal = mov.cantidadTotal || mov.cantidad_total || 0;
-        //console.log(`Fila ${index}: Artículos=${totalArticulos}, Cantidad=${cantidadTotal}`);
+        const totalArticulos = mov.totalArticulos ?? mov.total_articulos ?? (mov.articulos?.length || 0);
+        const cantidadTotal = Number(mov.cantidadTotal ?? mov.cantidad_total ?? 0);
 
         tablaMovimientos.row.add([
             mov.folio || '-',
@@ -515,11 +501,6 @@ function renderizarDetalleMovimiento(detalle) {
     const tipo = (detalle.tipo_movimiento || detalle.tipo || '').toUpperCase();
     const estatus = detalle.estatus || '';
 
-    //// almacen_origen es un objeto {id_almacen, nombre} O puede ser solo almacen
-    //console.log('🏪 DEBUG almacen_origen:', detalle.almacen_origen);
-    //console.log('🏪 DEBUG almacen:', detalle.almacen);
-    //console.log('🏪 DEBUG datos completos:', JSON.stringify(detalle, null, 2));
-
     // Intentar múltiples formas de obtener el almacén
     let almacenOrigen = '';
     if (detalle.almacen_origen) {
@@ -529,15 +510,13 @@ function renderizarDetalleMovimiento(detalle) {
     } else if (detalle.almacenOrigen) {
         almacenOrigen = typeof detalle.almacenOrigen === 'object' ? detalle.almacenOrigen.nombre : detalle.almacenOrigen;
     }
-    //console.log('🏪 almacenOrigen extraido:', almacenOrigen);
 
     const almacenDestino = detalle.almacen_destino?.nombre || detalle.almacen_destino || '';
 
-    //// responsable es un objeto {id, tipo, nombre, ...}
-    //console.log('👤 DEBUG responsable:', detalle.responsable);
-    //const responsable = detalle.responsable?.nombre || '';
-    //const tipoResponsable = detalle.responsable?.tipo || '';
-    //console.log('👤 responsable extraido:', responsable, '- tipo:', tipoResponsable);
+    const responsable = typeof detalle.responsable === 'object'
+        ? (detalle.responsable?.nombre || '')
+        : (detalle.responsable || '');
+    const tipoResponsable = detalle.responsable?.tipo || detalle.tipoResponsable || '';
 
     const observaciones = detalle.observaciones || '';
 
