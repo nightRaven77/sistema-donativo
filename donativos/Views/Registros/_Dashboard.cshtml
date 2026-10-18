@@ -1,60 +1,108 @@
 <div class="bg-white rounded-lg shadow-md p-8">
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">
-            <i class="fas fa-chart-line mr-2"></i>Panel de Control Operativo
-        </h2>
-        <button type="button" class="btn btn-sm btn-dorado" onclick="App.loadView(event, 'consulta')">
-            <i class="fas fa-search mr-1"></i> Ver Estadísticas Detalladas
-        </button>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-black text-[#2d2d2d] border-b-4 border-dorado inline-block pb-2" style="color: var(--guinda);">
+                <i class="fas fa-chart-line mr-2" aria-hidden="true"></i>Panel de Control Operativo
+            </h2>
+            <p class="text-sm text-stone-600 mt-1">Resumen en tiempo real de operaciones registradas en el sistema</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="App.loadDashboardStats()">
+                <i class="fas fa-sync-alt mr-1" aria-hidden="true"></i> Actualizar Indicadores
+            </button>
+            <button type="button" class="btn btn-sm btn-dorado" onclick="App.loadView(event, 'consulta')">
+                <i class="fas fa-search mr-1" aria-hidden="true"></i> Ver Inventario Detallado
+            </button>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-lg p-6 shadow-sm">
+    <!-- Indicadores Numéricos en Vivo -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" aria-live="polite">
+        <div class="border border-stone-200 rounded-lg p-5 bg-stone-50">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-600">Donativos Activos</span>
+                <i class="fas fa-hand-holding-heart text-lg" style="color: var(--brand-primary);" aria-hidden="true"></i>
+            </div>
+            <div id="kpiTotalDonativos" class="text-3xl font-black mt-2" style="color: var(--brand-primary); font-variant-numeric: tabular-nums;">—</div>
+            <p class="text-xs text-stone-500 mt-1 mb-0">Entradas registradas vigentes</p>
+        </div>
+
+        <div class="border border-stone-200 rounded-lg p-5 bg-stone-50">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-600">Salidas Registradas</span>
+                <i class="fas fa-box-open text-lg text-red-600" aria-hidden="true"></i>
+            </div>
+            <div id="kpiTotalSalidas" class="text-3xl font-black mt-2 text-red-700" style="font-variant-numeric: tabular-nums;">—</div>
+            <p class="text-xs text-stone-500 mt-1 mb-0">Entregas a beneficiarios y bajas</p>
+        </div>
+
+        <div class="border border-stone-200 rounded-lg p-5 bg-stone-50">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-600">Traspasos Pendientes</span>
+                <i class="fas fa-clock text-lg text-amber-600" aria-hidden="true"></i>
+            </div>
+            <div id="kpiTraspasosPendientes" class="text-3xl font-black mt-2 text-amber-700" style="font-variant-numeric: tabular-nums;">—</div>
+            <p class="text-xs text-stone-500 mt-1 mb-0">En tránsito por recibir</p>
+        </div>
+
+        <div class="border border-stone-200 rounded-lg p-5 bg-stone-50">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-600">Traspasos Completados</span>
+                <i class="fas fa-check-circle text-lg text-emerald-600" aria-hidden="true"></i>
+            </div>
+            <div id="kpiTraspasosAprobados" class="text-3xl font-black mt-2 text-emerald-700" style="font-variant-numeric: tabular-nums;">—</div>
+            <p class="text-xs text-stone-500 mt-1 mb-0">Recibidos y aplicados en almacén</p>
+        </div>
+    </div>
+
+    <h3 class="text-sm font-bold uppercase tracking-wider text-stone-600 mb-4">Accesos Rápidos de Operación</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold uppercase text-stone-500">Entradas</p>
-                    <h3 class="text-xl font-black mt-1" style="color: var(--guinda);">Recepción de Donativos</h3>
+                    <p class="text-xs font-bold uppercase text-stone-600">Entradas</p>
+                    <h4 class="text-lg font-black mt-1" style="color: var(--guinda);">Recepción de Donativos</h4>
                 </div>
-                <i class="fas fa-hand-holding-heart text-3xl" style="color: var(--dorado);"></i>
+                <i class="fas fa-hand-holding-heart text-2xl" style="color: var(--dorado);" aria-hidden="true"></i>
             </div>
             <button type="button" class="btn btn-sm btn-guinda mt-4 w-full" onclick="App.loadView(event, 'registros')">
                 Registrar Entrada
             </button>
         </div>
 
-        <div class="bg-gradient-to-br from-sky-50 to-white border border-sky-200 rounded-lg p-6 shadow-sm">
+        <div class="bg-gradient-to-br from-sky-50 to-white border border-sky-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold uppercase text-stone-500">Entregas</p>
-                    <h3 class="text-xl font-black mt-1" style="color: var(--guinda);">Salidas a Beneficiarios</h3>
+                    <p class="text-xs font-bold uppercase text-stone-600">Entregas</p>
+                    <h4 class="text-lg font-black mt-1" style="color: var(--guinda);">Salidas a Beneficiarios</h4>
                 </div>
-                <i class="fas fa-box-open text-3xl" style="color: var(--dorado);"></i>
+                <i class="fas fa-box-open text-2xl" style="color: var(--dorado);" aria-hidden="true"></i>
             </div>
             <button type="button" class="btn btn-sm btn-guinda mt-4 w-full" onclick="App.loadView(event, 'salidas')">
                 Gestionar Salidas
             </button>
         </div>
 
-        <div class="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-lg p-6 shadow-sm">
+        <div class="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold uppercase text-stone-500">Logística</p>
-                    <h3 class="text-xl font-black mt-1" style="color: var(--guinda);">Traspasos entre Almacenes</h3>
+                    <p class="text-xs font-bold uppercase text-stone-600">Logística</p>
+                    <h4 class="text-lg font-black mt-1" style="color: var(--guinda);">Traspasos entre Almacenes</h4>
                 </div>
-                <i class="fas fa-exchange-alt text-3xl" style="color: var(--dorado);"></i>
+                <i class="fas fa-arrows-left-right text-2xl" style="color: var(--dorado);" aria-hidden="true"></i>
             </div>
             <button type="button" class="btn btn-sm btn-guinda mt-4 w-full" onclick="App.loadView(event, 'traspasos')">
                 Ver Traspasos
             </button>
         </div>
 
-        <div class="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-lg p-6 shadow-sm">
+        <div class="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold uppercase text-stone-500">Exportación</p>
-                    <h3 class="text-xl font-black mt-1" style="color: var(--guinda);">Reportes y Kardex</h3>
+                    <p class="text-xs font-bold uppercase text-stone-600">Exportación</p>
+                    <h4 class="text-lg font-black mt-1" style="color: var(--guinda);">Reportes y Kardex</h4>
                 </div>
-                <i class="fas fa-file-excel text-3xl text-emerald-600"></i>
+                <i class="fas fa-file-excel text-2xl text-emerald-600" aria-hidden="true"></i>
             </div>
             <button type="button" class="btn btn-sm btn-guinda mt-4 w-full" onclick="App.loadView(event, 'reportes')">
                 Generar Reportes

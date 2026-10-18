@@ -15,134 +15,151 @@
     <meta name="generator" content="">
     <title>Sistema de Donativos</title>
 
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Bootstrap core CSS -->
     <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet" asp-append-version="true">
-        <!-- Tailwind CSS -->
-        <link href="~/css/tailwind.min.css" rel="stylesheet" asp-append-version="true">
-            <!-- FontAwesome -->
-            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-            <!-- jQuery 3.7.0 (unificado con Login) -->
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-            <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Tailwind CSS -->
+    <link href="~/css/tailwind.min.css" rel="stylesheet" asp-append-version="true">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- jQuery 3.7.0 (unificado con Login) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-            <!-- ⭐ Scripts locales con cache busting automático (asp-append-version="true") -->
-            <!-- Servicio AJAX centralizado -->
-            <script src="~/Scripts/ajax-service.js" asp-append-version="true"></script>
-            <!-- Servicio de Notificaciones Unificado -->
-            <script src="~/Scripts/notificaciones-service.js" asp-append-version="true"></script>
-            <!-- ⭐ Manejador centralizado de errores AJAX (debe cargarse antes de los módulos) -->
-            <script src="~/Scripts/error-handler.js" asp-append-version="true"></script>
-            <!-- Scripts de módulos -->
-            <script src="~/Scripts/logger.js" asp-append-version="true"></script>
-            <script src="~/Scripts/registros.js" asp-append-version="true"></script>
-            <script src="~/Scripts/salidas.js" asp-append-version="true"></script>
-            <script src="~/Scripts/traspasos.js" asp-append-version="true"></script>
-            <script src="~/Scripts/reportes.js" asp-append-version="true"></script>
-            <script src="~/Scripts/consulta.js" asp-append-version="true"></script>
-            <link href="~/Scripts/styles.css" rel="stylesheet" asp-append-version="true" />
-            <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
+    <!-- ⭐ Scripts locales con cache busting automático (asp-append-version="true") -->
+    <!-- Servicio AJAX centralizado -->
+    <script src="~/Scripts/ajax-service.js" asp-append-version="true"></script>
+    <!-- Servicio de Notificaciones Unificado -->
+    <script src="~/Scripts/notificaciones-service.js" asp-append-version="true"></script>
+    <!-- ⭐ Manejador centralizado de errores AJAX (debe cargarse antes de los módulos) -->
+    <script src="~/Scripts/error-handler.js" asp-append-version="true"></script>
+    <!-- Scripts de módulos -->
+    <script src="~/Scripts/logger.js" asp-append-version="true"></script>
+    <script src="~/Scripts/registros.js" asp-append-version="true"></script>
+    <script src="~/Scripts/salidas.js" asp-append-version="true"></script>
+    <script src="~/Scripts/traspasos.js" asp-append-version="true"></script>
+    <script src="~/Scripts/reportes.js" asp-append-version="true"></script>
+    <script src="~/Scripts/consulta.js" asp-append-version="true"></script>
+    <link href="~/Scripts/styles.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
 
-                <!-- DataTables CSS -->
-                <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
-                <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
 
-                <!-- DataTables JS -->
-                <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-                <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-                <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-                <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+</head>
+<body class="bg-stone-50">
+    <!-- Enlace de salto para accesibilidad por teclado (WCAG 2.4.1) -->
+    <a href="#contentContainer" class="skip-link">Saltar al contenido principal</a>
 
+    <!-- Loading Spinner -->
+    <div class="loading" id="loadingSpinner" role="status" aria-live="polite">
+        <div class="spinner-wrapper">
+            <div class="spinner-icon" aria-hidden="true"></div>
+            <div class="spinner-text">Cargando</div>
+            <div class="spinner-subtext" id="spinnerText">Por favor espera...</div>
+        </div>
+    </div>
 
-            </head>
-            <body class="bg-stone-50">
+    <!-- Barra superior móvil -->
+    <header class="mobile-topbar">
+        <button type="button" onclick="App.toggleMobileSidebar()" class="text-white border-0 bg-transparent p-2" aria-label="Abrir menú de navegación">
+            <i class="fas fa-bars text-xl" aria-hidden="true"></i>
+        </button>
+        <span class="font-bold text-sm tracking-wide">Sistema de Donativos</span>
+        <span class="text-xs text-stone-300 truncate" style="max-width: 140px;">@ViewBag.centro</span>
+    </header>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="App.closeMobileSidebar()" aria-hidden="true"></div>
 
-                <!-- Loading Spinner -->
-                <div class="loading" id="loadingSpinner">
-                    <div class="spinner-wrapper">
-                        <div class="spinner-icon"></div>
-                        <div class="spinner-text">Cargando</div>
-                        <div class="spinner-subtext" id="spinnerText">Por favor espera...</div>
-                    </div>
-                </div>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside id="appSidebar" class="w-64 text-white flex-shrink-0 shadow-xl fixed h-full z-50" aria-label="Barra lateral">
+            <div class="sidebar-header">
+                <img src="~/assets/imagenes/logo.png" alt="Logotipo Sistema de Donativos" class="w-full" style="max-height: 54px; object-fit: contain;">
+                <p class="text-stone-400 uppercase mt-2 font-semibold" style="font-size: 0.68rem; letter-spacing: 0.08em; margin-bottom: 0;">Control de Inventario y Acopio</p>
+            </div>
 
-                <!-- Barra superior móvil -->
-                <header class="mobile-topbar">
-                    <button type="button" onclick="App.toggleMobileSidebar()" class="text-white border-0 bg-transparent p-2" aria-label="Abrir menú">
-                        <i class="fas fa-bars text-xl"></i>
+            <nav class="sidebar-nav" aria-label="Navegación principal">
+                <div class="sidebar-section-label">Recepción</div>
+                <a href="#inicio" onclick="App.loadView(event, 'inicio'); return false;" class="sidebar-item active-tab flex items-center px-6 py-3" aria-current="page">
+                    <i class="fas fa-home w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Inicio</span>
+                </a>
+                <a href="#registros" onclick="App.loadView(event, 'registros'); return false;" class="sidebar-item flex items-center px-6 py-3">
+                    <i class="fas fa-plus-circle w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Nuevo Registro</span>
+                </a>
+                <a href="#consulta" onclick="App.loadView(event, 'consulta'); return false;" class="sidebar-item flex items-center px-6 py-3">
+                    <i class="fas fa-search w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Consulta e Inventario</span>
+                </a>
+
+                <div class="sidebar-section-label mt-3">Operaciones</div>
+                <a href="#salidas" onclick="App.loadView(event, 'salidas'); return false;" class="sidebar-item flex items-center px-6 py-3">
+                    <i class="fas fa-arrow-up w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Salidas</span>
+                </a>
+                <a href="#traspasos" onclick="App.loadView(event, 'traspasos'); return false;" class="sidebar-item flex items-center px-6 py-3">
+                    <i class="fa-solid fa-arrows-left-right w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Traspasos</span>
+                </a>
+                <a href="#reportes" onclick="App.loadView(event, 'reportes'); return false;" class="sidebar-item flex items-center px-6 py-3">
+                    <i class="fa-solid fa-file-lines w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Reportes Excel</span>
+                </a>
+                <a href="#dashboard" onclick="App.loadView(event, 'dashboard'); return false;" class="sidebar-item flex items-center px-6 py-3">
+                    <i class="fas fa-chart-line w-6" style="color:var(--dorado)" aria-hidden="true"></i>
+                    <span class="ml-3">Panel Operativo</span>
+                </a>
+
+                <div class="sidebar-section-label mt-3">Sesión</div>
+                <form action="@Url.Action("CerrarSesion", "Registros")" method="post" style="margin: 0;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="sidebar-item flex items-center px-6 py-3 text-red-400 hover:text-red-300 w-full text-left border-0 bg-transparent cursor-pointer">
+                        <i class="fas fa-sign-out-alt w-6" aria-hidden="true"></i>
+                        <span class="ml-3">Cerrar Sesión</span>
                     </button>
-                    <span class="font-bold text-sm tracking-wide">Sistema de Donativos</span>
-                    <span class="text-xs text-stone-300 truncate max-w-[140px]">@ViewBag.centro</span>
-                </header>
-                <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="App.closeMobileSidebar()"></div>
+                </form>
+            </nav>
+        </aside>
 
-                <div class="flex min-h-screen">
-                    <!-- Sidebar -->
-                    <aside id="appSidebar" class="w-64 bg-[#2d2d2d] text-white flex-shrink-0 shadow-xl fixed h-full z-50">
-                        <div class="sidebar-header">
-                            <img src="~/assets/imagenes/logo.png" alt="Sistema de Donativos" class="w-full">
-                                <p class="text-[10px] text-stone-400 uppercase mt-2 italic font-semibold">Gestión Solidaria</p>
-                            </div>
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            <!-- Barra de contexto operativa -->
+            <header class="app-topbar">
+                <div>
+                    <h1 class="app-topbar-title" id="currentViewHeading">Centro de Recepción y Logística</h1>
+                    <p class="app-topbar-subtitle" id="currentViewSubtitle">Gestión integral de entradas, existencias, entregas y traspasos</p>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="meta-pill" title="Almacén o Centro Asignado">
+                        <i class="fas fa-warehouse" aria-hidden="true"></i>
+                        <span>@(string.IsNullOrWhiteSpace(ViewBag.centro?.ToString()) ? "Almacén General" : ViewBag.centro)</span>
+                    </span>
+                    <span class="meta-pill" title="Operador en sesión">
+                        <i class="fas fa-user-check" aria-hidden="true"></i>
+                        <span>@(string.IsNullOrWhiteSpace(ViewBag.usuario?.ToString()) ? "Operador" : ViewBag.usuario)</span>
+                    </span>
+                </div>
+            </header>
 
-                            <nav class="sidebar-nav">
-                                <a href="#" onclick="App.loadView(event, 'inicio'); return false;" class="sidebar-item active-tab flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-home w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Inicio</span>
-                                </a>
-                                <a href="#" onclick="App.loadView(event, 'registros'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-plus-circle w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Nuevo Registro</span>
-                                </a>
-                                <a href="#" onclick="App.loadView(event, 'consulta'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-search w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Consulta Registros</span>
-                                </a>
-                                <div class="px-6 py-2 text-[10px] text-stone-500 uppercase font-black mt-4">Operaciones</div>
-                                <a href="#" onclick="App.loadView(event, 'salidas'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-arrow-up w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Salidas</span>
-                                </a>
-                                <a href="#" onclick="App.loadView(event, 'traspasos'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fa-solid fa-arrows-left-right w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Traspasos</span>
-                                </a>
-                                <a href="#" onclick="App.loadView(event, 'reportes'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fa-solid fa-file-lines w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Reportes</span>
-                                </a>
-                                <a href="#" onclick="App.loadView(event, 'dashboard'); return false;" class="sidebar-item flex items-center px-6 py-4 transition-all">
-                                    <i class="fas fa-chart-line w-6" style="color:var(--dorado)"></i>
-                                    <span class="ml-3">Dashboard</span>
-                                </a>
-                                <div class="px-6 py-2 text-[10px] text-stone-500 uppercase font-black mt-4">Sistema</div>
-                                <form action="@Url.Action("CerrarSesion", "Registros")" method="post" style="margin: 0;">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="sidebar-item flex items-center px-6 py-4 transition-all text-red-400 hover:text-red-300 w-full text-left border-0 bg-transparent cursor-pointer">
-                                        <i class="fas fa-sign-out-alt w-6"></i>
-                                        <span class="ml-3">Cerrar Sesión</span>
-                                    </button>
-                                </form>
-                            </nav>
-                        </aside>
-
-                        <!-- Main Content -->
-                        <main class="flex-1 p-8">
-                            <!-- Header -->
-                            <div class="mb-8 flex justify-between items-center">
-                                <div>
-                                    <h1 class="text-4xl font-black text-[#2d2d2d] mb-1">Centro de Recepción</h1>
-                                    <p class="text-stone-600 text-lg"><span style="color:var(--dorado); font-weight:bold;">@ViewBag.centro</span></p>
-                                    <p class="text-stone-600 text-lg"><span style="color:var(--dorado); font-weight:bold;">@ViewBag.usuario</span></p>
-                                </div>
-                            </div>
-
-                            <!-- Dynamic Content Container -->
-                            <div id="contentContainer"></div>
-                        </main>
-                    </div>
+            <!-- Dynamic Content Container -->
+            <div id="contentContainer" tabindex="-1"></div>
+        </main>
+    </div>
 
                     <script src="~/assets/dist/js/bootstrap.bundle.min.js"></script>
                     <script>
@@ -188,6 +205,36 @@
                         'reportes': 'Cargando reportes',
                         'dashboard': 'Cargando dashboard'
                         },
+                        viewHeaders: {
+                        'inicio': {
+                        title: 'Panel de Operaciones',
+                        subtitle: 'Selecciona un módulo operativo para gestionar entradas, salidas, traspasos o inventario'
+                        },
+                        'registros': {
+                        title: 'Registro de Donativos (Entradas)',
+                        subtitle: 'Captura de donativos en especie o efectivo e ingreso directo a inventario'
+                        },
+                        'consulta': {
+                        title: 'Consulta de Movimientos e Inventario',
+                        subtitle: 'Búsqueda avanzada por folio, monitoreo de existencias y alertas de stock'
+                        },
+                        'salidas': {
+                        title: 'Gestión de Salidas y Entregas',
+                        subtitle: 'Registro de entregas a beneficiarios, bajas por merma y control de folios'
+                        },
+                        'traspasos': {
+                        title: 'Traspasos entre Almacenes',
+                        subtitle: 'Envío, recepción y trazabilidad de mercancía entre centros de acopio'
+                        },
+                        'reportes': {
+                        title: 'Centro de Reportes y Exportación',
+                        subtitle: 'Generación de reportes operativos y kardex en formato Excel (.xlsx)'
+                        },
+                        'dashboard': {
+                        title: 'Indicadores Operativos en Tiempo Real',
+                        subtitle: 'Resumen de actividad del almacén y accesos directos de gestión'
+                        }
+                        },
 
                         init() {
                         this.loadViewInternal('inicio');
@@ -206,13 +253,6 @@
                         loadView(event, viewName) {
                         event?.preventDefault();
                         this.closeMobileSidebar();
-
-                        // Actualizar sidebar
-                        document.querySelectorAll('.sidebar-item').forEach(item => {
-                        item.classList.remove('active-tab');
-                        });
-                        event?.target?.closest('.sidebar-item')?.classList.add('active-tab');
-
                         this.loadViewInternal(viewName);
                         },
 
@@ -263,7 +303,7 @@
                         this.currentView = viewName;
                         $("html,body").animate({ scrollTop: 0 }, 300);
 
-                        // Marcar como activa la opción del menú correspondiente
+                        // Marcar como activa la opción del menú correspondiente y actualizar encabezado
                         this.updateActiveMenu(viewName);
 
                         // ⭐ INICIALIZAR MÓDULOS SEGÚN LA VISTA CARGADA
@@ -311,6 +351,8 @@
                         inicializarConsulta();
                         }, 300);
                         }
+                        } else if (viewName === 'dashboard') {
+                        this.loadDashboardStats();
                         }
                         },
                         error: (xhr, status, error) => {
@@ -319,6 +361,47 @@
                         console.error(error);
                         }
                         });
+                        },
+
+                        async loadDashboardStats() {
+                        if (typeof AjaxService === 'undefined') return;
+                        const setKpi = (id, val) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = val;
+                        };
+                        try {
+                        const [donativosRes, salidasRes, traspasosRes] = await Promise.allSettled([
+                        AjaxService.obtenerDonativos(),
+                        AjaxService.obtenerSalidas(),
+                        AjaxService.obtenerTraspasos()
+                        ]);
+
+                        if (donativosRes.status === 'fulfilled' && donativosRes.value?.success && Array.isArray(donativosRes.value.data)) {
+                        const activos = donativosRes.value.data.filter(d => (d.estatus || '').toLowerCase() !== 'cancelado');
+                        setKpi('kpiTotalDonativos', activos.length.toLocaleString('es-MX'));
+                        } else {
+                        setKpi('kpiTotalDonativos', '0');
+                        }
+
+                        if (salidasRes.status === 'fulfilled' && salidasRes.value?.success && Array.isArray(salidasRes.value.data)) {
+                        setKpi('kpiTotalSalidas', salidasRes.value.data.length.toLocaleString('es-MX'));
+                        } else {
+                        setKpi('kpiTotalSalidas', '0');
+                        }
+
+                        if (traspasosRes.status === 'fulfilled' && traspasosRes.value?.success && Array.isArray(traspasosRes.value.data)) {
+                        const lista = traspasosRes.value.data;
+                        const pendientes = lista.filter(t => (t.estado || '').toLowerCase() === 'pendiente').length;
+                        const aprobados = lista.filter(t => (t.estado || '').toLowerCase() === 'aprobado').length;
+                        setKpi('kpiTraspasosPendientes', pendientes.toLocaleString('es-MX'));
+                        setKpi('kpiTraspasosAprobados', aprobados.toLocaleString('es-MX'));
+                        } else {
+                        setKpi('kpiTraspasosPendientes', '0');
+                        setKpi('kpiTraspasosAprobados', '0');
+                        }
+                        } catch (e) {
+                        console.warn('No se pudieron cargar los indicadores del dashboard:', e);
+                        }
                         },
 
                         updateActiveMenu(viewName) {
@@ -335,10 +418,20 @@
                         const items = document.querySelectorAll('.sidebar-nav .sidebar-item');
                         items.forEach((item, index) => {
                         item.classList.remove('active-tab');
+                        item.removeAttribute('aria-current');
                         if (menuItems[viewName] === index) {
                         item.classList.add('active-tab');
+                        item.setAttribute('aria-current', 'page');
                         }
                         });
+
+                        const headerMeta = this.viewHeaders[viewName];
+                        if (headerMeta) {
+                        const headingEl = document.getElementById('currentViewHeading');
+                        const subtitleEl = document.getElementById('currentViewSubtitle');
+                        if (headingEl) headingEl.textContent = headerMeta.title;
+                        if (subtitleEl) subtitleEl.textContent = headerMeta.subtitle;
+                        }
                         }
                         };
 

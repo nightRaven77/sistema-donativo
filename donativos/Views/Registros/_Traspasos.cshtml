@@ -70,9 +70,9 @@
     <!-- FILTROS Y TABLA DE TRASPASOS -->
     <div class="card">
         <div class="card-header bg-stone-100">
-            <div class="row align-items-center">
+            <div class="row align-items-end g-2">
                 <div class="col-md-3">
-                    <label class="mb-0 font-weight-bold">Estado</label>
+                    <label for="filtroEstadoTraspaso" class="mb-1 font-weight-bold">Estado</label>
                     <select id="filtroEstadoTraspaso" class="form-control form-control-sm">
                         <option value="">Todos</option>
                         <option value="pendiente">Pendiente</option>
@@ -81,7 +81,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="mb-0 font-weight-bold">Tipo</label>
+                    <label for="filtroTipoTraspaso" class="mb-1 font-weight-bold">Tipo</label>
                     <select id="filtroTipoTraspaso" class="form-control form-control-sm">
                         <option value="">Todos</option>
                         <option value="normal">Normal</option>
@@ -89,13 +89,15 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="mb-0 font-weight-bold">Fecha Desde</label>
+                    <label for="filtroFechaDesdeTraspaso" class="mb-1 font-weight-bold">Fecha Desde</label>
                     <input type="date" id="filtroFechaDesdeTraspaso" class="form-control form-control-sm">
                 </div>
-                <div class="col-md-3">
-                    <label class="mb-0">&nbsp;</label>
-                    <button class="btn btn-info btn-sm btn-block" onclick="filtrarTraspasos()">
-                        <i class="fas fa-filter"></i> Filtrar
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="button" class="btn btn-guinda btn-sm flex-grow-1" onclick="filtrarTraspasos()">
+                        <i class="fas fa-filter" aria-hidden="true"></i> Filtrar
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="$('#filtroEstadoTraspaso, #filtroTipoTraspaso, #filtroFechaDesdeTraspaso').val(''); filtrarTraspasos();" title="Limpiar filtros" aria-label="Limpiar filtros de traspasos">
+                        <i class="fas fa-undo" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>

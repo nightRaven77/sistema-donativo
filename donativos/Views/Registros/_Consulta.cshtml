@@ -198,13 +198,13 @@
                 <div class="row g-3">
                     <!-- Búsqueda rápida por folio -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Búsqueda Rápida (Folio)</label>
+                        <label for="inputFolio" class="form-label fw-bold">Búsqueda Rápida (Folio)</label>
                         <input type="text" id="inputFolio" class="form-control" placeholder="Ej: E-1234, S-0856">
                     </div>
 
                     <!-- Tipo de movimiento -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Tipo de Movimiento</label>
+                        <label for="selectTipoMovimiento" class="form-label fw-bold">Tipo de Movimiento</label>
                         <select id="selectTipoMovimiento" class="form-control">
                             <option value="todos">Todos</option>
                             <option value="entrada">Entradas</option>
@@ -215,7 +215,7 @@
 
                     <!-- Estatus -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Estatus</label>
+                        <label for="selectEstatus" class="form-label fw-bold">Estatus</label>
                         <select id="selectEstatus" class="form-control">
                             <option value="">Todos</option>
                             <option value="completado">Completado</option>
@@ -226,19 +226,19 @@
 
                     <!-- Fecha Inicio -->
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Fecha Desde</label>
+                        <label for="inputFechaInicio" class="form-label fw-bold">Fecha Desde</label>
                         <input type="date" id="inputFechaInicio" class="form-control">
                     </div>
 
                     <!-- Fecha Fin -->
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Fecha Hasta</label>
+                        <label for="inputFechaFin" class="form-label fw-bold">Fecha Hasta</label>
                         <input type="date" id="inputFechaFin" class="form-control">
                     </div>
 
                     <!-- Artículo (opcional) -->
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Artículo (opcional)</label>
+                        <label for="selectArticulo" class="form-label fw-bold">Artículo (opcional)</label>
                         <select id="selectArticulo" class="form-control">
                             <option value="">-- Todos los artículos --</option>
                         </select>
@@ -247,7 +247,7 @@
 
                 <div class="text-end mt-3">
                     <button type="button" class="btn btn-primary" onclick="buscarMovimientos()" style="background-color: var(--guinda); border-color: var(--guinda);">
-                        <i class="fas fa-search"></i> Buscar
+                        <i class="fas fa-search" aria-hidden="true"></i> Buscar
                     </button>
                 </div>
             </div>
@@ -255,11 +255,11 @@
             <!-- Resultados -->
             <div id="resultadosContainer">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0" style="color: var(--guinda);">
-                        <i class="fas fa-list"></i> Resultados: <span id="totalResultados">0</span> registros
+                    <h5 class="mb-0" style="color: var(--guinda);" aria-live="polite">
+                        <i class="fas fa-list" aria-hidden="true"></i> Resultados: <span id="totalResultados">0</span> registros
                     </h5>
                     <button type="button" class="btn btn-success btn-sm" onclick="exportarExcel()" id="btnExportar" disabled>
-                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                        <i class="fas fa-file-excel" aria-hidden="true"></i> Exportar a Excel
                     </button>
                 </div>
 
@@ -297,19 +297,19 @@
             <!-- Filtros de inventario -->
             <div class="filtros-card">
                 <h5 class="mb-3" style="color: var(--guinda);">
-                    <i class="fas fa-filter"></i> Filtros de Inventario
+                    <i class="fas fa-filter" aria-hidden="true"></i> Filtros de Inventario
                 </h5>
 
                 <div class="row g-3">
                     <!-- Búsqueda por nombre de artículo -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Buscar Artículo</label>
+                        <label for="inputBusquedaInventario" class="form-label fw-bold">Buscar Artículo</label>
                         <input type="text" id="inputBusquedaInventario" class="form-control" placeholder="Nombre del artículo">
                     </div>
 
                     <!-- Filtro por categoría -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Categoría</label>
+                        <label for="selectCategoriaInventario" class="form-label fw-bold">Categoría</label>
                         <select id="selectCategoriaInventario" class="form-control">
                             <option value="">Todas las categorías</option>
                         </select>
@@ -317,7 +317,7 @@
 
                     <!-- Solo con stock -->
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Mostrar</label>
+                        <label for="selectSoloConStock" class="form-label fw-bold">Mostrar</label>
                         <select id="selectSoloConStock" class="form-control">
                             <option value="false">Todos los artículos</option>
                             <option value="true">Solo con stock disponible</option>
@@ -327,7 +327,7 @@
 
                 <div class="text-end mt-3">
                     <button type="button" class="btn btn-primary" onclick="cargarInventario()" style="background-color: var(--guinda); border-color: var(--guinda);">
-                        <i class="fas fa-sync-alt"></i> Actualizar Inventario
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i> Actualizar Inventario
                     </button>
                 </div>
             </div>

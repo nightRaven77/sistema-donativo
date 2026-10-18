@@ -219,16 +219,17 @@ body {
     margin-bottom: 40px;
 }
 
+    .form-header h1,
     .form-header h2 {
         font-size: 32px;
         font-weight: 700;
-        color: #656565;
+        color: #0f172a;
         margin-bottom: 8px;
     }
 
     .form-header p {
         font-size: 14px;
-        color: #999;
+        color: #475569;
     }
 
 /* Form Groups */
@@ -241,7 +242,7 @@ body {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #656565;
+    color: #334155;
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -256,23 +257,23 @@ body {
     width: 100%;
     padding: 14px 16px;
     font-size: 14px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #cbd5e1;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
-    background-color: #fafafa;
-    color: #656565;
+    background-color: #f8fafc;
+    color: #0f172a;
     transition: all 0.3s ease;
 }
 
     .form-input::placeholder {
-        color: #bbb;
+        color: #64748b;
     }
 
     .form-input:focus {
         outline: none;
         background-color: #fff;
         border-color: #0284c7;
-        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
     }
 
 .password-wrapper {
@@ -287,22 +288,30 @@ body {
 
 .toggle-password {
     position: absolute;
-    right: 14px;
+    right: 10px;
     background: none;
     border: none;
+    border-radius: 6px;
     cursor: pointer;
-    color: #999;
+    color: #475569;
     font-size: 16px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
 }
 
     .toggle-password:hover {
         color: #0284c7;
+        background: rgba(2, 132, 199, 0.08);
+    }
+
+    .toggle-password:focus-visible,
+    .btn-login:focus-visible {
+        outline: 3px solid #0284c7;
+        outline-offset: 2px;
     }
 
 .input-focus-border {
@@ -354,14 +363,22 @@ body {
 .form-footer {
     margin-top: 40px;
     padding-top: 25px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #e2e8f0;
     text-align: center;
 }
 
     .form-footer p {
         font-size: 12px;
-        color: #999;
+        color: #64748b;
     }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
 
 /* Animations */
 @keyframes fadeInLeft {

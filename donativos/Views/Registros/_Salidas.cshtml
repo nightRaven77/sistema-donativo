@@ -70,9 +70,9 @@
     <!-- TABLA DE SALIDAS -->
     <div class="card">
         <div class="card-header bg-stone-100">
-            <div class="row align-items-center">
+            <div class="row align-items-end g-2">
                 <div class="col-md-3">
-                    <label class="mb-0 font-weight-bold">Tipo de Salida</label>
+                    <label for="filtroTipoSalida" class="mb-1 font-weight-bold">Tipo de Salida</label>
                     <select id="filtroTipoSalida" class="form-control form-control-sm">
                         <option value="">Todos</option>
                         <option value="donacion">Donación a Beneficiario</option>
@@ -80,17 +80,19 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="mb-0 font-weight-bold">Fecha Desde</label>
+                    <label for="filtroFechaDesde" class="mb-1 font-weight-bold">Fecha Desde</label>
                     <input type="date" id="filtroFechaDesde" class="form-control form-control-sm">
                 </div>
                 <div class="col-md-3">
-                    <label class="mb-0 font-weight-bold">Fecha Hasta</label>
+                    <label for="filtroFechaHasta" class="mb-1 font-weight-bold">Fecha Hasta</label>
                     <input type="date" id="filtroFechaHasta" class="form-control form-control-sm">
                 </div>
-                <div class="col-md-3">
-                    <label class="mb-0">&nbsp;</label>
-                    <button class="btn btn-info btn-sm btn-block" onclick="filtrarSalidas()">
-                        <i class="fas fa-filter"></i> Filtrar
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="button" class="btn btn-guinda btn-sm flex-grow-1" onclick="filtrarSalidas()">
+                        <i class="fas fa-filter" aria-hidden="true"></i> Filtrar
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="$('#filtroTipoSalida, #filtroFechaDesde, #filtroFechaHasta').val(''); filtrarSalidas();" title="Limpiar filtros" aria-label="Limpiar filtros de salidas">
+                        <i class="fas fa-undo" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
