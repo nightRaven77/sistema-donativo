@@ -18,6 +18,7 @@ let timerBusquedaArticulo = null;
 let archivosAdjuntosSalida = [];
 let archivosExistentesSalida = [];
 let dataTableSalidas = null; // DataTable para la tabla de salidas
+let salidasCache = []; // Cache local de salidas para filtrado instantáneo
 
 // ⭐ Cache de selectores jQuery para mejorar rendimiento
 let SELECTORS_SALIDAS = {};
@@ -81,6 +82,11 @@ function inicializarSalidas() {
     configurarEventosBusqueda();
     establecerFechaHoy();
     configurarEventosArchivos();
+
+    // Filtrado reactivo al cambiar criterios
+    $('#filtroTipoSalida, #filtroFechaDesde, #filtroFechaHasta').off('change.salidasFiltro').on('change.salidasFiltro', function () {
+        filtrarSalidas();
+    });
 }
 
 /**
@@ -946,8 +952,8 @@ function cargarSalidas() {
     AjaxService.salidas.obtenerTodas()
         .then(response => {
             console.log('✓ Salidas obtenidas:', response);
-            const salidas = Array.isArray(response) ? response : [];
-            renderizarTablaSalidas(salidas);
+            salidasCache = Array.isArray(response) ? response : [];
+            filtrarSalidas();
         })
         .catch(error => {
             console.error('❌ Error al cargar salidas:', error);
@@ -1238,8 +1244,36 @@ function visualizarArchivo(url, nombreArchivo, tipo) {
  * Filtra las salidas según los criterios seleccionados
  */
 function filtrarSalidas() {
-    // Implementar filtrado si es necesario
-    cargarSalidas();
+    if (!Array.isArray(salidasCache)) {
+        cargarSalidas();
+        return;
+    }
+
+    const tipoFiltro = ($('#filtroTipoSalida').val() || '').toLowerCase().trim();
+    const fechaDesde = $('#filtroFechaDesde').val() || '';
+    const fechaHasta = $('#filtroFechaHasta').val() || '';
+
+    const salidasFiltradas = salidasCache.filter(salida => {
+        const tipoSalida = (salida.tipo_salida || salida.tipoSalida || salida.tipo || '').toLowerCase().trim();
+        if (tipoFiltro && tipoSalida !== tipoFiltro) {
+            return false;
+        }
+
+        const rawFecha = salida.fecha_salida || salida.fechaSalida || '';
+        const fechaISO = rawFecha ? String(rawFecha).substring(0, 10) : '';
+
+        if (fechaDesde && (!fechaISO || fechaISO < fechaDesde)) {
+            return false;
+        }
+
+        if (fechaHasta && (!fechaISO || fechaISO > fechaHasta)) {
+            return false;
+        }
+
+        return true;
+    });
+
+    renderizarTablaSalidas(salidasFiltradas);
 }
 
 // ===================================================================

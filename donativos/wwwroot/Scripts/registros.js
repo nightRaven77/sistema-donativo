@@ -288,6 +288,10 @@ function limpiarFormulario() {
     $('#textNombreContacto').prop('required', false);
     $('#textPuestoContacto').prop('required', false);
 
+    // Ocultar y limpiar campo de importe en efectivo
+    $('#grupoImporte').hide();
+    $('#numberImporte').prop('required', false).val('').removeClass('is-invalid');
+
     // Limpiar artículos
     $('#contenedorArticulos').empty();
     numeroArticulos = 0;
@@ -650,12 +654,16 @@ function initRegistrosForm() {
         textNotasContacto: $('#textNotasContacto'),
         selectAlmacenDestino: $('#selectAlmacenDestino'),
         selectTipoDonativo: $('#selectTipoDonativo'),
+        grupoImporte: $('#grupoImporte'),
+        numberImporte: $('#numberImporte'),
         textObservacionesDonativo: $('#textObservacionesDonativo')
     };
 
     // Remover TODOS los eventos previos para evitar duplicados
     // Usar namespace para remover eventos delegados específicos
     SELECTORS.selectTipoDonador.off('change.registros');
+    SELECTORS.selectTipoDonativo.off('change.registros');
+    SELECTORS.numberImporte.off('input.registros');
     SELECTORS.textNombreDonador.off('input.registros focus.registros blur.registros');
     SELECTORS.btnAgregarArticulo.off('click.registros');
     $(document).off('click.registros', '.btn-eliminar-articulo');
@@ -667,6 +675,21 @@ function initRegistrosForm() {
     // Event: Cambio de tipo de donador
     SELECTORS.selectTipoDonador.on('change.registros', function () {
         toggleSeccionContacto($(this).val());
+    });
+
+    // Event: Cambio de tipo de donativo (Especie vs Efectivo)
+    SELECTORS.selectTipoDonativo.on('change.registros', function () {
+        toggleTipoDonativo($(this).val());
+    });
+
+    // Event: Sincronizar importe en efectivo con el valor unitario del primer artículo
+    SELECTORS.numberImporte.on('input.registros', function () {
+        if ((SELECTORS.selectTipoDonativo.val() || '').toLowerCase() === 'efectivo') {
+            const $primerArticulo = SELECTORS.contenedorArticulos.find('.articulo-item').first();
+            if ($primerArticulo.length > 0) {
+                $primerArticulo.find('.input-articulo-valor').val($(this).val());
+            }
+        }
     });
 
     // Event: Búsqueda de donadores
@@ -748,6 +771,39 @@ function initRegistrosForm() {
 }
 
 /**
+ * Muestra u oculta el campo de importe según el tipo de donativo (especie vs efectivo)
+ * y pre-configura un concepto de aportación en efectivo si aún no hay artículos agregados.
+ */
+function toggleTipoDonativo(tipoDonativo) {
+    const tipo = (tipoDonativo || '').toLowerCase();
+    if (tipo === 'efectivo') {
+        $('#grupoImporte').show();
+        $('#numberImporte').prop('required', true);
+
+        // Si no hay artículos en el contenedor, agregar automáticamente un registro de aportación en efectivo
+        if ($('#contenedorArticulos').find('.articulo-item').length === 0) {
+            numeroArticulos++;
+            agregarArticulo(numeroArticulos);
+            const $item = $(`[data-articulo="${numeroArticulos}"]`);
+            $item.find('.input-articulo-nombre').val('Aportación en Efectivo');
+            $item.find('.input-articulo-cantidad').val(1);
+            $item.find('.input-articulo-unidad').val('otros');
+            $item.find('.input-articulo-estado').val('nuevo');
+            if (Array.isArray(categorias) && categorias.length > 0) {
+                $item.find('.input-articulo-categoria-select').val(categorias[0].id_categoria);
+            }
+            const importeActual = $('#numberImporte').val();
+            if (importeActual) {
+                $item.find('.input-articulo-valor').val(importeActual);
+            }
+        }
+    } else {
+        $('#grupoImporte').hide();
+        $('#numberImporte').prop('required', false).val('').removeClass('is-invalid');
+    }
+}
+
+/**
  * Limpia el formulario cuando se cancela (botón Cancelar)
  */
 function limpiarFormularioCancelacion() {
@@ -766,10 +822,8 @@ function limpiarFormularioCancelacion() {
     donadorSeleccionado = null;
 
     // Ocultar grupo importe si existe
-    const grupoImporte = document.getElementById('grupoImporte');
-    if (grupoImporte) {
-        grupoImporte.style.display = 'none';
-    }
+    $('#grupoImporte').hide();
+    $('#numberImporte').prop('required', false).val('').removeClass('is-invalid');
 
     notificaciones.info('Formulario limpiado', 'Operación realizada');
 }
@@ -2319,9 +2373,23 @@ function cargarDonativoEnFormulario(donativo) {
     $('#selectAlmacenDestino').val(donativo.idAlmacen || centroID);
     $('#textObservacionesDonativo').val(donativo.observaciones || '');
 
-    // Si es efectivo, mostrar el campo de importe
-    if (donativo.tipo === 'efectivo') {
+    // Si es efectivo, mostrar el campo de importe y cargar el monto
+    if ((donativo.tipo || '').toLowerCase() === 'efectivo') {
         $('#grupoImporte').show();
+        $('#numberImporte').prop('required', true);
+        if (donativo.detalles && donativo.detalles.length > 0) {
+            const totalImporte = donativo.detalles.reduce((acc, d) => {
+                const valor = parseFloat(d.valorUnitario) || 0;
+                const cant = parseInt(d.cantidadRecibida) || 1;
+                return acc + (valor * cant);
+            }, 0);
+            if (totalImporte > 0) {
+                $('#numberImporte').val(totalImporte.toFixed(2));
+            }
+        }
+    } else {
+        $('#grupoImporte').hide();
+        $('#numberImporte').prop('required', false).val('');
     }
 
     // Cargar artículos

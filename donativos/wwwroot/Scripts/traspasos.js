@@ -18,6 +18,7 @@ let archivosAdjuntosTraspaso = [];
 let archivosExistentesTraspaso = [];
 let archivosAdjuntosRecepcion = []; // Archivos para la recepción
 let dataTableTraspasos = null; // DataTable para la tabla de traspasos
+let traspasosCache = []; // Cache local de traspasos para filtrado instantáneo
 
 // ⭐ Cache de selectores jQuery para mejorar rendimiento
 let SELECTORS_TRASPASOS = {};
@@ -73,6 +74,11 @@ function inicializarTraspasos() {
     configurarEventosBusquedaTraspaso();
     establecerFechaHoyTraspaso();
     configurarEventosArchivosTraspaso();
+
+    // Filtrado reactivo al cambiar criterios
+    $('#filtroEstadoTraspaso, #filtroTipoTraspaso, #filtroFechaDesdeTraspaso').off('change.traspasosFiltro').on('change.traspasosFiltro', function () {
+        filtrarTraspasos();
+    });
 }
 
 /**
@@ -664,8 +670,8 @@ function cargarTraspasos() {
     AjaxService.traspasos.obtenerTodos()
         .then(response => {
             console.log('✓ Traspasos obtenidos:', response);
-            const traspasos = Array.isArray(response) ? response : [];
-            renderizarTablaTraspasos(traspasos);
+            traspasosCache = Array.isArray(response) ? response : [];
+            filtrarTraspasos();
         })
         .catch(error => {
             console.error('❌ Error al cargar traspasos:', error);
@@ -1167,8 +1173,43 @@ function confirmarCancelacionTraspaso() {
  * Filtra los traspasos según los criterios seleccionados
  */
 function filtrarTraspasos() {
-    // Implementar filtrado si es necesario
-    cargarTraspasos();
+    if (!Array.isArray(traspasosCache)) {
+        cargarTraspasos();
+        return;
+    }
+
+    const estadoFiltro = ($('#filtroEstadoTraspaso').val() || '').toLowerCase().trim();
+    const tipoFiltro = ($('#filtroTipoTraspaso').val() || '').toLowerCase().trim();
+    const fechaDesde = $('#filtroFechaDesdeTraspaso').val() || '';
+
+    const traspasosFiltrados = traspasosCache.filter(traspaso => {
+        const estado = (traspaso.estatus || 'pendiente').toLowerCase().trim();
+        if (estadoFiltro) {
+            if (estadoFiltro === 'aprobado') {
+                if (estado !== 'aprobado' && estado !== 'recibido') return false;
+            } else if (estado !== estadoFiltro) {
+                return false;
+            }
+        }
+
+        const isInstantaneo = Boolean(traspaso.is_instantaneo || traspaso.isInstantaneo);
+        if (tipoFiltro === 'instantaneo' && !isInstantaneo) {
+            return false;
+        }
+        if (tipoFiltro === 'normal' && isInstantaneo) {
+            return false;
+        }
+
+        const rawFecha = traspaso.fecha_traspaso || traspaso.fechaTraspaso || '';
+        const fechaISO = rawFecha ? String(rawFecha).substring(0, 10) : '';
+        if (fechaDesde && (!fechaISO || fechaISO < fechaDesde)) {
+            return false;
+        }
+
+        return true;
+    });
+
+    renderizarTablaTraspasos(traspasosFiltrados);
 }
 
 // ===================================================================
