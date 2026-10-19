@@ -1,0 +1,48 @@
+services:
+  # ====================================================================
+  # API Backend REST (.NET 9/10)
+  # ====================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: donativos-api
+    restart: unless-stopped
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__donativosCn=Server=host.docker.internal;Database=DonativosDB;User Id=sa;Password=TuPasswordSeguro123!;TrustServerCertificate=True;
+      - logPath__path=/app/logs/api-.txt
+    volumes:
+      - api-logs:/app/logs
+    networks:
+      - donativos-network
+
+  # ====================================================================
+  # Aplicación Web Frontend MVC
+  # ====================================================================
+  web:
+    build:
+      context: ../sistema-donativos/donativos
+      dockerfile: Dockerfile
+    container_name: donativos-web
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - apiUrl=http://api:8080/
+    depends_on:
+      - api
+    networks:
+      - donativos-network
+
+networks:
+  donativos-network:
+    driver: bridge
+
+volumes:
+  api-logs:

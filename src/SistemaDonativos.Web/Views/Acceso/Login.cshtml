@@ -1,0 +1,251 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Seguro - Sistema de Donativos</title>
+    
+    <!-- Tipografía Google Fonts Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Estilos de la aplicación -->
+    <link href="~/assets/dist/css/login.css" rel="stylesheet" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    
+    <link rel="icon" type="image/x-icon" href="~/assets/imagenes/favicon.ico">
+</head>
+<body>
+    <!-- Malla sutil de fondo -->
+    <div class="bg-mesh-pattern" aria-hidden="true"></div>
+
+    <main class="login-wrapper">
+        <div class="login-card">
+            
+            <!-- Panel Lateral Institucional / Branding -->
+            <section class="brand-panel">
+                <div>
+                    <!-- Badge de Estado del Sistema -->
+                    <div class="brand-status-badge">
+                        <span class="status-dot"></span>
+                        <span>Plataforma Operativa</span>
+                    </div>
+
+                    <div class="brand-header">
+                        <div class="brand-logo-wrap">
+                            <img src="~/assets/imagenes/logo.png" alt="Logotipo Sistema de Donativos" class="brand-logo">
+                        </div>
+                        <h1 class="brand-title">Sistema Integral de Donativos</h1>
+                        <p class="brand-description">
+                            Control centralizado, trazabilidad y logística para la recepción y distribución de donativos en centros de acopio.
+                        </p>
+                    </div>
+
+                    <!-- Indicadores de Valor Operativo -->
+                    <div class="brand-features">
+                        <div class="feature-pill">
+                            <div class="feature-icon-wrap">
+                                <i class="fas fa-boxes-stacked" aria-hidden="true"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Control de Inventario</h4>
+                                <p>Trazabilidad exacta de entradas, salidas y traspasos entre almacenes.</p>
+                            </div>
+                        </div>
+
+                        <div class="feature-pill">
+                            <div class="feature-icon-wrap">
+                                <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Seguridad y Auditoría</h4>
+                                <p>Registro de movimientos y acceso blindado por roles y centro.</p>
+                            </div>
+                        </div>
+
+                        <div class="feature-pill">
+                            <div class="feature-icon-wrap">
+                                <i class="fas fa-network-wired" aria-hidden="true"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>Gestión Centralizada</h4>
+                                <p>Coordinación en tiempo real para almacenes y beneficiarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="brand-footer">
+                    <span><i class="fas fa-circle-info"></i> Soporte técnico institucional</span>
+                    <span>v2.4 LTS</span>
+                </div>
+            </section>
+
+            <!-- Panel de Acceso / Formulario -->
+            <section class="form-panel">
+                <div class="form-header">
+                    <h2 class="form-title">Iniciar Sesión</h2>
+                    <p class="form-subtitle">Ingresa tus credenciales autorizadas para acceder al módulo de operaciones.</p>
+                </div>
+
+                <!-- Mensaje de Error en línea si existiera -->
+                @if (ViewBag.MensajeError != null)
+                {
+                    <div class="alert-error" role="alert">
+                        <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+                        <span>@ViewBag.MensajeError</span>
+                    </div>
+                }
+
+                <form action="@Url.Action("Login", "Acceso")" method="post" id="loginForm" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <!-- Campo Usuario -->
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <span>Usuario</span>
+                        </label>
+                        <div class="input-container">
+                            <i class="fas fa-user input-icon" aria-hidden="true"></i>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                class="form-control" 
+                                placeholder="Nombre de usuario" 
+                                autocomplete="username" 
+                                required 
+                                autofocus>
+                        </div>
+                    </div>
+
+                    <!-- Campo Contraseña -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <span>Contraseña</span>
+                        </label>
+                        <div class="input-container password-input-wrap">
+                            <i class="fas fa-lock input-icon" aria-hidden="true"></i>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-control" 
+                                placeholder="Ingresa tu contraseña" 
+                                autocomplete="current-password" 
+                                required>
+                            <button 
+                                type="button" 
+                                id="btnTogglePassword" 
+                                class="btn-toggle-password" 
+                                aria-label="Mostrar u ocultar contraseña" 
+                                aria-pressed="false"
+                                tabindex="0">
+                                <i class="fas fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" class="btn-submit" id="btnSubmit">
+                        <i class="fas fa-spinner spinner-icon" aria-hidden="true"></i>
+                        <span class="btn-text-default">Ingresar al Sistema <i class="fas fa-arrow-right" style="margin-left:6px; font-size: 0.9em;"></i></span>
+                        <span class="btn-text-loading">Validando credenciales...</span>
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>&copy; @DateTime.Now.Year Sistema de Gestión de Donativos. Conexión segura y cifrada.</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        // Configuración de Toastr
+        toastr.options = {
+            "closeButton": true,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "timeOut": 5000,
+            "extendedTimeOut": 1500,
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // Toggle Mostrar/Ocultar Contraseña
+        const btnTogglePassword = document.getElementById('btnTogglePassword');
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+
+        if (btnTogglePassword && passwordInput && toggleIcon) {
+            btnTogglePassword.addEventListener('click', function () {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                btnTogglePassword.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+                
+                if (isPassword) {
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            });
+        }
+
+        // Manejo de Validación y Feedback de Envío
+        const loginForm = document.getElementById('loginForm');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const usernameInput = document.getElementById('username');
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', function (e) {
+                const usernameVal = usernameInput.value.trim();
+                const passwordVal = passwordInput.value.trim();
+
+                if (!usernameVal || !passwordVal) {
+                    e.preventDefault();
+                    toastr.warning('Por favor completa tanto el usuario como la contraseña.', 'Campos requeridos');
+                    if (!usernameVal) usernameInput.focus();
+                    else passwordInput.focus();
+                    return;
+                }
+
+                // Activar estado de carga para prevenir dobles envíos
+                btnSubmit.classList.add('is-loading');
+                btnSubmit.setAttribute('disabled', 'disabled');
+            });
+        }
+
+        // Notificaciones Toastr desde el servidor
+        @if (ViewBag.MensajeError != null)
+        {
+            <text>
+            toastr.error(@Html.Raw(Json.Serialize(ViewBag.MensajeError.ToString())), 'Acceso denegado');
+            </text>
+        }
+        @if (ViewBag.MensajeExito != null)
+        {
+            <text>
+            toastr.success(@Html.Raw(Json.Serialize(ViewBag.MensajeExito.ToString())), 'Operación exitosa');
+            </text>
+        }
+    </script>
+</body>
+</html>

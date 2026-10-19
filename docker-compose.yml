@@ -1,11 +1,63 @@
 services:
   # ====================================================================
+  # Base de Datos SQL Server 2022
+  # ====================================================================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: donativos-db
+    platform: linux/amd64
+    user: root
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Donativos2026!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql/data
+      - ./respaldoDonativos.bak:/var/opt/mssql/backup/respaldoDonativos.bak:ro
+      - ./respaldo.sql:/var/opt/mssql/backup/respaldo.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Donativos2026!' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Donativos2026!' -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - donativos-network
+
+  # ====================================================================
+  # API Backend REST (.NET 10)
+  # ====================================================================
+  api:
+    build:
+      context: .
+      dockerfile: src/SistemaDonativos.Api/Dockerfile
+    container_name: donativos-api
+    restart: unless-stopped
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__donativosCn=Server=sqlserver,1433;Database=DonativosDB;User Id=sa;Password=Donativos2026!;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - logPath__path=/app/logs/api-.txt
+    volumes:
+      - api-logs:/app/logs
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - donativos-network
+
+  # ====================================================================
   # Aplicación Web Frontend MVC
   # ====================================================================
   web:
     build:
-      context: ./donativos
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/SistemaDonativos.Web/Dockerfile
     container_name: donativos-web
     restart: unless-stopped
     ports:
@@ -19,30 +71,10 @@ services:
     networks:
       - donativos-network
 
-  # ====================================================================
-  # API Backend REST (.NET 9/10)
-  # ====================================================================
-  api:
-    build:
-      context: ../api-donativos
-      dockerfile: Dockerfile
-    container_name: donativos-api
-    restart: unless-stopped
-    ports:
-      - "5000:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__donativosCn=Server=host.docker.internal;Database=DonativosDB;User Id=sa;Password=TuPasswordSeguro123!;TrustServerCertificate=True;
-      - logPath__path=/app/logs/api-.txt
-    volumes:
-      - api-logs:/app/logs
-    networks:
-      - donativos-network
-
 networks:
   donativos-network:
     driver: bridge
 
 volumes:
   api-logs:
+  sqlserver-data:

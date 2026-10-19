@@ -1,0 +1,1751 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Donativos",
+    "version": "2.2.0",
+    "description": "API para gestión de donativos, salidas, traspasos y reportería\n\n✅ Versión actualizada con camelCase\n✅ Compatible con Apidog\n🆕 Incluye endpoint de stock por almacén\n🆕 Módulo de reportes en Excel (Entradas, Salidas, Traspasos, Existencias, Kardex)"
+  },
+  "servers": [
+    {
+      "url": "https://localhost:5001",
+      "description": "Desarrollo Local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Autenticación JWT"
+    },
+    {
+      "name": "Donativos",
+      "description": "Gestión de donativos"
+    },
+    {
+      "name": "Salidas",
+      "description": "Gestión de salidas de inventario"
+    },
+    {
+      "name": "Traspasos",
+      "description": "Gestión de traspasos entre almacenes"
+    },
+    {
+      "name": "Reportes",
+      "description": "Generación de reportes en formato Excel"
+    },
+    {
+      "name": "Catálogos",
+      "description": "Catálogos del sistema"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesión",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "usuario": "admin",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                },
+                "example": {
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "expiracion": "2024-12-31T23:59:59"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          }
+        }
+      }
+    },
+    "/donativo": {
+      "get": {
+        "tags": ["Donativos"],
+        "summary": "Listar donativos",
+        "operationId": "listarDonativos",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de donativos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DonativoListado"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Donativos"],
+        "summary": "Crear donativo",
+        "operationId": "crearDonativo",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonativoRequest"
+              },
+              "examples": {
+                "donativo_simple": {
+                  "summary": "Donativo simple",
+                  "value": {
+                    "idDonador": 1,
+                    "fechaRecepcion": "2024-11-05T10:30:00",
+                    "tipo": "especie",
+                    "estatus": "Recibido",
+                    "observaciones": "Donación de herramientas",
+                    "idAlmacen": 4,
+                    "detalles": [
+                      {
+                        "idArticulo": 1,
+                        "cantidadRecibida": 1,
+                        "valorUnitario": 0,
+                        "estado": "nuevo",
+                        "unidadMedida": "piezas",
+                        "descripcion": "Desmalezadora"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Donativo creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "idDonativo": {"type": "integer"},
+                    "folio": {"type": "string"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/donativo/{id}": {
+      "get": {
+        "tags": ["Donativos"],
+        "summary": "Obtener donativo por ID",
+        "operationId": "obtenerDonativo",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donativo encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonativoCompleto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Donativos"],
+        "summary": "Actualizar donativo",
+        "operationId": "actualizarDonativo",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDonativoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Donativo actualizado"
+          }
+        }
+      }
+    },
+    "/salida": {
+      "get": {
+        "tags": ["Salidas"],
+        "summary": "Listar salidas",
+        "operationId": "listarSalidas",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de salidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SalidaListado"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Salidas"],
+        "summary": "Crear salida",
+        "operationId": "crearSalida",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSalidaRequest"
+              },
+              "examples": {
+                "salida_ejemplo": {
+                  "summary": "Salida de ejemplo",
+                  "value": {
+                    "fechaSalida": "2024-03-05",
+                    "idAlmacenOrigen": 1,
+                    "idBeneficiario": 1,
+                    "motivo": "Entrega mensual programada",
+                    "observaciones": "Entrega completa",
+                    "detalles": [
+                      {
+                        "idArticulo": 1,
+                        "cantidadEntregada": 10,
+                        "valorUnitario": 50,
+                        "unidadMedida": "piezas"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Salida creada"
+          }
+        }
+      }
+    },
+    "/salida/{id}": {
+      "get": {
+        "tags": ["Salidas"],
+        "summary": "Obtener salida por ID",
+        "operationId": "obtenerSalida",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Salida encontrada"
+          }
+        }
+      }
+    },
+    "/traspaso": {
+      "get": {
+        "tags": ["Traspasos"],
+        "summary": "Listar traspasos",
+        "operationId": "listarTraspasos",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de traspasos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TraspasoListado"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Traspasos"],
+        "summary": "Crear traspaso",
+        "operationId": "crearTraspaso",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTraspasoRequest"
+              },
+              "examples": {
+                "traspaso_normal": {
+                  "summary": "Traspaso normal (Pendiente)",
+                  "value": {
+                    "fechaTraspaso": "2024-03-05",
+                    "almacenOrigen": 1,
+                    "almacenDestino": 2,
+                    "motivo": "Redistribución mensual",
+                    "isInstantaneo": false,
+                    "detalles": [
+                      {
+                        "idArticulo": 1,
+                        "cantidad": 5
+                      }
+                    ]
+                  }
+                },
+                "traspaso_instantaneo": {
+                  "summary": "Traspaso instantáneo (Recibido)",
+                  "value": {
+                    "fechaTraspaso": "2024-03-05",
+                    "almacenOrigen": 1,
+                    "almacenDestino": 2,
+                    "motivo": "Urgente",
+                    "isInstantaneo": true,
+                    "detalles": [
+                      {
+                        "idArticulo": 1,
+                        "cantidad": 5
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Traspaso creado"
+          }
+        }
+      }
+    },
+    "/traspaso/{id}": {
+      "get": {
+        "tags": ["Traspasos"],
+        "summary": "Obtener traspaso por ID",
+        "operationId": "obtenerTraspaso",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Traspaso encontrado"
+          }
+        }
+      }
+    },
+    "/traspaso/{id}/recibir": {
+      "put": {
+        "tags": ["Traspasos"],
+        "summary": "Recibir traspaso",
+        "operationId": "recibirTraspaso",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"}
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "observaciones": {"type": "string"}
+                }
+              },
+              "example": {
+                "observaciones": "Recibido en perfectas condiciones"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Traspaso recibido"
+          }
+        }
+      }
+    },
+    "/traspaso/{id}/cancelar": {
+      "post": {
+        "tags": ["Traspasos"],
+        "summary": "Cancelar traspaso",
+        "operationId": "cancelarTraspaso",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["motivoCancelacion"],
+                "properties": {
+                  "motivoCancelacion": {"type": "string"}
+                }
+              },
+              "example": {
+                "motivoCancelacion": "Error en la orden"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Traspaso cancelado"
+          }
+        }
+      }
+    },
+    "/catalogos/almacen": {
+      "get": {
+        "tags": ["Catálogos"],
+        "summary": "Listar almacenes",
+        "operationId": "listarAlmacenes",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de almacenes"
+          }
+        }
+      }
+    },
+    "/catalogos/articulo": {
+      "get": {
+        "tags": ["Catálogos"],
+        "summary": "Listar artículos",
+        "operationId": "listarArticulos",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de artículos"
+          }
+        }
+      }
+    },
+    "/catalogos/articulo/stock/{idAlmacen}": {
+      "get": {
+        "tags": ["Catálogos"],
+        "summary": "🆕 Obtener artículos con stock por almacén",
+        "description": "**Endpoint para Salidas y Traspasos**\n\nConsulta artículos con inventario disponible en un almacén específico.\n\n✅ Solo retorna artículos con stock > 0\n✅ Permite búsqueda por nombre\n✅ Útil para validar disponibilidad antes de crear salidas/traspasos",
+        "operationId": "obtenerStockPorAlmacen",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "idAlmacen",
+            "in": "path",
+            "required": true,
+            "description": "ID del almacén a consultar",
+            "schema": {"type": "integer"},
+            "example": 1
+          },
+          {
+            "name": "buscar",
+            "in": "query",
+            "required": false,
+            "description": "Término de búsqueda para filtrar por nombre de artículo",
+            "schema": {"type": "string"},
+            "example": "arroz"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de artículos con stock disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ArticuloConStock"
+                  }
+                },
+                "examples": {
+                  "stock_disponible": {
+                    "summary": "Stock disponible",
+                    "value": [
+                      {
+                        "idArticulo": 1,
+                        "nombre": "Arroz Blanco",
+                        "idCategoria": 1,
+                        "nombreCategoria": "Alimentos",
+                        "stockActual": 150.5,
+                        "idAlmacen": 1,
+                        "nombreAlmacen": "Almacén Central",
+                        "fechaUltimaEntrada": "2024-03-01T10:30:00",
+                        "fechaUltimaSalida": "2024-03-05T14:15:00",
+                        "activo": true
+                      },
+                      {
+                        "idArticulo": 2,
+                        "nombre": "Frijol Negro",
+                        "idCategoria": 1,
+                        "nombreCategoria": "Alimentos",
+                        "stockActual": 85.0,
+                        "idAlmacen": 1,
+                        "nombreAlmacen": "Almacén Central",
+                        "fechaUltimaEntrada": "2024-02-28T09:00:00",
+                        "fechaUltimaSalida": null,
+                        "activo": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos o almacén no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string"}
+                  }
+                },
+                "examples": {
+                  "almacen_no_existe": {
+                    "summary": "Almacén no existe",
+                    "value": {
+                      "message": "El almacén con ID 999 no existe"
+                    }
+                  },
+                  "id_invalido": {
+                    "summary": "ID inválido",
+                    "value": {
+                      "message": "El ID del almacén debe ser mayor a 0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No hay artículos con stock disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string"}
+                  }
+                },
+                "example": {
+                  "message": "No hay artículos con stock disponible en el almacén 1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalogos/beneficiario": {
+      "get": {
+        "tags": ["Catálogos"],
+        "summary": "Listar beneficiarios",
+        "operationId": "listarBeneficiarios",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de beneficiarios"
+          }
+        }
+      }
+    },
+    "/catalogos/donador": {
+      "get": {
+        "tags": ["Catálogos"],
+        "summary": "Listar donadores",
+        "operationId": "listarDonadores",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de donadores"
+          }
+        }
+      }
+    },
+    "/reportes/entradas": {
+      "post": {
+        "tags": ["Reportes"],
+        "summary": "Reporte de Entradas (Donativos)",
+        "description": "Genera reporte en Excel de donativos recibidos con filtros opcionales por fecha, almacén, donador, artículo, categoría y tipo. Incluye hoja resumen y detalle.",
+        "operationId": "generarReporteEntradas",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReporteEntradasRequest"
+              },
+              "examples": {
+                "reporte_mensual": {
+                  "summary": "Reporte del mes actual",
+                  "value": {
+                    "fechaInicio": "2024-03-01",
+                    "fechaFin": "2024-03-31",
+                    "idAlmacen": 1,
+                    "pagina": 1,
+                    "registrosPorPagina": 50,
+                    "ordenarPor": "fecha_recepcion",
+                    "orden": "DESC"
+                  }
+                },
+                "reporte_completo": {
+                  "summary": "Reporte completo sin filtros",
+                  "value": {
+                    "pagina": 1,
+                    "registrosPorPagina": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo Excel generado exitosamente",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "description": "Nombre del archivo descargado",
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=Reporte_Entradas_20240305_143022.xlsx"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "mensaje": "Datos no proporcionados"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontraron datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "mensaje": "No se encontraron datos para generar el reporte"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerErrorResponse"
+                },
+                "example": {
+                  "mensaje": "Error al generar el reporte",
+                  "reference_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/salidas": {
+      "post": {
+        "tags": ["Reportes"],
+        "summary": "Reporte de Salidas",
+        "description": "Genera reporte en Excel de salidas de inventario con filtros opcionales por fecha, almacén, beneficiario, artículo, categoría y tipo de salida. Incluye hoja resumen y detalle.",
+        "operationId": "generarReporteSalidas",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReporteSalidasRequest"
+              },
+              "examples": {
+                "reporte_mensual": {
+                  "summary": "Salidas del mes actual",
+                  "value": {
+                    "fechaInicio": "2024-03-01",
+                    "fechaFin": "2024-03-31",
+                    "idAlmacen": 1,
+                    "tipoSalida": "Beneficiario",
+                    "pagina": 1,
+                    "registrosPorPagina": 50,
+                    "ordenarPor": "fecha_salida",
+                    "orden": "DESC"
+                  }
+                },
+                "reporte_por_beneficiario": {
+                  "summary": "Salidas a beneficiario específico",
+                  "value": {
+                    "idBeneficiario": 5,
+                    "tipoSalida": "Beneficiario",
+                    "pagina": 1,
+                    "registrosPorPagina": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo Excel generado exitosamente",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "description": "Nombre del archivo descargado",
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=Reporte_Salidas_20240305_143022.xlsx"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontraron datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/traspasos": {
+      "post": {
+        "tags": ["Reportes"],
+        "summary": "Reporte de Traspasos",
+        "description": "Genera reporte en Excel de traspasos entre almacenes con filtros opcionales por fecha, almacén origen, almacén destino, artículo, categoría y estatus. Incluye hoja resumen y detalle.",
+        "operationId": "generarReporteTraspasos",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReporteTraspasosRequest"
+              },
+              "examples": {
+                "reporte_pendientes": {
+                  "summary": "Traspasos pendientes",
+                  "value": {
+                    "estatus": "Pendiente",
+                    "idAlmacenOrigen": 1,
+                    "pagina": 1,
+                    "registrosPorPagina": 50,
+                    "ordenarPor": "fecha_traspaso",
+                    "orden": "DESC"
+                  }
+                },
+                "reporte_entre_almacenes": {
+                  "summary": "Traspasos entre dos almacenes",
+                  "value": {
+                    "fechaInicio": "2024-03-01",
+                    "fechaFin": "2024-03-31",
+                    "idAlmacenOrigen": 1,
+                    "idAlmacenDestino": 2,
+                    "pagina": 1,
+                    "registrosPorPagina": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo Excel generado exitosamente",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "description": "Nombre del archivo descargado",
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=Reporte_Traspasos_20240305_143022.xlsx"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontraron datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/existencias": {
+      "post": {
+        "tags": ["Reportes"],
+        "summary": "Reporte de Existencias",
+        "description": "Genera reporte en Excel de existencias actuales en inventario con filtros opcionales por almacén, artículo, categoría, stock mínimo y artículos sin existencia. Incluye hoja resumen y detalle.",
+        "operationId": "generarReporteExistencias",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReporteExistenciasRequest"
+              },
+              "examples": {
+                "reporte_sin_stock": {
+                  "summary": "Artículos sin existencia",
+                  "value": {
+                    "soloSinExistencia": true,
+                    "idAlmacen": 1,
+                    "pagina": 1,
+                    "registrosPorPagina": 100
+                  }
+                },
+                "reporte_stock_bajo": {
+                  "summary": "Artículos con stock bajo",
+                  "value": {
+                    "soloStockBajo": true,
+                    "idAlmacen": 1,
+                    "pagina": 1,
+                    "registrosPorPagina": 100,
+                    "ordenarPor": "cantidad_actual",
+                    "orden": "ASC"
+                  }
+                },
+                "reporte_completo": {
+                  "summary": "Todas las existencias",
+                  "value": {
+                    "idAlmacen": 1,
+                    "pagina": 1,
+                    "registrosPorPagina": 100,
+                    "ordenarPor": "nombre_articulo",
+                    "orden": "ASC"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo Excel generado exitosamente",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "description": "Nombre del archivo descargado",
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=Reporte_Existencias_20240305_143022.xlsx"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontraron datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/kardex": {
+      "post": {
+        "tags": ["Reportes"],
+        "summary": "Kardex de Inventario",
+        "description": "Genera kardex (historial de movimientos) en Excel para un artículo específico en un almacén. Muestra todos los movimientos de entrada/salida con balance acumulado. Incluye hoja de movimientos y resumen.",
+        "operationId": "generarKardexInventario",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReporteKardexRequest"
+              },
+              "examples": {
+                "kardex_articulo": {
+                  "summary": "Kardex de artículo específico",
+                  "value": {
+                    "idAlmacen": 1,
+                    "idArticulo": 5,
+                    "fechaInicio": "2024-01-01",
+                    "fechaFin": "2024-03-31"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo Excel generado exitosamente",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "description": "Nombre del archivo descargado",
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=Kardex_Almacen1_Articulo5_20240305_143022.xlsx"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos (idAlmacen e idArticulo son requeridos)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "parametros_faltantes": {
+                    "summary": "Parámetros requeridos faltantes",
+                    "value": {
+                      "mensaje": "idAlmacen e idArticulo son requeridos"
+                    }
+                  },
+                  "parametros_invalidos": {
+                    "summary": "Parámetros inválidos",
+                    "value": {
+                      "mensaje": "idAlmacen e idArticulo deben ser mayores a 0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontraron movimientos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "mensaje": "No se encontraron movimientos para el artículo en el almacén especificado"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT obtenido del endpoint /auth/login"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["usuario", "password"],
+        "properties": {
+          "usuario": {"type": "string"},
+          "password": {"type": "string"}
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": {"type": "string"},
+          "expiracion": {"type": "string"}
+        }
+      },
+      "CreateDonativoRequest": {
+        "type": "object",
+        "required": ["idDonador", "fechaRecepcion", "tipo", "idAlmacen", "detalles"],
+        "properties": {
+          "idDonador": {"type": "integer"},
+          "fechaRecepcion": {"type": "string", "format": "date-time"},
+          "tipo": {"type": "string", "enum": ["especie", "efectivo", "dinero"]},
+          "estatus": {"type": "string"},
+          "observaciones": {"type": "string"},
+          "idAlmacen": {"type": "integer"},
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DonativoDetalle"
+            }
+          },
+          "archivos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchivoRequest"
+            }
+          }
+        }
+      },
+      "UpdateDonativoRequest": {
+        "type": "object",
+        "properties": {
+          "idDonador": {"type": "integer"},
+          "fechaRecepcion": {"type": "string", "format": "date-time"},
+          "tipo": {"type": "string"},
+          "estatus": {"type": "string"},
+          "observaciones": {"type": "string"},
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DonativoDetalle"
+            }
+          }
+        }
+      },
+      "DonativoDetalle": {
+        "type": "object",
+        "required": ["idArticulo", "cantidadRecibida", "unidadMedida"],
+        "properties": {
+          "idArticulo": {"type": "integer"},
+          "cantidadRecibida": {"type": "number"},
+          "valorUnitario": {"type": "number"},
+          "estado": {"type": "string"},
+          "unidadMedida": {"type": "string"},
+          "descripcion": {"type": "string"}
+        }
+      },
+      "DonativoListado": {
+        "type": "object",
+        "properties": {
+          "idDonativo": {"type": "integer"},
+          "folio": {"type": "string"},
+          "nombre": {"type": "string"},
+          "fechaRecepcion": {"type": "string"},
+          "tipo": {"type": "string"},
+          "estatus": {"type": "string"},
+          "cantidadArticulos": {"type": "integer"}
+        }
+      },
+      "DonativoCompleto": {
+        "type": "object",
+        "properties": {
+          "idDonativo": {"type": "integer"},
+          "folio": {"type": "string"},
+          "idDonador": {"type": "integer"},
+          "nombreDonador": {"type": "string"},
+          "fechaRecepcion": {"type": "string"},
+          "tipo": {"type": "string"},
+          "estatus": {"type": "string"},
+          "observaciones": {"type": "string"},
+          "detalles": {"type": "array"},
+          "archivos": {"type": "array"}
+        }
+      },
+      "CreateSalidaRequest": {
+        "type": "object",
+        "required": ["fechaSalida", "idAlmacenOrigen", "motivo", "detalles"],
+        "properties": {
+          "fechaSalida": {"type": "string", "format": "date"},
+          "idAlmacenOrigen": {"type": "integer"},
+          "idBeneficiario": {"type": "integer"},
+          "motivo": {"type": "string"},
+          "observaciones": {"type": "string"},
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalidaDetalle"
+            }
+          }
+        }
+      },
+      "SalidaDetalle": {
+        "type": "object",
+        "required": ["idArticulo", "cantidadEntregada", "unidadMedida"],
+        "properties": {
+          "idArticulo": {"type": "integer"},
+          "cantidadEntregada": {"type": "number"},
+          "valorUnitario": {"type": "number"},
+          "unidadMedida": {"type": "string"},
+          "observaciones": {"type": "string"}
+        }
+      },
+      "SalidaListado": {
+        "type": "object",
+        "properties": {
+          "idSalida": {"type": "integer"},
+          "folio": {"type": "string"},
+          "fechaSalida": {"type": "string"},
+          "nombreBeneficiario": {"type": "string"},
+          "estatus": {"type": "string"},
+          "cantidadArticulos": {"type": "integer"}
+        }
+      },
+      "CreateTraspasoRequest": {
+        "type": "object",
+        "required": ["fechaTraspaso", "almacenOrigen", "almacenDestino", "detalles"],
+        "properties": {
+          "fechaTraspaso": {"type": "string", "format": "date"},
+          "almacenOrigen": {"type": "integer"},
+          "almacenDestino": {"type": "integer"},
+          "motivo": {"type": "string"},
+          "isInstantaneo": {"type": "boolean", "default": false},
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraspasoDetalle"
+            }
+          },
+          "archivos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraspasoArchivo"
+            }
+          }
+        }
+      },
+      "TraspasoDetalle": {
+        "type": "object",
+        "required": ["idArticulo", "cantidad"],
+        "properties": {
+          "idArticulo": {"type": "integer"},
+          "cantidad": {"type": "number"}
+        }
+      },
+      "TraspasoArchivo": {
+        "type": "object",
+        "required": ["url", "nombreOriginal", "tipoArchivo"],
+        "properties": {
+          "url": {"type": "string"},
+          "nombreOriginal": {"type": "string"},
+          "tipoArchivo": {"type": "string", "enum": ["Envio", "Recepcion"]}
+        }
+      },
+      "TraspasoListado": {
+        "type": "object",
+        "properties": {
+          "idTraspaso": {"type": "integer"},
+          "folio": {"type": "string"},
+          "fechaTraspaso": {"type": "string"},
+          "almacenOrigenNombre": {"type": "string"},
+          "almacenDestinoNombre": {"type": "string"},
+          "estatus": {"type": "string"},
+          "cantidadArticulos": {"type": "integer"}
+        }
+      },
+      "ArchivoRequest": {
+        "type": "object",
+        "required": ["url", "nombreOriginal"],
+        "properties": {
+          "url": {"type": "string"},
+          "nombreOriginal": {"type": "string"}
+        }
+      },
+      "ArticuloConStock": {
+        "type": "object",
+        "description": "🆕 Artículo con información de stock por almacén",
+        "properties": {
+          "idArticulo": {
+            "type": "integer",
+            "description": "ID del artículo"
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Nombre del artículo"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "description": "ID de la categoría"
+          },
+          "nombreCategoria": {
+            "type": "string",
+            "description": "Nombre de la categoría"
+          },
+          "stockActual": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Cantidad disponible en el almacén"
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "description": "ID del almacén"
+          },
+          "nombreAlmacen": {
+            "type": "string",
+            "description": "Nombre del almacén"
+          },
+          "fechaUltimaEntrada": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha de última entrada al inventario"
+          },
+          "fechaUltimaSalida": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha de última salida del inventario"
+          },
+          "activo": {
+            "type": "boolean",
+            "description": "Indica si el artículo está activo"
+          }
+        }
+      },
+      "ReporteEntradasRequest": {
+        "type": "object",
+        "description": "Parámetros para generar reporte de entradas (donativos)",
+        "properties": {
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha inicio del rango (opcional)"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha fin del rango (opcional)"
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por almacén específico (opcional)"
+          },
+          "idDonador": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por donador específico (opcional)"
+          },
+          "idArticulo": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por artículo específico (opcional)"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por categoría de artículo (opcional)"
+          },
+          "tipo": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["especie", "efectivo", "dinero"],
+            "description": "Filtrar por tipo de donativo (opcional)"
+          },
+          "estatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["Recibido", "Procesado", "Cancelado"],
+            "description": "Filtrar por estatus (opcional)"
+          },
+          "agruparPor": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["donador", "articulo", "categoria", "almacen"],
+            "description": "Agrupar resultados por campo (opcional)"
+          },
+          "pagina": {
+            "type": "integer",
+            "default": 1,
+            "description": "Número de página para paginación"
+          },
+          "registrosPorPagina": {
+            "type": "integer",
+            "default": 50,
+            "description": "Cantidad de registros por página"
+          },
+          "ordenarPor": {
+            "type": "string",
+            "default": "fecha_recepcion",
+            "enum": ["fecha_recepcion", "folio", "donador", "almacen"],
+            "description": "Campo para ordenar"
+          },
+          "orden": {
+            "type": "string",
+            "default": "DESC",
+            "enum": ["ASC", "DESC"],
+            "description": "Dirección del ordenamiento"
+          }
+        }
+      },
+      "ReporteSalidasRequest": {
+        "type": "object",
+        "description": "Parámetros para generar reporte de salidas",
+        "properties": {
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha inicio del rango (opcional)"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha fin del rango (opcional)"
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por almacén específico (opcional)"
+          },
+          "idBeneficiario": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por beneficiario específico (opcional)"
+          },
+          "idArticulo": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por artículo específico (opcional)"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por categoría de artículo (opcional)"
+          },
+          "tipoSalida": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["Beneficiario", "Merma", "Otro"],
+            "description": "Filtrar por tipo de salida (opcional)"
+          },
+          "estatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["Entregado", "Cancelado"],
+            "description": "Filtrar por estatus (opcional)"
+          },
+          "agruparPor": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["beneficiario", "articulo", "categoria", "almacen"],
+            "description": "Agrupar resultados por campo (opcional)"
+          },
+          "pagina": {
+            "type": "integer",
+            "default": 1,
+            "description": "Número de página para paginación"
+          },
+          "registrosPorPagina": {
+            "type": "integer",
+            "default": 50,
+            "description": "Cantidad de registros por página"
+          },
+          "ordenarPor": {
+            "type": "string",
+            "default": "fecha_salida",
+            "enum": ["fecha_salida", "folio", "beneficiario", "almacen"],
+            "description": "Campo para ordenar"
+          },
+          "orden": {
+            "type": "string",
+            "default": "DESC",
+            "enum": ["ASC", "DESC"],
+            "description": "Dirección del ordenamiento"
+          }
+        }
+      },
+      "ReporteTraspasosRequest": {
+        "type": "object",
+        "description": "Parámetros para generar reporte de traspasos entre almacenes",
+        "properties": {
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha inicio del rango (opcional)"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha fin del rango (opcional)"
+          },
+          "idAlmacenOrigen": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por almacén origen (opcional)"
+          },
+          "idAlmacenDestino": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por almacén destino (opcional)"
+          },
+          "idArticulo": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por artículo específico (opcional)"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por categoría de artículo (opcional)"
+          },
+          "estatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["Pendiente", "Recibido", "Cancelado"],
+            "description": "Filtrar por estatus (opcional)"
+          },
+          "agruparPor": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["almacen_origen", "almacen_destino", "articulo", "categoria"],
+            "description": "Agrupar resultados por campo (opcional)"
+          },
+          "pagina": {
+            "type": "integer",
+            "default": 1,
+            "description": "Número de página para paginación"
+          },
+          "registrosPorPagina": {
+            "type": "integer",
+            "default": 50,
+            "description": "Cantidad de registros por página"
+          },
+          "ordenarPor": {
+            "type": "string",
+            "default": "fecha_traspaso",
+            "enum": ["fecha_traspaso", "folio", "almacen_origen", "almacen_destino"],
+            "description": "Campo para ordenar"
+          },
+          "orden": {
+            "type": "string",
+            "default": "DESC",
+            "enum": ["ASC", "DESC"],
+            "description": "Dirección del ordenamiento"
+          }
+        }
+      },
+      "ReporteExistenciasRequest": {
+        "type": "object",
+        "description": "Parámetros para generar reporte de existencias actuales",
+        "properties": {
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha inicio para filtrar última entrada (opcional)"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha fin para filtrar última entrada (opcional)"
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por almacén específico (opcional)"
+          },
+          "idArticulo": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por artículo específico (opcional)"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Filtrar por categoría de artículo (opcional)"
+          },
+          "soloSinExistencia": {
+            "type": "boolean",
+            "default": false,
+            "description": "Mostrar solo artículos sin stock"
+          },
+          "soloStockBajo": {
+            "type": "boolean",
+            "default": false,
+            "description": "Mostrar solo artículos con stock por debajo del mínimo"
+          },
+          "agruparPor": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["almacen", "articulo", "categoria"],
+            "description": "Agrupar resultados por campo (opcional)"
+          },
+          "pagina": {
+            "type": "integer",
+            "default": 1,
+            "description": "Número de página para paginación"
+          },
+          "registrosPorPagina": {
+            "type": "integer",
+            "default": 100,
+            "description": "Cantidad de registros por página (mayor para existencias)"
+          },
+          "ordenarPor": {
+            "type": "string",
+            "default": "nombre_articulo",
+            "enum": ["nombre_articulo", "cantidad_actual", "almacen", "categoria"],
+            "description": "Campo para ordenar"
+          },
+          "orden": {
+            "type": "string",
+            "default": "ASC",
+            "enum": ["ASC", "DESC"],
+            "description": "Dirección del ordenamiento"
+          },
+          "incluirInactivos": {
+            "type": "boolean",
+            "default": false,
+            "description": "Incluir artículos inactivos en el reporte"
+          }
+        }
+      },
+      "ReporteKardexRequest": {
+        "type": "object",
+        "required": ["idAlmacen", "idArticulo"],
+        "description": "Parámetros para generar kardex (historial de movimientos) de un artículo",
+        "properties": {
+          "idAlmacen": {
+            "type": "integer",
+            "description": "ID del almacén (requerido)"
+          },
+          "idArticulo": {
+            "type": "integer",
+            "description": "ID del artículo (requerido)"
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha inicio del rango de movimientos (opcional)"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha fin del rango de movimientos (opcional)"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Respuesta de error estándar para validaciones y datos no encontrados",
+        "properties": {
+          "mensaje": {
+            "type": "string",
+            "description": "Mensaje de error descriptivo"
+          }
+        }
+      },
+      "ServerErrorResponse": {
+        "type": "object",
+        "description": "Respuesta de error del servidor con reference ID para trazabilidad",
+        "properties": {
+          "mensaje": {
+            "type": "string",
+            "description": "Mensaje de error genérico"
+          },
+          "reference_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID único para rastrear el error en logs"
+          }
+        }
+      }
+    }
+  }
+}
