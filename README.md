@@ -14,7 +14,6 @@ sistema-donativos/
 ├── docker-compose.yml           # Orquestación de servicios (Base de Datos + API + Web)
 ├── .dockerignore                # Reglas de exclusión para imágenes Docker
 ├── respaldoDonativos.bak        # Respaldo limpio de la base de datos SQL Server
-├── respaldo.sql                 # Script SQL de estructura/datos
 ├── src/
 │   ├── SistemaDonativos.Shared/ # Biblioteca de clases común (.NET 10)
 │   │   ├── Models/              # DTOs y contratos compartidos (ej. AuthDtos.cs)
@@ -122,6 +121,7 @@ dotnet run --project src/SistemaDonativos.Web
 | `ConnectionStrings__donativosCn` | Cadena de conexión a SQL Server | `Server=sqlserver,1433;Database=DonativosDB;User Id=sa;...` |
 | `apiUrl` | URL de la API consumida por la Web | `http://api:8080/` |
 | `ASPNETCORE_ENVIRONMENT` | Entorno de ASP.NET Core | `Production` (Docker) / `Development` (Local) |
+| `FileStorage__NasPath` | Ruta para almacenamiento persistente de archivos/comprobantes | `/app/uploads` (volumen `web-uploads`) |
 | `logPath__path` | Ruta para logs estructurados | `/app/logs/api-.txt` |
 
 ---

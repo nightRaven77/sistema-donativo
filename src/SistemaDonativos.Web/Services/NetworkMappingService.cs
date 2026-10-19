@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,8 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace donativos.Services
 {
     /// <summary>
-    /// Servicio para mapear unidades de red con credenciales
-    /// Ejecuta: net use \\servidor\carpeta contraseña /user:usuario /persistent:yes
+    /// Servicio para mapear unidades de red o verificar volúmenes de almacenamiento
     /// </summary>
     public interface INetworkMappingService
     {
@@ -28,19 +29,41 @@ namespace donativos.Services
         }
 
         /// <summary>
-        /// Mapea la unidad de red con credenciales
+        /// Mapea la unidad de red con credenciales o verifica el volumen local/montado en contenedor
         /// </summary>
         public async Task<(bool success, string message)> MapNetworkDriveAsync()
         {
             try
             {
                 var nasPath = _configuration["FileStorage:NasPath"];
+
+                if (string.IsNullOrWhiteSpace(nasPath))
+                {
+                    var msg = "FileStorage:NasPath no configurado";
+                    _logger.LogWarning(msg);
+                    return (false, msg);
+                }
+
+                // Si estamos en Linux/Docker o la ruta no es un recurso compartido UNC de Windows (\\servidor\carpeta)
+                bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                bool isUncPath = nasPath.StartsWith(@"\\") || nasPath.StartsWith("//");
+
+                if (!isWindows || !isUncPath)
+                {
+                    if (!Directory.Exists(nasPath))
+                    {
+                        Directory.CreateDirectory(nasPath);
+                    }
+                    _logger.LogInformation("✅ Directorio de almacenamiento listo (volumen/montaje local): {Path}", nasPath);
+                    return (true, $"Almacenamiento disponible en: {nasPath}");
+                }
+
                 var username = _configuration["FileStorage:Username"];
                 var password = _configuration["FileStorage:Password"];
 
-                if (string.IsNullOrWhiteSpace(nasPath) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
-                    var msg = "Configuración incompleta para mapear unidad de red";
+                    var msg = "Configuración incompleta de credenciales para mapear unidad de red Windows";
                     _logger.LogWarning(msg);
                     return (false, msg);
                 }
@@ -89,6 +112,14 @@ namespace donativos.Services
                 
                 if (string.IsNullOrWhiteSpace(nasPath))
                     return (false, "NasPath no configurado");
+
+                bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                bool isUncPath = nasPath.StartsWith(@"\\") || nasPath.StartsWith("//");
+
+                if (!isWindows || !isUncPath)
+                {
+                    return (true, "No se requiere desconexión para almacenamiento local/montaje.");
+                }
 
                 string sharePath = ExtractSharePath(nasPath);
                 

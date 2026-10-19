@@ -17,7 +17,6 @@ services:
     volumes:
       - sqlserver-data:/var/opt/mssql/data
       - ./respaldoDonativos.bak:/var/opt/mssql/backup/respaldoDonativos.bak:ro
-      - ./respaldo.sql:/var/opt/mssql/backup/respaldo.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Donativos2026!' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Donativos2026!' -Q 'SELECT 1'"]
       interval: 10s
@@ -66,6 +65,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - apiUrl=http://api:8080/
+      - FileStorage__NasPath=/app/uploads
+    volumes:
+      - web-uploads:/app/uploads
     depends_on:
       - api
     networks:
@@ -78,3 +80,4 @@ networks:
 volumes:
   api-logs:
   sqlserver-data:
+  web-uploads:
