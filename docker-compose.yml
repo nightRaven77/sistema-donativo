@@ -13,7 +13,7 @@ services:
       - MSSQL_SA_PASSWORD=Donativos2026!
       - MSSQL_PID=Developer
     ports:
-      - "1433:1433"
+      - "14333:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql/data
       - ./respaldoDonativos.bak:/var/opt/mssql/backup/respaldoDonativos.bak:ro

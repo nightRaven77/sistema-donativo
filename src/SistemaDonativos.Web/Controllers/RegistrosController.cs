@@ -2302,5 +2302,231 @@ namespace donativos.Controllers
                 _ => "application/octet-stream"
             };
         }
+
+        #region Impresión de Comprobantes
+
+        /// <summary>
+        /// Genera la vista imprimible limpia y moderna para Donativo / Entrada
+        /// GET: Registros/ImprimirDonativo?id={id}
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ImprimirDonativo(int id)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                _logger.LogInformation($"🖨️ Solicitando impresión de donativo ID: {id}");
+
+                var response = await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, $"consulta/movimientos/entrada/{id}");
+
+                dynamic data = null;
+                if (response.IsSuccessful && !string.IsNullOrWhiteSpace(response.Content))
+                {
+                    var resJson = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                    if (resJson != null && resJson["exito"] == true && resJson["data"] != null)
+                    {
+                        data = resJson["data"];
+                    }
+                    else
+                    {
+                        data = resJson;
+                    }
+                }
+
+                if (data == null)
+                {
+                    var fallbackResp = await ExecuteApiAsync(token, $"donativo/{id}", "GET");
+                    if (fallbackResp.StatusCode == System.Net.HttpStatusCode.OK && !string.IsNullOrWhiteSpace(fallbackResp.Content))
+                    {
+                        data = JsonConvert.DeserializeObject<dynamic>(fallbackResp.Content);
+                    }
+                }
+
+                if (data == null)
+                {
+                    return NotFound("No se encontró el donativo especificado.");
+                }
+
+                ViewBag.TipoMovimiento = "Entrada";
+
+                var modelo = new donativos.Models.ComprobanteImpresionViewModel
+                {
+                    Folio = data["folio"]?.ToString() ?? "S/F",
+                    Fecha = data["fecha"] != null ? (DateTime?)DateTime.Parse(data["fecha"].ToString()) : (DateTime?)null,
+                    Almacen = data["almacen"]?["nombre"]?.ToString() ?? data["almacen_origen"]?["nombre"]?.ToString() ?? data["almacen"]?.ToString() ?? "Almacén Central",
+                    AlmacenDestino = "",
+                    Responsable = data["responsable"]?["nombre"]?.ToString() ?? data["nombreDonador"]?.ToString() ?? data["donador"]?["nombre"]?.ToString() ?? "Donante General",
+                    RFC = data["responsable"]?["rfc"]?.ToString() ?? data["donador"]?["rfc"]?.ToString() ?? "N/A",
+                    Observaciones = data["observaciones"]?.ToString() ?? "Ninguna",
+                    UsuarioRegistro = data["usuarioRegistro"]?.ToString() ?? HttpContext.Session.GetString("usuario") ?? "Sistema",
+                    Tipo = data["tipo"]?.ToString() ?? "Especie",
+                    Estatus = data["estatus"]?.ToString() ?? "Recibido",
+                    Detalles = ExtraerDetallesImpresion(data["detalles"])
+                };
+
+                return View("Impresion", modelo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al generar vista de impresión para donativo ID: {id}");
+                return StatusCode(500, "Error al generar comprobante imprimible.");
+            }
+        }
+
+        /// <summary>
+        /// Genera la vista imprimible limpia y moderna para Salida
+        /// GET: Registros/ImprimirSalida?id={id}
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ImprimirSalida(int id)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                _logger.LogInformation($"🖨️ Solicitando impresión de salida ID: {id}");
+
+                var response = await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, $"consulta/movimientos/salida/{id}");
+
+                dynamic data = null;
+                if (response.IsSuccessful && !string.IsNullOrWhiteSpace(response.Content))
+                {
+                    var resJson = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                    if (resJson != null && resJson["exito"] == true && resJson["data"] != null)
+                    {
+                        data = resJson["data"];
+                    }
+                    else
+                    {
+                        data = resJson;
+                    }
+                }
+
+                if (data == null)
+                {
+                    return NotFound("No se encontró la salida especificada.");
+                }
+
+                ViewBag.TipoMovimiento = "Salida";
+
+                var modelo = new donativos.Models.ComprobanteImpresionViewModel
+                {
+                    Folio = data["folio"]?.ToString() ?? "S/F",
+                    Fecha = data["fecha"] != null ? (DateTime?)DateTime.Parse(data["fecha"].ToString()) : (DateTime?)null,
+                    Almacen = data["almacen"]?["nombre"]?.ToString() ?? data["almacen_origen"]?["nombre"]?.ToString() ?? data["almacenOrigen"]?.ToString() ?? "Almacén Central",
+                    AlmacenDestino = "",
+                    Responsable = data["responsable"]?["nombre"]?.ToString() ?? data["beneficiario"]?["nombre"]?.ToString() ?? "Beneficiario",
+                    RFC = "N/A",
+                    Observaciones = data["observaciones"]?.ToString() ?? "Ninguna",
+                    UsuarioRegistro = HttpContext.Session.GetString("usuario") ?? "Sistema",
+                    Tipo = data["tipo"]?.ToString() ?? "Salida",
+                    Estatus = data["estatus"]?.ToString() ?? "Completado",
+                    Detalles = ExtraerDetallesImpresion(data["detalles"])
+                };
+
+                return View("Impresion", modelo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al generar vista de impresión para salida ID: {id}");
+                return StatusCode(500, "Error al generar comprobante de salida.");
+            }
+        }
+
+        /// <summary>
+        /// Genera la vista imprimible limpia y moderna para Traspaso
+        /// GET: Registros/ImprimirTraspaso?id={id}
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ImprimirTraspaso(int id)
+        {
+            var token = HttpContext.Session.GetString("token");
+
+            try
+            {
+                _logger.LogInformation($"🖨️ Solicitando impresión de traspaso ID: {id}");
+
+                var response = await RestSharpHelper.ExecuteGetAsync(ApiUrl, token, $"consulta/movimientos/traspaso/{id}");
+
+                dynamic data = null;
+                if (response.IsSuccessful && !string.IsNullOrWhiteSpace(response.Content))
+                {
+                    var resJson = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                    if (resJson != null && resJson["exito"] == true && resJson["data"] != null)
+                    {
+                        data = resJson["data"];
+                    }
+                    else
+                    {
+                        data = resJson;
+                    }
+                }
+
+                if (data == null)
+                {
+                    return NotFound("No se encontró el traspaso especificado.");
+                }
+
+                ViewBag.TipoMovimiento = "Traspaso";
+
+                var modelo = new donativos.Models.ComprobanteImpresionViewModel
+                {
+                    Folio = data["folio"]?.ToString() ?? "S/F",
+                    Fecha = data["fecha"] != null ? (DateTime?)DateTime.Parse(data["fecha"].ToString()) : (DateTime?)null,
+                    Almacen = data["almacen_origen"]?["nombre"]?.ToString() ?? data["almacenOrigen"]?.ToString() ?? "Almacén Origen",
+                    AlmacenDestino = data["almacen_destino"]?["nombre"]?.ToString() ?? data["almacenDestino"]?.ToString() ?? "Almacén Destino",
+                    Responsable = data["motivo"]?.ToString() ?? "Traspaso de almacén",
+                    RFC = "N/A",
+                    Observaciones = data["observaciones"]?.ToString() ?? "Ninguna",
+                    UsuarioRegistro = HttpContext.Session.GetString("usuario") ?? "Sistema",
+                    Tipo = "Traspaso",
+                    Estatus = data["estatus"]?.ToString() ?? "Aprobado",
+                    Detalles = ExtraerDetallesImpresion(data["detalles"])
+                };
+
+                return View("Impresion", modelo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al generar vista de impresión para traspaso ID: {id}");
+                return StatusCode(500, "Error al generar comprobante de traspaso.");
+            }
+        }
+
+                private List<donativos.Models.ComprobanteDetalleItem> ExtraerDetallesImpresion(dynamic detallesObj)
+        {
+            var lista = new List<donativos.Models.ComprobanteDetalleItem>();
+            if (detallesObj == null) return lista;
+
+            try
+            {
+                var jArray = detallesObj as JArray ?? JArray.FromObject(detallesObj);
+                foreach (var d in jArray)
+                {
+                    decimal cant = 1;
+                    var cantStr = d["cantidad"]?.ToString() ?? d["cantidadRecibida"]?.ToString() ?? d["cantidadEntregada"]?.ToString();
+                    if (!string.IsNullOrEmpty(cantStr))
+                    {
+                        decimal.TryParse(cantStr, out cant);
+                    }
+
+                    lista.Add(new donativos.Models.ComprobanteDetalleItem
+                    {
+                        Categoria = d["categoria"]?.ToString() ?? d["nombreCategoria"]?.ToString() ?? "General",
+                        Articulo = d["nombre_articulo"]?.ToString() ?? d["nombreArticulo"]?.ToString() ?? d["articulo"]?.ToString() ?? "Artículo",
+                        UnidadMedida = d["unidad_medida"]?.ToString() ?? d["unidadMedida"]?.ToString() ?? "Pieza",
+                        Cantidad = cant
+                    });
+                }
+            }
+            catch
+            {
+            }
+
+            return lista;
+        }
+
+        #endregion
     }
 }

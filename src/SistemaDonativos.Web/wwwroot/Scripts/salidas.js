@@ -1003,7 +1003,7 @@ function renderizarTablaSalidas(salidas) {
 
         // Botones de acción
         const botones = `
-            <button class="btn btn-sm btn-info" onclick="verDetalleSalida(${id})" title="Ver detalle">
+            <button class="btn btn-sm btn-secondary" onclick="imprimirSalida(${id})" title="Imprimir Comprobante"><i class="fas fa-print"></i></button> <button class="btn btn-sm btn-info" onclick="verDetalleSalida(${id})" title="Ver detalle">
                 <i class="fas fa-eye"></i>
             </button>
             <button class="btn btn-sm btn-danger" onclick="eliminarSalida(${id})" title="Eliminar">
@@ -1556,3 +1556,8 @@ console.log('✓ Funciones exportadas:', {
     inicializarSalidas: typeof inicializarSalidas,
     guardarSalida: typeof guardarSalida
 });
+
+function imprimirSalida(id) {
+    const url = AjaxService.buildUrl('Registros/ImprimirSalida?id=' + id + '&autoPrint=true');
+    window.open(url, '_blank');
+}

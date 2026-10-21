@@ -225,7 +225,7 @@ function llenarTablaConDataTables(donativos) {
         const cantidadArticulos = donativo.cantidadArticulos || 0;
 
         const botones = `
-            <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.idDonativo})" title="Ver detalles">
+            <button class="btn btn-sm btn-secondary" onclick="imprimirDonativo(${donativo.idDonativo})" title="Imprimir Comprobante"><i class="fas fa-print"></i></button> <button class="btn btn-sm btn-info" onclick="verDetalles(${donativo.idDonativo})" title="Ver detalles">
                 <i class="fas fa-eye"></i>
             </button>
             <button class="btn btn-sm btn-danger" onclick="eliminarDonativo(${donativo.idDonativo})" title="Eliminar">
@@ -2786,4 +2786,9 @@ function visualizarArchivo(url, nombreArchivo, tipo) {
             container: 'archivo-preview-modal'
         }
     });
+}
+
+function imprimirDonativo(id) {
+    const url = AjaxService.buildUrl('Registros/ImprimirDonativo?id=' + id + '&autoPrint=true');
+    window.open(url, '_blank');
 }

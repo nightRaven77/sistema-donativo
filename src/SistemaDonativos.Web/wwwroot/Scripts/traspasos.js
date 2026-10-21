@@ -763,7 +763,7 @@ function obtenerBadgeEstado(estado) {
  */
 function generarBotonesAccion(id, estado) {
     let botones = `
-        <button class="btn btn-sm btn-info" onclick="verDetalleTraspaso(${id})" title="Ver detalle">
+        <button class="btn btn-sm btn-secondary" onclick="imprimirTraspaso(${id})" title="Imprimir Comprobante"><i class="fas fa-print"></i></button> <button class="btn btn-sm btn-info" onclick="verDetalleTraspaso(${id})" title="Ver detalle">
             <i class="fas fa-eye"></i>
         </button>
     `;
@@ -1590,3 +1590,8 @@ console.log('✓ Funciones exportadas:', {
     inicializarTraspasos: typeof inicializarTraspasos,
     guardarTraspaso: typeof guardarTraspaso
 });
+
+function imprimirTraspaso(id) {
+    const url = AjaxService.buildUrl('Registros/ImprimirTraspaso?id=' + id + '&autoPrint=true');
+    window.open(url, '_blank');
+}

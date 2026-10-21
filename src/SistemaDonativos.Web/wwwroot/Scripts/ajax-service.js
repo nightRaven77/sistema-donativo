@@ -615,6 +615,15 @@ const AjaxService = (function() {
         },
 
         // Métodos de conveniencia para acceso directo
+        obtenerDonativos() {
+            return donativos.obtenerTodos();
+        },
+        obtenerSalidas() {
+            return salidas.obtenerTodas();
+        },
+        obtenerTraspasos() {
+            return traspasos.obtenerTodos();
+        },
         get: function(url, data) {
             return _ejecutarAjax({
                 type: 'GET',

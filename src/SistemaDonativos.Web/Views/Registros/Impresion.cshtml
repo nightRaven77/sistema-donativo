@@ -1,0 +1,463 @@
+@model donativos.Models.ComprobanteImpresionViewModel
+@{
+    Layout = null;
+    var esEntrada = (string)ViewBag.TipoMovimiento == "Entrada";
+    var esSalida = (string)ViewBag.TipoMovimiento == "Salida";
+    var esTraspaso = (string)ViewBag.TipoMovimiento == "Traspaso";
+    
+    var titulo = esEntrada ? "Comprobante de Entrada de Donativo" : (esSalida ? "Comprobante de Salida de Almacén" : "Comprobante de Traspaso entre Almacenes");
+    var folio = Model.Folio ?? "S/F";
+    var fecha = Model.Fecha.HasValue ? Model.Fecha.Value.ToString("dd/MM/yyyy HH:mm") : "N/A";
+    var almacen = Model.Almacen ?? "Almacén Central";
+    var almacenDestino = Model.AlmacenDestino ?? "";
+    var responsable = Model.Responsable ?? "N/A";
+    var rfc = Model.RFC ?? "N/A";
+    var observaciones = Model.Observaciones ?? "Ninguna";
+    var usuarioRegistro = Model.UsuarioRegistro ?? "Sistema";
+    var tipo = Model.Tipo ?? "Especie";
+    var estatus = Model.Estatus ?? "Registrado";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@titulo - @folio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --primary-light: #eff6ff;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 24px;
+        }
+
+        .receipt-container {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            position: relative;
+        }
+
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #2563eb, #1e3a8a);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 22px;
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111827;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .folio-badge {
+            text-align: right;
+        }
+
+        .folio-number {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .folio-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .doc-title-bar {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
+            padding: 10px 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .doc-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px 24px;
+            margin-bottom: 28px;
+            background: #fafafa;
+            padding: 16px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .meta-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 28px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .items-table thead {
+            background-color: #f8fafc;
+        }
+
+        .items-table th {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #374151;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 0.5px;
+        }
+
+        .items-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .items-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background-color: #fafbfc;
+        }
+
+        .signatures-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 48px;
+            margin-top: 48px;
+            padding-top: 20px;
+        }
+
+        .sign-box {
+            text-align: center;
+        }
+
+        .sign-line {
+            border-top: 1px solid #374151;
+            margin-bottom: 8px;
+        }
+
+        .sign-role {
+            font-size: 12px;
+            font-weight: 700;
+            color: #111827;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .sign-name {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .receipt-footer {
+            margin-top: 40px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .floating-actions {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 13px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+        }
+
+        @@media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+
+            .receipt-container {
+                box-shadow: none !important;
+                padding: 15px !important;
+                max-width: 100% !important;
+                border-radius: 0 !important;
+            }
+
+            .floating-actions {
+                display: none !important;
+            }
+
+            .meta-grid {
+                background: #ffffff !important;
+                border: 1px solid #d1d5db !important;
+            }
+
+            .doc-title-bar {
+                background: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .items-table thead {
+                background: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-container">
+        <!-- Encabezado Principal -->
+        <header class="receipt-header">
+            <div class="brand-logo">
+                <div class="brand-icon">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <div>
+                    <h1 class="brand-title">Control de Donativos</h1>
+                    <p class="brand-subtitle">Gestión e Inventario de Almacén</p>
+                </div>
+            </div>
+
+            <div class="folio-badge">
+                <div class="folio-label">Folio Oficial</div>
+                <div class="folio-number">@folio</div>
+            </div>
+        </header>
+
+        <!-- Barra de Título del Documento -->
+        <div class="doc-title-bar">
+            <h2 class="doc-title">@titulo</h2>
+            <span class="badge bg-secondary text-uppercase px-2 py-1">@estatus</span>
+        </div>
+
+        <!-- Metadatos de la Operación -->
+        <div class="meta-grid">
+            <div class="meta-item">
+                <span class="meta-label">Fecha y Hora</span>
+                <span class="meta-value"><i class="far fa-calendar-alt text-muted me-1"></i> @fecha</span>
+            </div>
+
+            <div class="meta-item">
+                <span class="meta-label">Almacén @(esTraspaso ? "Origen" : "Receptor")</span>
+                <span class="meta-value"><i class="fas fa-warehouse text-muted me-1"></i> @almacen</span>
+            </div>
+
+            @if (esTraspaso)
+            {
+                <div class="meta-item">
+                    <span class="meta-label">Almacén Destino</span>
+                    <span class="meta-value"><i class="fas fa-map-marker-alt text-muted me-1"></i> @almacenDestino</span>
+                </div>
+            }
+
+            <div class="meta-item">
+                <span class="meta-label">@(esEntrada ? "Donante" : (esSalida ? "Beneficiario" : "Motivo"))</span>
+                <span class="meta-value">@responsable</span>
+            </div>
+
+            @if (esEntrada)
+            {
+                <div class="meta-item">
+                    <span class="meta-label">RFC / Identificación</span>
+                    <span class="meta-value">@rfc</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Tipo de Donativo</span>
+                    <span class="meta-value">@tipo</span>
+                </div>
+            }
+
+            <div class="meta-item">
+                <span class="meta-label">Registrado Por</span>
+                <span class="meta-value">@usuarioRegistro</span>
+            </div>
+        </div>
+
+        <!-- Tabla de Artículos / Detalles -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;" class="text-center">#</th>
+                    <th>Categoría</th>
+                    <th>Descripción del Artículo</th>
+                    <th class="text-center" style="width: 120px;">Unidad</th>
+                    <th class="text-end" style="width: 120px;">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int indice = 1;
+                }
+                @if (Model.Detalles != null && Model.Detalles.Any())
+                {
+                    foreach (var item in Model.Detalles)
+                    {
+                        <tr>
+                            <td class="text-center text-muted font-monospace">@indice</td>
+                            <td><span class="badge bg-light text-dark border">@item.Categoria</span></td>
+                            <td class="fw-semibold">@item.Articulo</td>
+                            <td class="text-center text-muted">@item.UnidadMedida</td>
+                            <td class="text-end fw-bold">@item.Cantidad.ToString("N2")</td>
+                        </tr>
+                        indice++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No se registraron artículos en este movimiento.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Observaciones -->
+        @if (!string.IsNullOrWhiteSpace(observaciones) && observaciones != "Ninguna")
+        {
+            <div class="p-3 bg-light rounded border mb-4">
+                <div class="meta-label">Observaciones Adicionales:</div>
+                <p class="mb-0 text-muted" style="font-size: 12px;">@observaciones</p>
+            </div>
+        }
+
+        <!-- Firmas -->
+        <div class="signatures-section">
+            <div class="sign-box">
+                <div class="sign-line"></div>
+                <p class="sign-role">@(esEntrada ? "Entregó (Donante)" : (esSalida ? "Entregó (Almacén)" : "Envió (Almacén Origen)"))</p>
+                <p class="sign-name">@(esEntrada ? responsable : usuarioRegistro)</p>
+            </div>
+
+            <div class="sign-box">
+                <div class="sign-line"></div>
+                <p class="sign-role">@(esEntrada ? "Recibió (Almacén)" : (esSalida ? "Recibió (Beneficiario)" : "Recibió (Almacén Destino)"))</p>
+                <p class="sign-name">@(esEntrada ? usuarioRegistro : responsable)</p>
+            </div>
+        </div>
+
+        <!-- Pie de Página -->
+        <footer class="receipt-footer">
+            <span>Generado el @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</span>
+            <span>Sistema Integral de Donativos - Documento Operativo de Control Interno</span>
+        </footer>
+    </div>
+
+    <!-- Acciones Flotantes en Pantalla (Ocultas en Impresión) -->
+    <div class="floating-actions">
+        <button type="button" class="btn btn-secondary btn-action" onclick="window.close()">
+            <i class="fas fa-times"></i> Cerrar
+        </button>
+        <button type="button" class="btn btn-primary btn-action" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimir / Guardar PDF
+        </button>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('autoPrint') === 'true') {
+            window.addEventListener('load', () => {
+                setTimeout(() => window.print(), 500);
+            });
+        }
+    </script>
+</body>
+</html>

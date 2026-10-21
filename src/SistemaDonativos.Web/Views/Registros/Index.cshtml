@@ -367,30 +367,30 @@
                         if (typeof AjaxService === 'undefined') return;
                         const setKpi = (id, val) => {
                         const el = document.getElementById(id);
-                        if (el) el.textContent = val;
+                        if (el) el.textContent = val; }; const parseList = (res) => { if (!res) return []; let v = res.status === 'fulfilled' ? res.value : res; if (!v) return []; if (typeof v === 'string') { try { v = JSON.parse(v); } catch { return []; } } if (Array.isArray(v)) return v; if (v && Array.isArray(v.data)) return v.data; if (v && Array.isArray(v.donativos)) return v.donativos; if (v && Array.isArray(v.salidas)) return v.salidas; if (v && Array.isArray(v.traspasos)) return v.traspasos; if (v && Array.isArray(v.items)) return v.items; return [];
                         };
                         try {
                         const [donativosRes, salidasRes, traspasosRes] = await Promise.allSettled([
-                        AjaxService.obtenerDonativos(),
-                        AjaxService.obtenerSalidas(),
-                        AjaxService.obtenerTraspasos()
+                        AjaxService.donativos ? AjaxService.donativos.obtenerTodos() : AjaxService.get('/Registros/ObtenerDonativos'),
+                        AjaxService.salidas ? AjaxService.salidas.obtenerTodas() : AjaxService.get('/Registros/ObtenerSalidas'),
+                        AjaxService.traspasos ? AjaxService.traspasos.obtenerTodos() : AjaxService.get('/Registros/ObtenerTraspasos')
                         ]);
 
-                        if (donativosRes.status === 'fulfilled' && donativosRes.value?.success && Array.isArray(donativosRes.value.data)) {
-                        const activos = donativosRes.value.data.filter(d => (d.estatus || '').toLowerCase() !== 'cancelado');
-                        setKpi('kpiTotalDonativos', activos.length.toLocaleString('es-MX'));
+                        const donativos = parseList(donativosRes); if (donativos) {
+                        const activos = donativos.filter(d => (d.estatus || '').toLowerCase() !== 'cancelado');
+                        setKpi('kpiTotalDonativos', activos.length.toLocaleString('es-MX')); const tbody = document.getElementById('tbodyDonativosRecientesDashboard'); if (tbody) { if (donativos.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-stone-500 py-3">No hay donativos registrados aún.</td></tr>'; } else { tbody.innerHTML = donativos.slice(0, 5).map(d => `<tr><td class="font-bold text-stone-800">${d.folio || ('#' + d.idDonativo)}</td><td>${d.nombre || d.nombreDonador || d.donador || 'N/A'}</td><td>${d.fechaRecepcion ? new Date(d.fechaRecepcion).toLocaleDateString('es-MX') : 'N/A'}</td><td><span class="badge bg-secondary text-uppercase">${d.tipo || 'Especie'}</span></td><td><span class="badge bg-success">${d.estatus || 'Recibido'}</span></td><td>${d.cantidadArticulos || 1}</td><td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="window.open('/Registros/ImprimirDonativo?id=' + d.idDonativo + '&autoPrint=true', '_blank')" title="Imprimir"><i class="fas fa-print"></i></button><button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="App.loadView(event, 'registros')"><i class="fas fa-eye"></i> Ver</button></td></tr>`).join(''); } }
                         } else {
                         setKpi('kpiTotalDonativos', '0');
                         }
 
-                        if (salidasRes.status === 'fulfilled' && salidasRes.value?.success && Array.isArray(salidasRes.value.data)) {
-                        setKpi('kpiTotalSalidas', salidasRes.value.data.length.toLocaleString('es-MX'));
+                        const salidas = parseList(salidasRes); if (salidas) {
+                        setKpi('kpiTotalSalidas', salidas.length.toLocaleString('es-MX'));
                         } else {
                         setKpi('kpiTotalSalidas', '0');
                         }
 
-                        if (traspasosRes.status === 'fulfilled' && traspasosRes.value?.success && Array.isArray(traspasosRes.value.data)) {
-                        const lista = traspasosRes.value.data;
+                        const traspasos = parseList(traspasosRes); if (traspasos) {
+                        const lista = traspasos;
                         const pendientes = lista.filter(t => (t.estado || '').toLowerCase() === 'pendiente').length;
                         const aprobados = lista.filter(t => (t.estado || '').toLowerCase() === 'aprobado').length;
                         setKpi('kpiTraspasosPendientes', pendientes.toLocaleString('es-MX'));

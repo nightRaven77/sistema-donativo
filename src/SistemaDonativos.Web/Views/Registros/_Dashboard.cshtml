@@ -109,4 +109,36 @@
             </button>
         </div>
     </div>
+
+    <!-- Donativos Recientes -->
+    <div class="mt-8 pt-6 border-t border-stone-200">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-stone-600 mb-0">
+                <i class="fas fa-history mr-1" style="color: var(--dorado);"></i> Entradas Recientes de Donativos
+            </h3>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="App.loadView(event, 'registros')">
+                Ver Todos en Recepción <i class="fas fa-arrow-right ml-1"></i>
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0" id="tablaDonativosRecientesDashboard">
+                <thead class="table-light">
+                    <tr style="background-color: var(--guinda); color: white;">
+                        <th>Folio</th>
+                        <th>Donador</th>
+                        <th>Fecha Recepción</th>
+                        <th>Tipo</th>
+                        <th>Estatus</th>
+                        <th>Artículos</th>
+                        <th class="text-end">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyDonativosRecientesDashboard">
+                    <tr>
+                        <td colspan="7" class="text-center text-stone-500 py-3">Cargando donativos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
